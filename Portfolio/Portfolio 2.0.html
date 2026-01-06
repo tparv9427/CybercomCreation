@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            max-width: 400px;
+            border: solid 2px black;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+        }
+
+        .nav button {
+            background-color: transparent;
+            border: 1px solid #2979ff;
+            background-color: white;
+            color: #2979ff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .nav button:hover,
+        .nav button.active {
+            background-color: #2979ff;
+            border-color: #2979ff;
+            color: white;
+        }
+
+
+        .header {
+            max-width: max-content;
+            margin: 50px auto;
+            padding: 30px;
+            display: flex;
+            align-items: start;
+            gap: 5px;
+        }
+
+        .profile {
+            border-radius: 50%;
+            background: #B75F67;
+            border: solid 2px #2979ff;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <div class="nav">
+        <button class="active">Home</button>
+        <button>About</button>
+        <button>Projects</button>
+        <button>Contact</button>
+    </div>
+    <!-- hero section -->
+    <div class="header">
+        <div>
+            <img src="DSC_5749 copy.png" alt="Profile Picture" width="150" height="150" class="profile">
+        </div>
+        <div>
+            <h1>I'm Parv Talati</h1>
+            <p>Recent Computer Engineering diploma graduate (2023) with strong technical foundations and a passion for
+                emerging technologies. Ranked first in my college among the 2020 batch. Eager to apply my skills and
+                achievements to contribute to a dynamic, innovative team. </p>
+        </div>
+    </div>
+    <div>
+
+    </div>
+    <script>
+        // Navigation button active state handling
+        const navButtons = document.querySelectorAll('.nav button');
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+    </script>
+</body>
+
+</html>
