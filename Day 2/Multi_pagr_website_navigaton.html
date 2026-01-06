@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Page Navigation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        nav {
+            background: linear-gradient(to right, #1a1a1a, #b3945b);
+            padding: 0.5rem 1rem;
+            position: sticky;
+            top: 1rem;
+            width: min-content;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+            font-weight: 600;
+            border-radius: 999px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: #F5F5F5;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #FFD27A;
+        }
+
+        nav a.active {
+            color: #EDE6D8;
+            border-bottom: 2px solid #EDE6D8;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        section {
+            display: none;
+        }
+
+        section.active {
+            display: block;
+            margin: ;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <ul>
+            <li><a href="#home" class="nav-link active">Home</a></li>
+            <li><a href="#about" class="nav-link">About</a></li>
+            <li><a href="#services" class="nav-link">Services</a></li>
+            <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="home" class="active">
+            <h1>Home</h1>
+            <p>Welcome to our multi-page website. Click the navigation links above to explore different sections.</p>
+        </section>
+
+        <section id="about">
+            <h1>About Us</h1>
+            <p>Learn more about our company and mission on this page.</p>
+        </section>
+
+        <section id="services">
+            <h1>Our Services</h1>
+            <p>Discover the range of services we offer to our clients.</p>
+        </section>
+
+        <section id="contact">
+            <h1>Contact Us</h1>
+            <p>Get in touch with us through this contact section.</p>
+        </section>
+    </main>
+
+    <script>
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('section');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault(); // To prevent page reload
+
+                // Remove active class from all links and sections
+                navLinks.forEach(l => l.classList.remove('active'));
+                sections.forEach(s => s.classList.remove('active'));
+
+                // Add active class to clicked link
+                link.classList.add('active');
+
+                // Show corresponding section
+                const targetId = link.getAttribute('href').substring(1);
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+    </script>
+</body>
+
+</html>
