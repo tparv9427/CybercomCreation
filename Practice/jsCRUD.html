@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Todo CRUD</title>
+</head>
+<body>
+
+    <h2>Todo App (CRUD in JavaScript)</h2>
+
+    <!-- Create -->
+    <input type="text" id="todoInput" placeholder="Enter todo">
+    <button onclick="addTodo()">Add</button>
+
+    <!-- Read -->
+    <ul id="todoList"></ul>
+
+    <script>
+        let todos = []; // data storage
+        let editIndex = null;
+
+        // CREATE
+        function addTodo() {
+            const input = document.getElementById("todoInput");
+            const value = input.value.trim();
+
+            if (value === "") return;
+
+            if (editIndex === null) {
+                todos.push(value);
+            } else {
+                todos[editIndex] = value;
+                editIndex = null;
+            }
+
+            input.value = "";
+            renderTodos();
+        }
+
+        // READ
+        function renderTodos() {
+            const list = document.getElementById("todoList");
+            list.innerHTML = "";
+
+            todos.forEach((todo, index) => {
+                const li = document.createElement("li");
+
+                li.innerHTML = `
+                    ${todo}
+                    <button onclick="editTodo(${index})">Edit</button>
+                    <button onclick="deleteTodo(${index})">Delete</button>
+                `;
+
+                list.appendChild(li);
+            });
+        }
+
+        // UPDATE
+        function editTodo(index) {
+            document.getElementById("todoInput").value = todos[index];
+            editIndex = index;
+        }
+
+        // DELETE
+        function deleteTodo(index) {
+            todos.splice(index, 1);
+            renderTodos();
+        }
+    </script>
+
+</body>
+</html>
