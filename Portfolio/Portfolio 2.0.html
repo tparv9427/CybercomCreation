@@ -4,96 +4,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            color: #e0e0e0;
-            margin: 0;
-            padding: 0;
-            max-width: 400px;
-            border: solid 2px black;
-        }
-
-        .nav {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            padding: 15px;
-            position: sticky;
-            top: 0;
-        }
-
-        .nav button {
-            background-color: transparent;
-            border: 1px solid #2979ff;
-            background-color: white;
-            color: #2979ff;
-            padding: 10px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-
-        .nav button:hover,
-        .nav button.active {
-            background-color: #2979ff;
-            border-color: #2979ff;
-            color: white;
-        }
-
-
-        .header {
-            max-width: max-content;
-            margin: 50px auto;
-            padding: 30px;
-            display: flex;
-            align-items: start;
-            gap: 5px;
-        }
-
-        .profile {
-            border-radius: 50%;
-            background: #B75F67;
-            border: solid 2px #2979ff;
-        }
-    </style>
+    <title>Parv Talati | Portfolio</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <!-- Navigation Bar -->
-    <div class="nav">
-        <button class="active">Home</button>
-        <button>About</button>
-        <button>Projects</button>
-        <button>Contact</button>
-    </div>
-    <!-- hero section -->
-    <div class="header">
-        <div>
-            <img src="DSC_5749 copy.png" alt="Profile Picture" width="150" height="150" class="profile">
-        </div>
-        <div>
-            <h1>I'm Parv Talati</h1>
-            <p>Recent Computer Engineering diploma graduate (2023) with strong technical foundations and a passion for
-                emerging technologies. Ranked first in my college among the 2020 batch. Eager to apply my skills and
-                achievements to contribute to a dynamic, innovative team. </p>
-        </div>
-    </div>
-    <div>
 
-    </div>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <button class="tab-button active" data-target="about">About</button>
+            <button class="tab-button" data-target="projects">Projects</button>
+            <button class="tab-button" data-target="skills">Skills</button>
+            <button class="tab-button" data-target="contact">Contact</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="header">
+        <div class="hero-content">
+            <div class="image-section">
+                <div class="profile-wrapper">
+                    <img src="DSC_5749 copy.png" alt="Parv Talati" class="profilePhoto">
+                </div>
+            </div>
+
+            <div class="about-section">
+                <h1>Parv Talati</h1>
+                <div class="role">Frontend Developer</div>
+                <p class="bio">
+                    Passionate frontend developer focused on building responsive,
+                    clean, and user-centric web applications with modern UI practices.
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+        <div class="content-card">
+            <section id="about" class="section">
+                <h3>About</h3>
+                <p>
+                    I am a frontend developer with hands-on experience in HTML, CSS,
+                    JavaScript, and modern UI design. I enjoy transforming ideas into
+                    elegant digital experiences.
+                </p>
+            </section>
+
+            <section id="projects" class="section">
+                <h3>Projects</h3>
+
+                <div class="projects-grid">
+                    <div class="project-card">
+                        <div class="project-title">Portfolio Website</div>
+                        <div class="project-desc">
+                            Personal portfolio showcasing projects, skills, and contact
+                            details using modern responsive UI principles.
+                        </div>
+                    </div>
+
+                    <div class="project-card">
+                        <div class="project-title">Net Banking UI Clone</div>
+                        <div class="project-desc">
+                            Frontend clone of a net banking system focusing on clean layout,
+                            usability, and dashboard-style components.
+                        </div>
+                    </div>
+
+                    <div class="project-card">
+                        <div class="project-title">Admin Dashboard</div>
+                        <div class="project-desc">
+                            Role-based admin panel with structured layouts, tables, and
+                            navigation for managing users and data.
+                        </div>
+                    </div>
+
+                    <div class="project-card">
+                        <div class="project-title">Responsive UI Projects</div>
+                        <div class="project-desc">
+                            Multiple small frontend projects emphasizing responsiveness,
+                            animations, and UI consistency.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="skills" class="section">
+                <h3>Skills</h3>
+                <p style="margin-bottom: 1rem;">
+                    My technical toolkit for creating modern web experiences:
+                </p>
+                <div class="skills-list">
+                    <div class="skill-tag">HTML5</div>
+                    <div class="skill-tag">CSS3</div>
+                    <div class="skill-tag">JavaScript</div>
+                    <div class="skill-tag">Responsive Design</div>
+                    <div class="skill-tag">UI/UX Fundamentals</div>
+                    <div class="skill-tag">Git & GitHub</div>
+                </div>
+            </section>
+
+            <section id="contact" class="section active">
+                <h3>Contact</h3>
+                <p style="margin-bottom: 2rem;">
+                    Let's connect and create something amazing together.
+                </p>
+                
+                <div class="contact-grid">
+                    <div class="contact-item">
+                        <div class="contact-label">Email</div>
+                        <div class="contact-value">
+                            <a href="mailto:talatiparv0@gmail.com">talatiparv0@gmail.com</a>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-label">Phone</div>
+                        <div class="contact-value">+91 98247 00089</div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-label">GitHub</div>
+                        <div class="contact-value">
+                            <a href="#" target="_blank">github.com/parvtalati</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
     <script>
-        // Navigation button active state handling
-        const navButtons = document.querySelectorAll('.nav button');
+        const buttons = document.querySelectorAll(".tab-button");
+        const sections = document.querySelectorAll(".section");
 
-        navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                navButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
+        buttons.forEach(button => {
+            button.addEventListener("click", () => {
+                const target = button.dataset.target;
+
+                // Remove active class from all sections and buttons
+                sections.forEach(sec => sec.classList.remove("active"));
+                buttons.forEach(btn => btn.classList.remove("active"));
+
+                // Add active class to target section and button
+                document.getElementById(target).classList.add("active");
+                button.classList.add("active");
             });
         });
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe project cards
+        document.querySelectorAll('.project-card').forEach(card => {
+            observer.observe(card);
+        });
     </script>
+
 </body>
 
 </html>
