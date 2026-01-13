@@ -1,0 +1,82 @@
+/* Reset default spacing */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Center the whole layout */
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    /* horizontal center */
+    align-items: center;
+    /* vertical center */
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+}
+
+/* Main container */
+.main {
+    width: 350px;
+    padding: 20px;
+    border: 2px solid #333;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Box sections */
+.divBorder {
+    margin-top: 50px;
+    border: 2px solid black;
+    padding: 10px;
+
+    display: flex;
+    flex-wrap: wrap;
+    /* ⭐ KEY LINE */
+    gap: 10px;
+
+    justify-content: center;
+    align-items: center;
+}
+
+.divBorder button {
+    flex: 1 1 200px;          /* grow | shrink | base width */
+    padding: 10px;
+    font-size: 16px;
+}
+
+
+/* Labels */
+label {
+    font-weight: bold;
+}
+
+/* Inputs */
+input {
+    padding: 6px;
+    font-size: 14px;
+}
+
+/* Output heading */
+#outputLabel {
+    text-align: center;
+    color: #333;
+}
+
+/* Buttons container */
+.divBorder:last-child {
+    flex-direction: row;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Buttons */
+button {
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+}
