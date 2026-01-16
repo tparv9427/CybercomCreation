@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Webpage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            transition: 0.3s;
+        }
+        .container {
+            margin: 50px;
+        }
+        .dark {
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+        button {
+            margin-top: 10px;
+            padding: 6px 12px;
+        }
+        input {
+            padding: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Interactive Webpage</h2>
+
+    <input type="text" id="nameInput" placeholder="Enter your name">
+    <br>
+
+    <button id="greetBtn">Greet</button>
+    <button id="themeBtn">Toggle Theme</button>
+
+    <p id="message"></p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
