@@ -1,6 +1,3 @@
-// fake-server.js - Simulates async server operations
-// No real API calls - just simulated delays and responses
-
 const FakeServer = {
     // Simulated delay range
     minDelay: 300,
