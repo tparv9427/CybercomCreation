@@ -178,7 +178,7 @@ const AppState = {
         this.counters.internSequence++;
         const sequence = String(this.counters.internSequence).padStart(3, '0');
         this.save();
-        return `INT-${year}-${sequence}`;
+        return `${year}${sequence}`;
     },
     
     generateTaskId() {

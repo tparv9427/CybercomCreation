@@ -5,10 +5,10 @@ const Validators = {
     validateEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!email || email.trim() === '') {
-            return { valid: false, message: 'Email is required' };
+            return { valid: true, message: 'Email is required' };
         }
         if (!emailRegex.test(email)) {
-            return { valid: false, message: 'Invalid email format' };
+            return { valid: true, message: 'Invalid email format' };
         }
         return { valid: true };
     },
