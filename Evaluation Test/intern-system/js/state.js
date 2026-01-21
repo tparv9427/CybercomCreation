@@ -9,6 +9,7 @@ const AppState = {
     
     // UI state
     currentView: 'dashboard',
+    darkMode: false,
     filters: {
         status: '',
         skills: ''
@@ -31,9 +32,22 @@ const AppState = {
                 this.tasks = parsed.tasks || [];
                 this.logs = parsed.logs || [];
                 this.counters = parsed.counters || { internSequence: 0, taskSequence: 0 };
+                this.darkMode = parsed.darkMode || false;
+                
+                // Migration: Ensure tasks have assignedInterns array
+                this.tasks.forEach(task => {
+                    if (!task.assignedInterns) {
+                        task.assignedInterns = task.assignedTo ? [task.assignedTo] : [];
+                    }
+                });
             } catch (e) {
                 console.error('Failed to load state:', e);
             }
+        }
+        
+        // Apply theme on init
+        if (this.darkMode) {
+            document.body.classList.add('dark-theme');
         }
         
         this.addLog('System', 'Application initialized');
@@ -46,7 +60,8 @@ const AppState = {
                 interns: this.interns,
                 tasks: this.tasks,
                 logs: this.logs,
-                counters: this.counters
+                counters: this.counters,
+                darkMode: this.darkMode
             };
             localStorage.setItem('intern-system-state', JSON.stringify(stateToSave));
         } catch (e) {
@@ -54,6 +69,18 @@ const AppState = {
         }
     },
     
+    // Theme operations
+    toggleTheme() {
+        this.darkMode = !this.darkMode;
+        if (this.darkMode) {
+            document.body.classList.add('dark-theme');
+        } else {
+            document.body.classList.remove('dark-theme');
+        }
+        this.save();
+        return this.darkMode;
+    },
+
     // Intern operations
     addIntern(intern) {
         this.interns.push(intern);
@@ -74,13 +101,21 @@ const AppState = {
         const intern = this.interns.find(i => i.id === id);
         if (intern) {
             this.interns = this.interns.filter(i => i.id !== id);
-            // Unassign all tasks for this intern
+            
+            // Unassign this intern from all tasks
+            let tasksModified = false;
             this.tasks.forEach(task => {
-                if (task.assignedTo === id) {
-                    task.assignedTo = null;
-                    task.status = 'PENDING';
+                if (task.assignedInterns && task.assignedInterns.includes(id)) {
+                    task.assignedInterns = task.assignedInterns.filter(iId => iId !== id);
+                    tasksModified = true;
+                    
+                    // If no one else is working on it, set to PENDING
+                    if (task.assignedInterns.length === 0) {
+                        task.status = 'PENDING';
+                    }
                 }
             });
+            
             this.save();
             this.addLog('Intern Deleted', `${intern.name} (${id}) removed from system`);
         }
@@ -92,6 +127,10 @@ const AppState = {
     
     // Task operations
     addTask(task) {
+        // Ensure assignedInterns is initialized
+        if (!task.assignedInterns) {
+            task.assignedInterns = [];
+        }
         this.tasks.push(task);
         this.save();
         this.addLog('Task Created', `${task.title} (${task.id}) created`);
@@ -129,21 +168,41 @@ const AppState = {
         const task = this.getTaskById(taskId);
         const intern = this.getInternById(internId);
         if (task && intern) {
-            task.assignedTo = internId;
-            task.status = 'IN_PROGRESS';
-            this.save();
-            this.addLog('Task Assigned', `${task.title} assigned to ${intern.name}`);
+            if (!task.assignedInterns) task.assignedInterns = [];
+            
+            if (!task.assignedInterns.includes(internId)) {
+                task.assignedInterns.push(internId);
+                task.status = 'IN_PROGRESS';
+                this.save();
+                this.addLog('Task Assigned', `${task.title} assigned to ${intern.name}`);
+            }
         }
     },
     
-    unassignTask(taskId) {
+    removeInternFromTask(taskId, internId) {
+        const task = this.getTaskById(taskId);
+        const intern = this.getInternById(internId);
+        if (task && task.assignedInterns) {
+            task.assignedInterns = task.assignedInterns.filter(id => id !== internId);
+            
+            // If no interns left, set to PENDING
+            if (task.assignedInterns.length === 0) {
+                task.status = 'PENDING';
+            }
+            
+            this.save();
+            this.addLog('Task Unassigned', `${task.title} unassigned from ${intern ? intern.name : 'an intern'}`);
+        }
+    },
+    
+    // Helper to completely clear assignments (optional, but good for cleanup)
+    clearTaskAssignments(taskId) {
         const task = this.getTaskById(taskId);
         if (task) {
-            const intern = this.getInternById(task.assignedTo);
-            task.assignedTo = null;
+            task.assignedInterns = [];
             task.status = 'PENDING';
             this.save();
-            this.addLog('Task Unassigned', `${task.title} unassigned from ${intern ? intern.name : 'unknown'}`);
+            this.addLog('Task Assignments Cleared', `${task.title} assignments cleared`);
         }
     },
     
@@ -194,7 +253,7 @@ const AppState = {
     },
     
     getInternTaskCount(internId) {
-        return this.tasks.filter(t => t.assignedTo === internId).length;
+        return this.tasks.filter(t => t.assignedInterns && t.assignedInterns.includes(internId)).length;
     },
     
     getTotalEstimatedHours() {
@@ -237,6 +296,8 @@ const AppState = {
         this.logs = [];
         this.counters = { internSequence: 0, taskSequence: 0 };
         this.filters = { status: '', skills: '' };
+        this.darkMode = false;
+        document.body.classList.remove('dark-theme');
         localStorage.removeItem('intern-system-state');
         this.addLog('System', 'All data reset');
     }

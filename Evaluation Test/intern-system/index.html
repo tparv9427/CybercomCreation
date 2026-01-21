@@ -5,20 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Intern Operations System</title>
     <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/modern.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="app">
         <!-- Header -->
-        <header class="app-header">
-            <h1>Intern Operations System</h1>
-            <nav class="main-nav">
-                <button class="nav-btn active" data-view="dashboard">Dashboard</button>
-                <button class="nav-btn" data-view="interns">Interns</button>
-                <button class="nav-btn" data-view="tasks">Tasks</button>
-                <button class="nav-btn" data-view="logs">Logs</button>
-            </nav>
+        <header class="app-header glass-panel">
+            <div class="header-content">
+                <h1>Intern Operations System</h1>
+                <div class="header-actions">
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                         <!-- Sun Icon -->
+                        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <!-- Moon Icon (hidden by default via CSS) -->
+                        <svg class="moon-icon hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+                    <nav class="main-nav">
+                        <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+                        <button class="nav-btn" data-view="interns">Interns</button>
+                        <button class="nav-btn" data-view="tasks">Tasks</button>
+                        <button class="nav-btn" data-view="logs">Logs</button>
+                    </nav>
+                </div>
+            </div>
         </header>
 
         <!-- Loading Overlay -->
@@ -37,32 +54,32 @@
         <main class="app-main">
             <!-- Dashboard View -->
             <section id="dashboard-view" class="view active">
-                <h2>Dashboard</h2>
+                <h2 class="animate-fade-in">Dashboard</h2>
                 <div class="stats-grid">
-                    <div class="stat-card">
+                    <div class="stat-card glass-panel card-3d animate-slide-up" style="animation-delay: 0.1s">
                         <h3>Total Interns</h3>
                         <p class="stat-value" id="total-interns"></p>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card glass-panel card-3d animate-slide-up" style="animation-delay: 0.2s">
                         <h3>Active Interns</h3>
                         <p class="stat-value" id="active-interns"></p>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card glass-panel card-3d animate-slide-up" style="animation-delay: 0.3s">
                         <h3>Total Tasks</h3>
                         <p class="stat-value" id="total-tasks"></p>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card glass-panel card-3d animate-slide-up" style="animation-delay: 0.4s">
                         <h3>Pending Tasks</h3>
                         <p class="stat-value" id="pending-tasks"></p>
                     </div>
                 </div>
                 
                 <div class="dashboard-sections">
-                    <div class="dashboard-section">
+                    <div class="dashboard-section glass-panel animate-slide-up" style="animation-delay: 0.5s">
                         <h3>Recent Interns</h3>
                         <div id="recent-interns-list"></div>
                     </div>
-                    <div class="dashboard-section">
+                    <div class="dashboard-section glass-panel animate-slide-up" style="animation-delay: 0.6s">
                         <h3>Recent Tasks</h3>
                         <div id="recent-tasks-list"></div>
                     </div>
@@ -77,47 +94,36 @@
                 </div>
 
                 <!-- Filters -->
-                <div class="filters">
+                <div class="filters glass-panel">
                     <select id="status-filter" class="filter-select">
                         <option value="">All Statuses</option>
                         <option value="ONBOARDING">Onboarding</option>
                         <option value="ACTIVE">Active</option>
                         <option value="EXITED">Exited</option>
                     </select>
-                    <input type="text" id="skill-filter" class="filter-input">
+                    <input type="text" id="skill-filter" class="filter-input" placeholder="Search by skill...">
                     <button class="btn btn-secondary" id="clear-filters-btn">Clear Filters</button>
                 </div>
 
-                <!-- Interns Table -->
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Skills</th>
-                                <th>Status</th>
-                                <th>Tasks</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="interns-table-body">
-                            <tr>
-                                <td colspan="7" class="empty-state">No interns found</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- Interns Grid (Replaces Table) -->
+                <div id="interns-grid" class="interns-grid">
+                    <!-- Intern Cards will be rendered here -->
+                </div>
+                
+                <!-- Fallback/Empty State -->
+                <div id="interns-empty-state" class="empty-state hidden glass-panel">
+                    No interns found matching your criteria.
                 </div>
 
                 <!-- Add/Edit Intern Modal -->
                 <div id="intern-modal" class="modal hidden">
-                    <div class="modal-content">
+                    <div class="modal-content glass-panel">
                         <div class="modal-header">
                             <h3 id="intern-modal-title">Add Intern</h3>
                             <button class="close-modal">&times;</button>
                         </div>
                         <form id="intern-form">
+                            <input type="hidden" id="intern-id">
                             <div class="form-group">
                                 <label for="intern-name">Name *</label>
                                 <input type="text" id="intern-name" required>
@@ -129,8 +135,10 @@
                                 <span class="field-error"></span>
                             </div>
                             <div class="form-group">
-                                <label for="intern-skills">Skills (comma-separated) *</label>
-                                <input type="text" id="intern-skills" required>
+                                <label for="intern-skills-input">Skills *</label>
+                                <div id="intern-skills-container" class="chip-container">
+                                    <input type="text" id="intern-skills-input" class="chip-input" placeholder="Type and press Enter">
+                                </div>
                                 <span class="field-error"></span>
                             </div>
                             <div class="form-actions">
@@ -138,6 +146,22 @@
                                 <button type="submit" class="btn btn-primary">Save Intern</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+
+                <!-- Intern Details Modal -->
+                <div id="intern-details-modal" class="modal hidden">
+                    <div class="modal-content glass-panel large-modal">
+                        <div class="modal-header">
+                            <h3>Intern Details</h3>
+                            <button class="close-modal">&times;</button>
+                        </div>
+                        <div class="modal-body" id="intern-details-body">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <div class="modal-footer">
+                            <!-- Actions populated dynamically -->
+                        </div>
                     </div>
                 </div>
             </section>
@@ -149,12 +173,12 @@
                     <button class="btn btn-primary" id="add-task-btn">Create Task</button>
                 </div>
 
-                <div class="tasks-summary">
+                <div class="tasks-summary glass-panel">
                     <p>Total Estimated Hours: <strong id="total-hours">0</strong></p>
                 </div>
 
                 <!-- Tasks Table -->
-                <div class="table-container">
+                <div class="table-container glass-panel">
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -178,7 +202,7 @@
 
                 <!-- Add/Edit Task Modal -->
                 <div id="task-modal" class="modal hidden">
-                    <div class="modal-content">
+                    <div class="modal-content glass-panel">
                         <div class="modal-header">
                             <h3 id="task-modal-title">Create Task</h3>
                             <button class="close-modal">&times;</button>
@@ -194,8 +218,10 @@
                                 <textarea id="task-description" rows="3"></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="task-skills">Required Skills (comma-separated) *</label>
-                                <input type="text" id="task-skills" required>
+                                <label for="task-skills-input">Required Skills *</label>
+                                <div id="task-skills-container" class="chip-container">
+                                    <input type="text" id="task-skills-input" class="chip-input" placeholder="Type and press Enter">
+                                </div>
                                 <span class="field-error"></span>
                             </div>
                             <div class="form-group">
@@ -205,7 +231,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="task-dependencies">Dependencies (Task IDs, comma-separated)</label>
-                                <input type="text" id="task-dependencies">
+                                <input type="text" id="task-dependencies" placeholder="e.g. TASK-001, TASK-002">
                                 <span class="field-error"></span>
                             </div>
                             <div class="form-actions">
@@ -218,7 +244,7 @@
 
                 <!-- Assign Task Modal -->
                 <div id="assign-task-modal" class="modal hidden">
-                    <div class="modal-content">
+                    <div class="modal-content glass-panel">
                         <div class="modal-header">
                             <h3>Assign Task</h3>
                             <button class="close-modal">&times;</button>
@@ -248,11 +274,28 @@
                     <button class="btn btn-secondary" id="clear-logs-btn">Clear Logs</button>
                 </div>
 
-                <div class="logs-container">
+                <div class="logs-container glass-panel">
                     <div id="logs-list"></div>
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3 id="confirm-title">Confirm Action</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message">Are you sure?</p>
+            </div>
+            <div class="modal-footer form-actions">
+                <button class="btn btn-secondary cancel-btn" id="confirm-cancel">Cancel</button>
+                <button class="btn btn-primary" id="confirm-yes">Confirm</button>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->
