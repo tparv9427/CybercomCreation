@@ -1,0 +1,44 @@
+{
+    "1": {
+        "id": 1,
+        "email": "demo@easycart.com",
+        "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+        "name": "Demo User",
+        "created_at": "2026-01-01"
+    },
+    "2": {
+        "id": 2,
+        "email": "john.doe@example.com",
+        "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+        "name": "John Doe",
+        "created_at": "2026-01-05"
+    },
+    "3": {
+        "id": 3,
+        "email": "jane.smith@example.com",
+        "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+        "name": "Jane Smith",
+        "created_at": "2026-01-10"
+    },
+    "4": {
+        "id": 4,
+        "email": "mike.wilson@example.com",
+        "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+        "name": "Mike Wilson",
+        "created_at": "2026-01-12"
+    },
+    "5": {
+        "id": 5,
+        "email": "sarah.jones@example.com",
+        "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+        "name": "Sarah Jones",
+        "created_at": "2026-01-15"
+    },
+    "6": {
+        "id": 6,
+        "email": "talatiparv0@gmail.com",
+        "password": "$2y$10$K88RNv5HH4Ty9SrEt.5wceHFjaKxquoTDcEPA4rjSi.35CV4y3X3q",
+        "name": "Parv Talati",
+        "created_at": "2026-01-22"
+    }
+}
