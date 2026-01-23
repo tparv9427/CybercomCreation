@@ -1,5 +1,9 @@
 <?php
 require_once 'includes/config.php';
+
+// Simulate server delay (v4.0-fake-server)
+simulateDelay('AJAX_DELAY');
+
 header('Content-Type: application/json');
 
 $action = isset($_POST['action']) ? $_POST['action'] : '';

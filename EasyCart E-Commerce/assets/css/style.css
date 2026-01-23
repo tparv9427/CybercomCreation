@@ -214,7 +214,6 @@ body {
     padding: 0.5rem 0;
     margin-top: 0.5rem;
     z-index: 100;
-
 }
 
 .dropdown:hover .dropdown-menu {
@@ -226,8 +225,6 @@ body {
     padding: 0.75rem 1.5rem;
     color: var(--text);
     transition: background 0.3s;
-        padding-top: 5px;
-    transition-delay: 10s;
 }
 
 .dropdown-menu a:hover {
@@ -280,32 +277,18 @@ body {
     align-items: center;
     justify-content: center;
     color: white;
-    animation: elegantSlide 21s infinite;
 }
 
 .banner-slide:nth-child(1) {
     background: var(--gradient-1);
-    animation-delay: 0s;
 }
 
 .banner-slide:nth-child(2) {
     background: var(--gradient-2);
-    animation-delay: 7s;
-    opacity: 0;
 }
 
 .banner-slide:nth-child(3) {
     background: var(--gradient-3);
-    animation-delay: 14s;
-    opacity: 0;
-}
-
-@keyframes elegantSlide {
-    0% { opacity: 0; transform: scale(1.1); }
-    4% { opacity: 1; transform: scale(1); }
-    33% { opacity: 1; transform: scale(1); }
-    37% { opacity: 0; transform: scale(0.95); }
-    100% { opacity: 0; transform: scale(0.95); }
 }
 
 .banner-content {
@@ -476,7 +459,7 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Product Grid - SMALLER CARDS */
+/* Product Grid */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -807,6 +790,190 @@ body {
     opacity: 0.7;
 }
 
+/* ============================================
+   PHASE 3 ENHANCEMENTS
+   ============================================ */
+
+/* Carousel Dots */
+.carousel-dots {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 10;
+}
+
+.carousel-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.carousel-dot:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.2);
+}
+
+.carousel-dot.active {
+    background: white;
+    width: 32px;
+    border-radius: 6px;
+}
+
+/* Form Validation Styles */
+.form-group input.error,
+.form-group select.error {
+    border-color: #EF4444 !important;
+    background: #FEE2E2 !important;
+}
+
+[data-theme="dark"] .form-group input.error,
+[data-theme="dark"] .form-group select.error {
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.form-group input.success {
+    border-color: #10B981 !important;
+    background: #D1FAE5 !important;
+}
+
+[data-theme="dark"] .form-group input.success {
+    background: rgba(16, 185, 129, 0.1) !important;
+}
+
+.field-error {
+    color: #EF4444;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: none;
+    font-weight: 500;
+}
+
+.form-group input.error + .field-error {
+    display: block;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.875rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 1rem;
+    background: var(--card-bg);
+    color: var(--text);
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.form-group input.error:focus {
+    border-color: #EF4444;
+}
+
+.form-group input.success {
+    border-color: #10B981;
+}
+
+/* Enhanced Dropdown with Smooth Transition */
+.dropdown-menu {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+.dropdown-menu[style*="display: block"] {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Loading States */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.6s linear infinite;
+}
+
+/* Enhanced Notification Styles */
+.notification {
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.notification::before {
+    font-size: 1.2rem;
+}
+
+.notification-success::before {
+    content: '✓';
+}
+
+.notification-error::before {
+    content: '✕';
+}
+
+.notification-info::before {
+    content: 'ℹ';
+}
+
 /* Mobile Responsive */
 @media (max-width: 1024px) {
     .product-grid {
@@ -931,6 +1098,20 @@ body {
         flex-direction: column;
         gap: 1rem;
         align-items: flex-start;
+    }
+    
+    .carousel-dots {
+        bottom: 15px;
+        gap: 8px;
+    }
+    
+    .carousel-dot {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .carousel-dot.active {
+        width: 24px;
     }
 }
 

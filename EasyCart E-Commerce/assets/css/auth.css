@@ -27,33 +27,6 @@
     margin-bottom: 2rem;
 }
 
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: var(--primary);
-}
-
-.form-group input {
-    width: 100%;
-    padding: 0.875rem;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    font-size: 1rem;
-    background: var(--card-bg);
-    color: var(--text);
-    transition: border-color 0.3s;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: var(--accent);
-}
-
 .auth-card .btn {
     width: 100%;
     margin-top: 0.5rem;

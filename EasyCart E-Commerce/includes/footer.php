@@ -37,11 +37,12 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved.</p>
+                <p>&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved. | v<?php echo EASYCART_VERSION; ?></p>
             </div>
         </div>
     </footer>
 
+    <script src="assets/js/skeleton.js"></script>
     <script src="assets/js/main.js"></script>
 </body>
 </html>

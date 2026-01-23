@@ -4,9 +4,15 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Include server simulator (v4.0-fake-server)
+require_once __DIR__ . '/server-simulator.php';
+
 // Site configuration
 define('SITE_NAME', 'EasyCart');
 define('CURRENCY', '$');
+
+// Version
+define('EASYCART_VERSION', '4.0-fake-server');
 
 // Initialize session variables if not set
 if (!isset($_SESSION['cart'])) {
@@ -137,7 +143,9 @@ foreach ($categories as $cat_id => $category) {
             'features' => [
                 'High quality materials',
                 'Advanced technology',
-                'Durable construction'
+                'Durable construction',
+                'Excellent performance',
+                'Great value for money'
             ],
             'specifications' => [
                 'Model' => strtoupper(substr(md5($name), 0, 8)),

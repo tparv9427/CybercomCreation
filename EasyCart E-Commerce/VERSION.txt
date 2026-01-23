@@ -1,0 +1,151 @@
+EasyCart E-Commerce Platform
+Version History
+
+========================================
+VERSION 4.0-fake-server (CURRENT)
+Released: January 22, 2026
+========================================
+
+🎯 MAJOR FEATURES:
+✅ Fake Server Simulator
+   - Configurable delay profiles (FAST/NORMAL/SLOW/UNRELIABLE)
+   - Mimics real server response times
+   - Easy toggle on/off
+   - Different delays for AJAX, page loads, auth, checkout
+
+✅ Skeleton Loading Animations
+   - Modern shimmer effects throughout platform
+   - Product card skeletons
+   - Product details skeletons
+   - Cart skeletons
+   - Search result skeletons
+   - Form skeletons
+   - Loading overlays
+   - Button loading states
+
+✅ Enhanced UX
+   - Visual feedback on all operations
+   - No blank page moments
+   - Professional loading indicators
+   - Smooth transitions
+
+📁 NEW FILES:
+   - includes/server-simulator.php
+   - includes/skeleton-components.php
+   - assets/css/skeleton.css
+   - assets/js/skeleton.js
+
+🔧 UPDATED FILES:
+   - includes/config.php (added simulator)
+   - includes/header.php (added skeleton CSS)
+   - includes/footer.php (added skeleton.js, version display)
+   - ajax_cart.php (added delays)
+   - ajax_wishlist.php (added delays)
+   - assets/js/main.js (loading states)
+
+⚙️ CONFIGURATION:
+   To adjust delays, edit includes/server-simulator.php:
+   - Set SERVER_DELAYS_ENABLED to true/false
+   - Change SERVER_PROFILE ('FAST', 'NORMAL', 'SLOW', 'UNRELIABLE')
+   - Customize delay ranges
+
+========================================
+VERSION 3.0
+Released: January 22, 2026
+========================================
+
+✅ Mobile Responsive Design
+   - Hamburger menu for mobile
+   - Responsive product grids
+   - Touch-friendly interface
+   - Breakpoints: 1024px, 768px, 480px
+
+✅ Search Functionality
+   - Search bar in header
+   - search.php page
+   - Real-time product filtering
+
+✅ Brand Pages
+   - brand.php with rotating banners
+   - Best sellers section
+   - Special offers
+   - Product filtering
+
+✅ UI Improvements
+   - Smaller product cards (220px)
+   - Better spacing (1.5rem gaps)
+   - Improved dark theme
+   - Dropdown menu delays fixed
+
+✅ Configuration Files
+   - payment-config.php
+   - logistics-config.php
+
+📁 NEW FILES:
+   - brand.php
+   - search.php
+   - includes/payment-config.php
+   - includes/logistics-config.php
+
+========================================
+VERSION 2.0
+Released: January 21, 2026
+========================================
+
+✅ 500 Dummy Products
+   - 100 products per category
+   - Realistic data generation
+
+✅ User Management
+   - 5 pre-configured users
+   - Working signup system
+   - User data persistence (data/users.json)
+
+✅ Complete Pages
+   - All core pages functional
+   - Cart, wishlist, checkout
+   - Orders, login, signup
+
+========================================
+VERSION 1.0
+Released: January 20, 2026
+========================================
+
+✅ Initial Release
+   - Basic product system
+   - Category filtering
+   - Shopping cart
+   - User authentication
+   - Checkout flow
+
+========================================
+SYSTEM REQUIREMENTS
+========================================
+
+- PHP 7.4 or higher
+- Web server (Apache/Nginx)
+- Modern browser
+- No database required (file-based storage)
+
+========================================
+TESTING SERVER DELAYS
+========================================
+
+1. Open includes/server-simulator.php
+2. Verify SERVER_DELAYS_ENABLED = true
+3. Choose profile:
+   - FAST: Quick responses (good connection)
+   - NORMAL: Realistic delays (default)
+   - SLOW: Overloaded server
+   - UNRELIABLE: Random delays (bad connection)
+4. Test cart operations, wishlist, search
+5. Watch skeleton loading animations
+
+========================================
+DISABLE DELAYS FOR PRODUCTION
+========================================
+
+Set in includes/server-simulator.php:
+define('SERVER_DELAYS_ENABLED', false);
+
+========================================

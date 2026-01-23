@@ -1,0 +1,488 @@
+/**
+ * EasyCart Skeleton Loading Animations v4.0-fake-server
+ * Modern shimmer/pulse loading states
+ */
+
+/* ==================== BASE SKELETON STYLES ==================== */
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--skeleton-base) 0%,
+        var(--skeleton-shimmer) 50%,
+        var(--skeleton-base) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+:root {
+    --skeleton-base: #E5E7EB;
+    --skeleton-shimmer: #F3F4F6;
+}
+
+[data-theme="dark"] {
+    --skeleton-base: #374151;
+    --skeleton-shimmer: #4B5563;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Alternative pulse animation */
+.skeleton-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* ==================== SKELETON ELEMENTS ==================== */
+
+.skeleton-text {
+    height: 1em;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-text.short {
+    width: 40%;
+}
+
+.skeleton-text.medium {
+    width: 60%;
+}
+
+.skeleton-text.long {
+    width: 80%;
+}
+
+.skeleton-text.full {
+    width: 100%;
+}
+
+.skeleton-title {
+    height: 2em;
+    width: 70%;
+    margin-bottom: 1rem;
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.skeleton-button {
+    height: 40px;
+    width: 120px;
+    border-radius: 50px;
+}
+
+/* ==================== PRODUCT CARD SKELETON ==================== */
+
+.skeleton-product-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.skeleton-product-image {
+    width: 100%;
+    height: 240px;
+    background: var(--skeleton-base);
+}
+
+.skeleton-product-info {
+    padding: 1.25rem;
+}
+
+.skeleton-category {
+    height: 0.75rem;
+    width: 50%;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-product-name {
+    height: 1.2rem;
+    width: 90%;
+    margin-bottom: 0.75rem;
+}
+
+.skeleton-product-name-line2 {
+    height: 1.2rem;
+    width: 70%;
+    margin-bottom: 0.75rem;
+}
+
+.skeleton-price {
+    height: 1.3rem;
+    width: 40%;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-rating {
+    height: 0.85rem;
+    width: 60%;
+}
+
+/* ==================== PRODUCT GRID SKELETON ==================== */
+
+.skeleton-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+/* ==================== PRODUCT DETAILS SKELETON ==================== */
+
+.skeleton-product-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    background: var(--card-bg);
+    padding: 3rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+.skeleton-main-image {
+    width: 100%;
+    height: 600px;
+    border-radius: 12px;
+}
+
+.skeleton-thumbnails {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.skeleton-thumbnail {
+    height: 120px;
+    border-radius: 8px;
+}
+
+.skeleton-product-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.skeleton-detail-line {
+    height: 1rem;
+    border-radius: 4px;
+}
+
+.skeleton-detail-block {
+    background: var(--soft-bg);
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+/* ==================== CART SKELETON ==================== */
+
+.skeleton-cart-item {
+    display: grid;
+    grid-template-columns: 120px 1fr auto auto auto;
+    gap: 2rem;
+    align-items: center;
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+}
+
+.skeleton-cart-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+}
+
+.skeleton-cart-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.skeleton-quantity {
+    width: 130px;
+    height: 35px;
+    border-radius: 8px;
+}
+
+.skeleton-cart-price {
+    width: 80px;
+    height: 1.3rem;
+}
+
+.skeleton-remove-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+/* ==================== FORM SKELETON ==================== */
+
+.skeleton-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.skeleton-label {
+    height: 1rem;
+    width: 30%;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-input {
+    height: 45px;
+    width: 100%;
+    border-radius: 12px;
+}
+
+.skeleton-textarea {
+    height: 120px;
+    width: 100%;
+    border-radius: 12px;
+}
+
+/* ==================== SEARCH SKELETON ==================== */
+
+.skeleton-search-result {
+    display: flex;
+    gap: 2rem;
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+}
+
+.skeleton-search-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.skeleton-search-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* ==================== BADGE SKELETON ==================== */
+
+.skeleton-badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* ==================== TABLE SKELETON ==================== */
+
+.skeleton-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.skeleton-table-row {
+    border-bottom: 1px solid var(--border);
+}
+
+.skeleton-table-cell {
+    padding: 1rem;
+}
+
+/* ==================== SPINNER / LOADING INDICATOR ==================== */
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.loading-spinner.large {
+    width: 40px;
+    height: 40px;
+    border-width: 4px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==================== LOADING OVERLAY ==================== */
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+}
+
+[data-theme="dark"] .loading-overlay {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.loading-overlay-content {
+    background: var(--card-bg);
+    padding: 2rem 3rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: var(--shadow-hover);
+}
+
+.loading-overlay-spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+.loading-overlay-text {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* ==================== BUTTON LOADING STATE ==================== */
+
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+/* ==================== FADE TRANSITIONS ==================== */
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+.fade-out {
+    animation: fadeOut 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+
+@media (max-width: 1024px) {
+    .skeleton-product-main {
+        grid-template-columns: 1fr;
+    }
+    
+    .skeleton-cart-item {
+        grid-template-columns: 80px 1fr auto;
+        gap: 1rem;
+    }
+    
+    .skeleton-cart-image {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .skeleton-product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+    }
+    
+    .skeleton-product-image {
+        height: 180px;
+    }
+    
+    .skeleton-main-image {
+        height: 400px;
+    }
+    
+    .skeleton-search-result {
+        flex-direction: column;
+    }
+    
+    .skeleton-search-image {
+        width: 100%;
+        height: 200px;
+    }
+}
+
+/* ==================== UTILITY CLASSES ==================== */
+
+.skeleton-visible {
+    display: block;
+}
+
+.skeleton-hidden {
+    display: none;
+}
+
+.no-animate {
+    animation: none !important;
+}

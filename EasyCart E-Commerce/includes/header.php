@@ -6,6 +6,8 @@
     <title><?php echo isset($page_title) ? $page_title . ' - ' . SITE_NAME : SITE_NAME; ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/skeleton.css">
+    <!-- EasyCart v<?php echo EASYCART_VERSION; ?> -->
 </head>
 <body>
     <!-- Header -->
@@ -59,8 +61,8 @@
                     <a href="login.php">Login</a>
                 <?php endif; ?>
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-                    <span class="sun-icon">🌝</span>
-                    <span class="moon-icon">🌚</span>
+                    <span class="sun-icon">☀️</span>
+                    <span class="moon-icon">🌙</span>
                 </button>
             </nav>
         </div>

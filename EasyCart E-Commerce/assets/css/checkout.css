@@ -49,12 +49,43 @@
 .shipping-option:hover,
 .payment-option:hover {
     border-color: var(--accent);
+    background: rgba(239, 131, 84, 0.05);
 }
 
-.shipping-option input:checked ~ .option-content,
-.payment-option:has(input:checked) {
+.shipping-option.selected,
+.payment-option.selected {
     border-color: var(--accent);
     background: rgba(239, 131, 84, 0.05);
+}
+
+.shipping-option input[type="radio"],
+.payment-option input[type="radio"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.shipping-option input[type="radio"]:checked,
+.payment-option input[type="radio"]:checked {
+    border-color: var(--accent);
+}
+
+.shipping-option input[type="radio"]:checked::before,
+.payment-option input[type="radio"]:checked::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
 }
 
 .option-content {
@@ -63,11 +94,104 @@
     justify-content: space-between;
 }
 
-.card-details {
+.payment-details {
+    display: none;
     margin-top: 1.5rem;
     padding: 1.5rem;
     background: var(--soft-bg);
     border-radius: 12px;
+    border: 2px solid var(--border);
+}
+
+.payment-details.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-details {
+    display: none;
+}
+
+.card-details.active {
+    display: block;
+}
+
+.upi-details {
+    text-align: center;
+}
+
+.upi-details input {
+    margin-bottom: 1rem;
+}
+
+.upi-qr {
+    width: 200px;
+    height: 200px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    margin: 1rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+}
+
+.netbanking-details select {
+    width: 100%;
+    padding: 0.875rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 1rem;
+}
+
+.wallet-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.wallet-option {
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.wallet-option:hover {
+    border-color: var(--accent);
+    background: rgba(239, 131, 84, 0.05);
+}
+
+.wallet-option.selected {
+    border-color: var(--accent);
+    background: rgba(239, 131, 84, 0.1);
+}
+
+.cod-details {
+    padding: 1rem;
+    background: #FFF8F0;
+    border-radius: 8px;
+    text-align: center;
+}
+
+[data-theme="dark"] .cod-details {
+    background: #2D3748;
 }
 
 .btn-place-order {
@@ -119,12 +243,39 @@
     color: var(--primary);
 }
 
+.summary-totals {
+    border-top: 2px solid var(--border);
+    padding-top: 1rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    color: var(--text);
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-top: 1rem;
+    border-top: 2px solid var(--border);
+}
+
 @media (max-width: 1024px) {
     .checkout-layout {
         grid-template-columns: 1fr;
     }
     
     .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .wallet-details {
         grid-template-columns: 1fr;
     }
 }

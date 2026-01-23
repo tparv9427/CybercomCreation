@@ -33,7 +33,7 @@ include 'includes/header.php';
         </div>
     <?php else: ?>
         <div class="empty-cart">
-            <div class="empty-icon">🖕</div>
+            <div class="empty-icon">🤍</div>
             <h3>Your wishlist is empty</h3>
             <p>Save items you love for later!</p>
             <a href="products.php" class="btn">Start Shopping</a>

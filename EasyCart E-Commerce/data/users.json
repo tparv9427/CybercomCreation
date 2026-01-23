@@ -37,15 +37,8 @@
     "6": {
         "id": 6,
         "email": "talatiparv0@gmail.com",
-        "password": "$2y$10$K88RNv5HH4Ty9SrEt.5wceHFjaKxquoTDcEPA4rjSi.35CV4y3X3q",
+        "password": "$2y$10$YUUeKTv3I37llmCosBLNMuU4XEgXThqsM4JguHRHpC.OKYaYPs.nG",
         "name": "Parv Talati",
-        "created_at": "2026-01-22"
-    },
-    "7": {
-        "id": 7,
-        "email": "admin@gmail.com",
-        "password": "$2y$10$thbSGxhCba.CYIFuCkZ5T.5kDfvPYElsMSAoxCqfA6khfCdNzYWIW",
-        "name": "admin",
-        "created_at": "2026-01-22"
+        "created_at": "2026-01-23"
     }
 }

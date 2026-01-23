@@ -40,7 +40,7 @@ include 'includes/header.php';
         <div class="cart-layout">
             <div class="cart-items">
                 <?php foreach ($cart_items as $item): ?>
-                    <div class="cart-item">
+                    <div class="cart-item" data-product-id="<?php echo $item['product']['id']; ?>">
                         <div class="item-image" onclick="window.location.href='product.php?id=<?php echo $item['product']['id']; ?>'"><?php echo $item['product']['icon']; ?></div>
                         <div class="item-details">
                             <h3 class="item-name"><?php echo $item['product']['name']; ?></h3>
@@ -50,7 +50,7 @@ include 'includes/header.php';
                         <div class="item-quantity">
                             <div class="quantity-controls">
                                 <button onclick="updateQuantity(<?php echo $item['product']['id']; ?>, <?php echo $item['quantity'] - 1; ?>)">−</button>
-                                <input type="number" value="<?php echo $item['quantity']; ?>" min="1" readonly>
+                                <input type="number" class="quantity-input" value="<?php echo $item['quantity']; ?>" min="1" readonly>
                                 <button onclick="updateQuantity(<?php echo $item['product']['id']; ?>, <?php echo $item['quantity'] + 1; ?>)">+</button>
                             </div>
                         </div>
