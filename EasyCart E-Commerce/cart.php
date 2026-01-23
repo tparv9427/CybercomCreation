@@ -4,8 +4,10 @@ $page_title = 'Shopping Cart';
 
 $cart_items = [];
 $subtotal = 0;
+$total_items = 0;
 
-foreach ($_SESSION['cart'] as $product_id => $quantity) {
+$cart = getCart();
+foreach ($cart as $product_id => $quantity) {
     $product = getProduct($product_id);
     if ($product) {
         $cart_items[] = [
@@ -14,10 +16,13 @@ foreach ($_SESSION['cart'] as $product_id => $quantity) {
             'total' => $product['price'] * $quantity
         ];
         $subtotal += $product['price'] * $quantity;
+        $total_items += $quantity;
     }
 }
 
-$shipping = $subtotal > 50 ? 0 : 10;
+// Shipping: $10 per product in cart
+$shipping = $total_items * 10;
+// Tax: 8% on subtotal only
 $tax = $subtotal * 0.08;
 $total = $subtotal + $shipping + $tax;
 
@@ -49,9 +54,9 @@ include 'includes/header.php';
                         </div>
                         <div class="item-quantity">
                             <div class="quantity-controls">
-                                <button onclick="updateQuantity(<?php echo $item['product']['id']; ?>, <?php echo $item['quantity'] - 1; ?>)">−</button>
-                                <input type="number" class="quantity-input" value="<?php echo $item['quantity']; ?>" min="1" readonly>
-                                <button onclick="updateQuantity(<?php echo $item['product']['id']; ?>, <?php echo $item['quantity'] + 1; ?>)">+</button>
+                                <button onclick="decreaseCartQuantity(<?php echo $item['product']['id']; ?>)">−</button>
+                                <input type="number" class="quantity-input" id="qty-<?php echo $item['product']['id']; ?>" value="<?php echo $item['quantity']; ?>" min="1" readonly>
+                                <button onclick="increaseCartQuantity(<?php echo $item['product']['id']; ?>)">+</button>
                             </div>
                         </div>
                         <div class="item-total"><?php echo formatPrice($item['total']); ?></div>
@@ -68,11 +73,11 @@ include 'includes/header.php';
                 </div>
                 <div class="summary-row">
                     <span>Shipping:</span>
-                    <span><?php echo $shipping > 0 ? formatPrice($shipping) : 'FREE'; ?></span>
+                    <span><?php echo formatPrice($shipping); ?></span>
                 </div>
-                <?php if ($subtotal < 50 && $subtotal > 0): ?>
+                <?php if ($total_items > 0): ?>
                     <div class="free-shipping-notice">
-                        Add <?php echo formatPrice(50 - $subtotal); ?> more for FREE shipping!
+                        Shipping: $10.00 per item (<?php echo $total_items; ?> item<?php echo $total_items != 1 ? 's' : ''; ?>)
                     </div>
                 <?php endif; ?>
                 <div class="summary-row">

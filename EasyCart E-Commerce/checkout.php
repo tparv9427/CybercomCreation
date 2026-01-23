@@ -11,8 +11,9 @@ if (!isLoggedIn()) {
 $page_title = 'Checkout';
 $cart_items = [];
 $subtotal = 0;
+$total_items = 0;
 
-foreach ($_SESSION['cart'] as $product_id => $quantity) {
+foreach (getCart() as $product_id => $quantity) {
     $product = getProduct($product_id);
     if ($product) {
         $cart_items[] = [
@@ -21,10 +22,13 @@ foreach ($_SESSION['cart'] as $product_id => $quantity) {
             'total' => $product['price'] * $quantity
         ];
         $subtotal += $product['price'] * $quantity;
+        $total_items += $quantity;
     }
 }
 
-$shipping = $subtotal > 50 ? 0 : 10;
+// Shipping: $10 per product in cart
+$shipping = $total_items * 10;
+// Tax: 8% on subtotal only
 $tax = $subtotal * 0.08;
 $total = $subtotal + $shipping + $tax;
 
@@ -32,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Process order
     $order_id = 'ORD-' . strtoupper(substr(md5(time()), 0, 8));
     $_SESSION['last_order_id'] = $order_id;
-    $_SESSION['cart'] = [];
+    setCart([]); // Clear cart safely
     header('Location: order-success.php');
     exit;
 }
@@ -238,7 +242,7 @@ include 'includes/header.php';
                 </div>
                 <div class="summary-row">
                     <span>Shipping:</span>
-                    <span><?php echo $shipping > 0 ? formatPrice($shipping) : 'FREE'; ?></span>
+                    <span><?php echo formatPrice($shipping); ?></span>
                 </div>
                 <div class="summary-row">
                     <span>Tax (8%):</span>

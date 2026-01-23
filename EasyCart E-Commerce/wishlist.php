@@ -2,7 +2,7 @@
 require_once 'includes/config.php';
 $page_title = 'My Wishlist';
 $wishlist_products = [];
-foreach ($_SESSION['wishlist'] as $product_id) {
+foreach (getWishlist() as $product_id) {
     $product = getProduct($product_id);
     if ($product) $wishlist_products[] = $product;
 }

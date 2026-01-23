@@ -14,6 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
             $_SESSION['user_email'] = $user['email'];
+
+            // Merge guest data with user data
+            mergeGuestToUser($user['id']);
+
             $found = true;
             
             // Redirect to checkout if that's where they came from

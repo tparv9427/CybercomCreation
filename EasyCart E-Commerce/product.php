@@ -55,12 +55,7 @@ include 'includes/header.php';
         <!-- Left Side - Images -->
         <div class="product-images">
             <div class="main-image"><?php echo $product['icon']; ?></div>
-            <div class="thumbnail-images">
-                <div class="thumbnail active"><?php echo $product['icon']; ?></div>
-                <div class="thumbnail">📷</div>
-                <div class="thumbnail">🔍</div>
-                <div class="thumbnail">📦</div>
-            </div>
+
         </div>
 
         <!-- Right Side - Details -->

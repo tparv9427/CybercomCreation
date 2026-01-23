@@ -11,10 +11,13 @@ switch ($action) {
     case 'add':
         if ($product_id && getProduct($product_id)) {
             $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
-            if (!isset($_SESSION['cart'][$product_id])) {
-                $_SESSION['cart'][$product_id] = 0;
+            $cart = getCart();
+            if (!isset($cart[$product_id])) {
+                $cart[$product_id] = 0;
             }
-            $_SESSION['cart'][$product_id] += $quantity;
+            $cart[$product_id] += $quantity;
+            setCart($cart);
+            
             $response = [
                 'success' => true,
                 'cart_count' => getCartCount(),
@@ -26,31 +29,37 @@ switch ($action) {
     case 'update':
         $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
         if ($product_id && $quantity > 0) {
-            $_SESSION['cart'][$product_id] = $quantity;
+            $cart = getCart();
+            $cart[$product_id] = $quantity;
+            setCart($cart);
             
             // Calculate new values
             $product = getProduct($product_id);
             $item_total = $product['price'] * $quantity;
             
             $subtotal = 0;
-            foreach ($_SESSION['cart'] as $pid => $qty) {
+            $total_items = 0;
+            foreach ($cart as $pid => $qty) {
                 $p = getProduct($pid);
                 if ($p) {
                     $subtotal += $p['price'] * $qty;
+                    $total_items += $qty;
                 }
             }
             
-            $shipping = $subtotal > 50 ? 0 : 10;
+            // Shipping: $10 per product in cart
+            $shipping = $total_items * 10;
+            // Tax: 8% on subtotal only
             $tax = $subtotal * 0.08;
             $total = $subtotal + $shipping + $tax;
-            $free_shipping_remaining = $subtotal < 50 ? (50 - $subtotal) : 0;
+            $free_shipping_remaining = 0;
             
             $response = [
                 'success' => true,
                 'cart_count' => getCartCount(),
                 'item_total' => formatPrice($item_total),
                 'subtotal' => formatPrice($subtotal),
-                'shipping' => $shipping > 0 ? formatPrice($shipping) : 'FREE',
+                'shipping' => formatPrice($shipping),
                 'tax' => formatPrice($tax),
                 'total' => formatPrice($total),
                 'free_shipping_remaining' => $free_shipping_remaining > 0 ? formatPrice($free_shipping_remaining) : null
@@ -59,29 +68,35 @@ switch ($action) {
         break;
     
     case 'remove':
-        if (isset($_SESSION['cart'][$product_id])) {
-            unset($_SESSION['cart'][$product_id]);
+        $cart = getCart();
+        if (isset($cart[$product_id])) {
+            unset($cart[$product_id]);
+            setCart($cart);
             
             // Recalculate totals
             $subtotal = 0;
-            foreach ($_SESSION['cart'] as $pid => $qty) {
+            $total_items = 0;
+            foreach ($cart as $pid => $qty) {
                 $p = getProduct($pid);
                 if ($p) {
                     $subtotal += $p['price'] * $qty;
+                    $total_items += $qty;
                 }
             }
             
-            $shipping = $subtotal > 50 ? 0 : 10;
+            // Shipping: $10 per product in cart
+            $shipping = $total_items * 10;
+            // Tax: 8% on subtotal only
             $tax = $subtotal * 0.08;
             $total = $subtotal + $shipping + $tax;
-            $free_shipping_remaining = $subtotal < 50 ? (50 - $subtotal) : 0;
+            $free_shipping_remaining = 0;
             
             $response = [
                 'success' => true,
                 'cart_count' => getCartCount(),
                 'message' => 'Product removed from cart',
                 'subtotal' => formatPrice($subtotal),
-                'shipping' => $shipping > 0 ? formatPrice($shipping) : 'FREE',
+                'shipping' => formatPrice($shipping),
                 'tax' => formatPrice($tax),
                 'total' => formatPrice($total),
                 'free_shipping_remaining' => $free_shipping_remaining > 0 ? formatPrice($free_shipping_remaining) : null

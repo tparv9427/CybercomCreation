@@ -1,8 +1,6 @@
 <?php
 // Start session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+
 
 // Include server simulator (v4.0-fake-server)
 require_once __DIR__ . '/server-simulator.php';
@@ -14,14 +12,12 @@ define('CURRENCY', '$');
 // Version
 define('EASYCART_VERSION', '4.0-fake-server');
 
-// Initialize session variables if not set
-if (!isset($_SESSION['cart'])) {
-    $_SESSION['cart'] = [];
-}
+// Include session manager
+require_once __DIR__ . '/session-manager.php';
 
-if (!isset($_SESSION['wishlist'])) {
-    $_SESSION['wishlist'] = [];
-}
+// Initialize session
+initSession();
+
 
 if (!isset($_SESSION['user_id'])) {
     $_SESSION['user_id'] = null;
@@ -52,118 +48,17 @@ $brands = [
     12 => ['id' => 12, 'name' => 'BookNest']
 ];
 
-// Product name templates
-$electronics_names = [
-    'Smartphone', 'Tablet', 'Laptop', 'Desktop', 'Monitor', 'Keyboard', 'Mouse', 'Headphones', 
-    'Earbuds', 'Speaker', 'Smartwatch', 'Fitness Tracker', 'Camera', 'Webcam', 'Microphone',
-    'Router', 'Power Bank', 'Charger', 'USB Cable', 'Hard Drive', 'SSD', 'RAM', 'Graphics Card',
-    'Processor', 'Motherboard', 'Gaming Console', 'Controller', 'VR Headset', 'Drone', 'Projector'
-];
-
-$fashion_names = [
-    'T-Shirt', 'Shirt', 'Jeans', 'Pants', 'Shorts', 'Dress', 'Skirt', 'Jacket', 'Coat',
-    'Sweater', 'Hoodie', 'Sneakers', 'Boots', 'Sandals', 'Heels', 'Flats', 'Watch', 'Sunglasses',
-    'Hat', 'Cap', 'Scarf', 'Belt', 'Wallet', 'Handbag', 'Backpack', 'Socks', 'Tie', 'Suit',
-    'Blazer', 'Cardigan'
-];
-
-$home_names = [
-    'Sofa', 'Chair', 'Table', 'Bed', 'Mattress', 'Pillow', 'Blanket', 'Curtains', 'Rug',
-    'Lamp', 'Mirror', 'Clock', 'Vase', 'Picture Frame', 'Bookshelf', 'Cabinet', 'Drawer',
-    'Dining Set', 'Coffee Maker', 'Blender', 'Toaster', 'Microwave', 'Air Purifier', 'Fan',
-    'Heater', 'Vacuum Cleaner', 'Iron', 'Washing Machine', 'Refrigerator', 'Cookware Set'
-];
-
-$sports_names = [
-    'Running Shoes', 'Yoga Mat', 'Dumbbells', 'Resistance Bands', 'Jump Rope', 'Gym Bag',
-    'Water Bottle', 'Protein Shaker', 'Fitness Tracker', 'Bicycle', 'Helmet', 'Tennis Racket',
-    'Basketball', 'Football', 'Soccer Ball', 'Baseball Bat', 'Golf Clubs', 'Swimming Goggles',
-    'Yoga Blocks', 'Foam Roller', 'Exercise Ball', 'Pull-up Bar', 'Ankle Weights', 'Wrist Wraps',
-    'Knee Sleeves', 'Compression Shorts', 'Sports Bra', 'Athletic Shirt', 'Track Pants', 'Stopwatch'
-];
-
-$books_names = [
-    'Fiction Novel', 'Mystery Thriller', 'Romance Book', 'Science Fiction', 'Fantasy Epic',
-    'Biography', 'Self-Help Guide', 'Business Book', 'Cookbook', 'Travel Guide', 'History Book',
-    'Poetry Collection', 'Art Book', 'Photography Book', 'Programming Guide', 'Marketing Book',
-    'Psychology Book', 'Philosophy Book', 'Children\'s Book', 'Comic Book', 'Graphic Novel',
-    'Dictionary', 'Encyclopedia', 'Textbook', 'Workbook', 'Journal', 'Planner', 'Notebook',
-    'Educational Book', 'Motivational Book'
-];
-
-$adjectives = ['Premium', 'Professional', 'Advanced', 'Ultra', 'Pro', 'Elite', 'Deluxe', 'Supreme', 'Master', 'Expert'];
-$qualities = ['Quality', 'Performance', 'Edition', 'Series', 'Collection', 'Model', 'Version', 'Grade'];
-
-$icons = [
-    1 => ['📱', '💻', '⌚', '🎧', '📷', '🖥️', '⌨️', '🖱️', '🔊', '📡'],
-    2 => ['👕', '👔', '👗', '👞', '👟', '👠', '🧢', '🕶️', '👜', '🎒'],
-    3 => ['🛋️', '🛏️', '🪑', '🍽️', '☕', '🍴', '🏠', '💡', '🖼️', '🕐'],
-    4 => ['⚽', '🏀', '🎾', '🏈', '⛳', '🏋️', '🚴', '🏊', '🧘', '🥊'],
-    5 => ['📚', '📖', '📕', '📗', '📘', '📙', '📓', '📔', '📒', '📰']
-];
-
-// Generate 100 products per category
+// Load products from JSON file
+$products_file = __DIR__ . '/../data/products.json';
 $products = [];
-$product_id = 1;
 
-foreach ($categories as $cat_id => $category) {
-    $name_pool = [];
-    switch ($cat_id) {
-        case 1: $name_pool = $electronics_names; break;
-        case 2: $name_pool = $fashion_names; break;
-        case 3: $name_pool = $home_names; break;
-        case 4: $name_pool = $sports_names; break;
-        case 5: $name_pool = $books_names; break;
-    }
-    
-    for ($i = 0; $i < 100; $i++) {
-        $base_name = $name_pool[array_rand($name_pool)];
-        $adj = $adjectives[array_rand($adjectives)];
-        $qual = $qualities[array_rand($qualities)];
-        $name = "$adj $base_name $qual";
-        
-        $base_price = rand(20, 500);
-        $discount = rand(0, 40);
-        $price = $base_price * (1 - $discount / 100);
-        
-        $products[$product_id] = [
-            'id' => $product_id,
-            'name' => $name,
-            'slug' => strtolower(str_replace(' ', '-', $name)) . '-' . $product_id,
-            'category_id' => $cat_id,
-            'brand_id' => rand(1, 12),
-            'price' => round($price, 2),
-            'original_price' => (float)$base_price,
-            'discount_percent' => $discount,
-            'rating' => round(rand(30, 50) / 10, 1),
-            'reviews_count' => rand(10, 500),
-            'stock' => rand(0, 100),
-            'description' => "Premium quality $base_name with excellent features and performance. Perfect for your needs.",
-            'long_description' => "Experience the best in class $base_name with advanced technology and superior craftsmanship. This product combines style, functionality, and durability to deliver exceptional value.",
-            'features' => [
-                'High quality materials',
-                'Advanced technology',
-                'Durable construction',
-                'Excellent performance',
-                'Great value for money'
-            ],
-            'specifications' => [
-                'Model' => strtoupper(substr(md5($name), 0, 8)),
-                'Brand' => $brands[rand(1, 12)]['name'],
-                'Warranty' => rand(1, 3) . ' Year(s)',
-                'Made In' => ['USA', 'Germany', 'Japan', 'China', 'India'][array_rand(['USA', 'Germany', 'Japan', 'China', 'India'])]
-            ],
-            'variants' => [
-                'color' => ['Black', 'White', 'Blue', 'Red', 'Gray'],
-                'size' => ['S', 'M', 'L', 'XL']
-            ],
-            'icon' => $icons[$cat_id][array_rand($icons[$cat_id])],
-            'new' => rand(0, 10) > 7,
-            'featured' => rand(0, 10) > 8
-        ];
-        
-        $product_id++;
-    }
+if (file_exists($products_file)) {
+    $json = file_get_contents($products_file);
+    $products = json_decode($json, true);
+} else {
+    // Fallback: empty products array if file doesn't exist
+    error_log("Products file not found: $products_file");
+    $products = [];
 }
 
 // Load users from file or initialize with defaults
@@ -310,25 +205,30 @@ function formatPrice($price) {
 }
 
 function isInCart($productId) {
-    return isset($_SESSION['cart'][$productId]);
+    $cart = getCart();
+    return isset($cart[$productId]);
 }
 
 function isInWishlist($productId) {
-    return in_array($productId, $_SESSION['wishlist']);
+    $wishlist = getWishlist();
+    // Wishlist is a simple array of IDs? No, looking at ajax_wishlist.php it seems to be keys or values?
+    // ajax_wishlist.php: $_SESSION['wishlist'][] = $product_id; (indexed array of IDs)
+    return in_array($productId, $wishlist);
 }
 
 function getCartCount() {
-    return array_sum($_SESSION['cart']);
+    return array_sum(getCart());
 }
 
 function getWishlistCount() {
-    return count($_SESSION['wishlist']);
+    return count(getWishlist());
 }
 
 function getCartTotal() {
     global $products;
     $total = 0;
-    foreach ($_SESSION['cart'] as $productId => $quantity) {
+    $cart = getCart();
+    foreach ($cart as $productId => $quantity) {
         if (isset($products[$productId])) {
             $total += $products[$productId]['price'] * $quantity;
         }
