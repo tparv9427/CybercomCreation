@@ -137,9 +137,7 @@ foreach ($categories as $cat_id => $category) {
             'features' => [
                 'High quality materials',
                 'Advanced technology',
-                'Durable construction',
-                'Excellent performance',
-                'Great value for money'
+                'Durable construction'
             ],
             'specifications' => [
                 'Model' => strtoupper(substr(md5($name), 0, 8)),

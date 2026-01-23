@@ -59,8 +59,8 @@
                     <a href="login.php">Login</a>
                 <?php endif; ?>
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-                    <span class="sun-icon">☀️</span>
-                    <span class="moon-icon">🌙</span>
+                    <span class="sun-icon">🌝</span>
+                    <span class="moon-icon">🌚</span>
                 </button>
             </nav>
         </div>
