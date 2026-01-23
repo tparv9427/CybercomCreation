@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let currentSlide = 0;
     const slideCount = slides.length;
-    const slideInterval = 7000; // 7 seconds per slide
+    const slideInterval = 2000; // 7 seconds per slide
     
     // Create dots container
     const dotsContainer = document.createElement('div');
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dropdown.addEventListener('mouseleave', () => {
             closeTimeout = setTimeout(() => {
                 menu.style.display = 'none';
-            }, 300); // 300ms delay before closing
+            }, 1500); // 300ms delay before closing
         });
     });
 });
