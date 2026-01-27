@@ -1,0 +1,196 @@
+<?php
+
+namespace EasyCart\Controllers;
+
+use EasyCart\Repositories\ProductRepository;
+use EasyCart\Repositories\CategoryRepository;
+use EasyCart\Repositories\BrandRepository;
+use EasyCart\Services\WishlistService;
+
+/**
+ * ProductController
+ * 
+ * Migrated from: products.php, product.php, search.php, brand.php
+ */
+class ProductController
+{
+    private $productRepo;
+    private $categoryRepo;
+    private $brandRepo;
+    private $wishlistService;
+
+    public function __construct()
+    {
+        $this->productRepo = new ProductRepository();
+        $this->categoryRepo = new CategoryRepository();
+        $this->brandRepo = new BrandRepository();
+        $this->wishlistService = new WishlistService();
+    }
+
+    /**
+     * Product listing page
+     */
+    public function index()
+    {
+        // Get filter parameters
+        $category_id = isset($_GET['category']) ? (int)$_GET['category'] : null;
+        $brand_id = isset($_GET['brand']) ? (int)$_GET['brand'] : null;
+        $price_range = isset($_GET['price']) ? $_GET['price'] : null;
+        $rating_filter = isset($_GET['rating']) ? (float)$_GET['rating'] : null;
+        $show_new = isset($_GET['new']) ? true : false;
+
+        // Filter products
+        $filtered_products = $this->productRepo->getAll();
+
+        if ($category_id) {
+            $filtered_products = $this->productRepo->findByCategory($category_id);
+            $page_title = $this->categoryRepo->find($category_id)['name'] . ' Products';
+        } elseif ($brand_id) {
+            $filtered_products = $this->productRepo->findByBrand($brand_id);
+            $page_title = $this->brandRepo->find($brand_id)['name'] . ' Products';
+        } elseif ($show_new) {
+            $filtered_products = $this->productRepo->getNew();
+            $page_title = 'New Arrivals';
+        } else {
+            $page_title = 'All Products';
+        }
+
+        // Apply price filter
+        if ($price_range) {
+            $filtered_products = $this->productRepo->filterByPrice($filtered_products, $price_range);
+        }
+
+        // Apply rating filter
+        if ($rating_filter) {
+            $filtered_products = $this->productRepo->filterByRating($filtered_products, $rating_filter);
+        }
+
+        $product_count = count($filtered_products);
+        $categories = $this->categoryRepo->getAll();
+
+        // Helper functions
+        $getCategory = function($id) {
+            return $this->categoryRepo->find($id);
+        };
+
+        $isInWishlist = function($productId) {
+            return $this->wishlistService->has($productId);
+        };
+
+        $formatPrice = function($price) {
+            return \EasyCart\Helpers\FormatHelper::price($price);
+        };
+
+        include __DIR__ . '/../Views/layouts/header.php';
+        include __DIR__ . '/../Views/products/index.php';
+        include __DIR__ . '/../Views/layouts/footer.php';
+    }
+
+    /**
+     * Product detail page
+     */
+    public function show($id)
+    {
+        $product_id = $id ?? (isset($_GET['id']) ? (int)$_GET['id'] : null);
+        $product = $this->productRepo->find($product_id);
+
+        if (!$product) {
+            header('Location: products.php');
+            exit;
+        }
+
+        $page_title = $product['name'];
+
+        // Get recommendations
+        $products = $this->productRepo->getAll();
+        
+        $brand_recommendations = array_filter($products, function($p) use ($product) {
+            return $p['id'] != $product['id'] && 
+                   $p['category_id'] == $product['category_id'] && 
+                   $p['brand_id'] != $product['brand_id'];
+        });
+        $brand_recommendations = array_slice($brand_recommendations, 0, 4);
+
+        $category_recommendations = array_filter($products, function($p) use ($product) {
+            return $p['id'] != $product['id'] && 
+                   $p['category_id'] == $product['category_id'];
+        });
+        $category_recommendations = array_slice($category_recommendations, 0, 4);
+
+        $other_recommendations = array_filter($products, function($p) use ($product) {
+            return $p['id'] != $product['id'] && 
+                   $p['category_id'] != $product['category_id'];
+        });
+        $other_recommendations = array_slice($other_recommendations, 0, 4);
+
+        // Helper functions
+        $getCategory = function($id) {
+            return $this->categoryRepo->find($id);
+        };
+
+        $getBrand = function($id) {
+            return $this->brandRepo->find($id);
+        };
+
+        $isInWishlist = function($productId) {
+            return $this->wishlistService->has($productId);
+        };
+
+        $formatPrice = function($price) {
+            return \EasyCart\Helpers\FormatHelper::price($price);
+        };
+
+        include __DIR__ . '/../Views/layouts/header.php';
+        include __DIR__ . '/../Views/products/detail.php';
+        include __DIR__ . '/../Views/layouts/footer.php';
+    }
+
+    /**
+     * Search products
+     */
+    public function search()
+    {
+        $query = isset($_GET['q']) ? trim($_GET['q']) : '';
+        $page_title = 'Search Results';
+
+        if (empty($query)) {
+            header('Location: products.php');
+            exit;
+        }
+
+        $products = $this->productRepo->getAll();
+        $filtered_products = array_filter($products, function($product) use ($query) {
+            return stripos($product['name'], $query) !== false || 
+                   stripos($product['description'], $query) !== false;
+        });
+
+        $product_count = count($filtered_products);
+        $categories = $this->categoryRepo->getAll();
+
+        include __DIR__ . '/../Views/layouts/header.php';
+        include __DIR__ . '/../Views/search/index.php';
+        include __DIR__ . '/../Views/layouts/footer.php';
+    }
+
+    /**
+     * Brand page
+     */
+    public function brand($id)
+    {
+        $brand_id = $id ?? (isset($_GET['id']) ? (int)$_GET['id'] : null);
+        $brand = $this->brandRepo->find($brand_id);
+
+        if (!$brand) {
+            header('Location: products.php');
+            exit;
+        }
+
+        $page_title = $brand['name'] . ' Products';
+        $filtered_products = $this->productRepo->findByBrand($brand_id);
+        $product_count = count($filtered_products);
+
+        include __DIR__ . '/../Views/layouts/header.php';
+        include __DIR__ . '/../Views/brand/index.php';
+        include __DIR__ . '/../Views/layouts/footer.php';
+    }
+}
