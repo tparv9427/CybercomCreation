@@ -104,6 +104,9 @@
                         onclick="toggleWishlist(<?php echo $product['id']; ?>, event)">
                     <?php echo isInWishlist($product['id']) ? '❤️ In Wishlist' : '🤍 Add to Wishlist'; ?>
                 </button>
+                <button class="btn btn-outline" onclick="saveForLater(<?php echo $product['id']; ?>, event)">
+                    🔖 Save for Later
+                </button>
             </div>
 
             <div class="product-meta">
@@ -147,178 +150,46 @@
             </ul>
         </div>
 
-        <div class="tab-content">
-            <h3 style="margin-bottom: 2rem;">Customer Reviews</h3>
-            
-            <div class="review-item">
-                <div class="review-header">
-                    <div>
-                        <div class="reviewer-name">John D.</div>
-                        <div class="stars">★★★★★</div>
-                    </div>
-                    <div class="review-date">January 15, 2026</div>
-                </div>
-                <p>Absolutely fantastic product! The build quality is exceptional and the performance exceeds my expectations. Highly recommended!</p>
-            </div>
-
-            <div class="review-item">
-                <div class="review-header">
-                    <div>
-                        <div class="reviewer-name">Sarah M.</div>
-                        <div class="stars">★★★★★</div>
-                    </div>
-                    <div class="review-date">January 12, 2026</div>
-                </div>
-                <p>Best purchase I've made this year! The quality is outstanding and it works perfectly. Will definitely buy again.</p>
-            </div>
-
-            <div class="review-item">
-                <div class="review-header">
-                    <div>
-                        <div class="reviewer-name">Mike R.</div>
-                        <div class="stars">★★★★☆</div>
-                    </div>
-                    <div class="review-date">January 8, 2026</div>
-                </div>
-                <p>Great product overall. Minor issues but customer service was helpful. Would recommend with small reservations.</p>
-            </div>
-        </div>
+        <?php include __DIR__ . '/../partials/reviews_section.php'; ?>
     </div>
 
     <!-- Recommendations Row 1: Different Brands, Same Category -->
-    <?php if (count($brand_recommendations) > 0): ?>
-    <div class="recommendations">
-        <h3>Similar Products from Other Brands</h3>
-        <p class="recommendations-subtitle">Compare options and find the perfect match</p>
-        <div class="recommendation-grid">
-            <?php foreach ($brand_recommendations as $rec): ?>
-                <div class="recommendation-card" onclick="window.location.href='product.php?id=<?php echo $rec['id']; ?>'">
-                    <div class="recommendation-image"><?php echo $rec['icon']; ?></div>
-                    <div class="recommendation-info">
-                        <div class="recommendation-brand"><?php echo $getBrand($rec['brand_id'])['name']; ?></div>
-                        <div class="recommendation-name"><?php echo $rec['name']; ?></div>
-                        <div class="recommendation-price"><?php echo formatPrice($rec['price']); ?></div>
-                        <div class="recommendation-rating">
-                            <span class="stars">
-                                <?php 
-                                $fullStars = floor($rec['rating']);
-                                for ($i = 0; $i < $fullStars; $i++) echo '★';
-                                for ($i = $fullStars; $i < 5; $i++) echo '☆';
-                                ?>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-    <?php endif; ?>
+    <?php 
+    if (count($brand_recommendations) > 0) {
+        $products = $brand_recommendations;
+        $title = "Similar Products from Other Brands";
+        $subtitle = "Compare options and find the perfect match";
+        $showCategory = false;
+        include __DIR__ . '/../partials/recommendation_section.php';
+    }
+    ?>
 
     <!-- Recommendations Row 2: Same Category -->
-    <?php if (count($category_recommendations) > 0): ?>
-    <div class="recommendations">
-        <h3>More from <?php echo $getCategory($product['category_id'])['name']; ?></h3>
-        <p class="recommendations-subtitle">Explore similar products you might like</p>
-        <div class="recommendation-grid">
-            <?php foreach ($category_recommendations as $rec): ?>
-                <div class="recommendation-card" onclick="window.location.href='product.php?id=<?php echo $rec['id']; ?>'">
-                    <div class="recommendation-image"><?php echo $rec['icon']; ?></div>
-                    <div class="recommendation-info">
-                        <div class="recommendation-brand"><?php echo $getBrand($rec['brand_id'])['name']; ?></div>
-                        <div class="recommendation-name"><?php echo $rec['name']; ?></div>
-                        <div class="recommendation-price"><?php echo formatPrice($rec['price']); ?></div>
-                        <div class="recommendation-rating">
-                            <span class="stars">
-                                <?php 
-                                $fullStars = floor($rec['rating']);
-                                for ($i = 0; $i < $fullStars; $i++) echo '★';
-                                for ($i = $fullStars; $i < 5; $i++) echo '☆';
-                                ?>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-    <?php endif; ?>
+    <?php 
+    if (count($category_recommendations) > 0) {
+        $products = $category_recommendations;
+        // Check if category exists before accessing name to avoid errors
+        $cat = $getCategory($product['category_id']);
+        $catName = $cat ? $cat['name'] : 'Same Category';
+        $title = "More from " . $catName;
+        $subtitle = "Explore similar products you might like";
+        $showCategory = false;
+        include __DIR__ . '/../partials/recommendation_section.php';
+    }
+    ?>
 
     <!-- Recommendations Row 3: Other Categories -->
-    <?php if (count($other_recommendations) > 0): ?>
-    <div class="recommendations">
-        <h3>You May Also Like</h3>
-        <p class="recommendations-subtitle">Discover products from other categories</p>
-        <div class="recommendation-grid">
-            <?php foreach ($other_recommendations as $rec): ?>
-                <div class="recommendation-card" onclick="window.location.href='product.php?id=<?php echo $rec['id']; ?>'">
-                    <div class="recommendation-image"><?php echo $rec['icon']; ?></div>
-                    <div class="recommendation-info">
-                        <div class="recommendation-category"><?php echo $getCategory($rec['category_id'])['name']; ?></div>
-                        <div class="recommendation-name"><?php echo $rec['name']; ?></div>
-                        <div class="recommendation-price"><?php echo formatPrice($rec['price']); ?></div>
-                        <div class="recommendation-rating">
-                            <span class="stars">
-                                <?php 
-                                $fullStars = floor($rec['rating']);
-                                for ($i = 0; $i < $fullStars; $i++) echo '★';
-                                for ($i = $fullStars; $i < 5; $i++) echo '☆';
-                                ?>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-    <?php endif; ?>
+    <?php 
+    if (count($other_recommendations) > 0) {
+        $products = $other_recommendations;
+        $title = "You May Also Like";
+        $subtitle = "Discover products from other categories";
+        $showCategory = true;
+        include __DIR__ . '/../partials/recommendation_section.php';
+    }
+    ?>
 </div>
 
-<script>
-function switchTab(index) {
-    const tabs = document.querySelectorAll('.tab');
-    const contents = document.querySelectorAll('.tab-content');
-    
-    tabs.forEach(t => t.classList.remove('active'));
-    contents.forEach(c => c.classList.remove('active'));
-    
-    tabs[index].classList.add('active');
-    contents[index].classList.add('active');
-}
-
-function increaseQty() {
-    const input = document.getElementById('quantity');
-    const current = parseInt(input.value) || 0;
-    const max = parseInt(input.max) || 999;
-    
-    if (current < max) {
-        input.value = current + 1;
-    } else {
-        validateMaxStock(input);
-    }
-}
-
-function decreaseQty() {
-    const input = document.getElementById('quantity');
-    if (parseInt(input.value) > 1) {
-        input.value = parseInt(input.value) - 1;
-    }
-}
-
-// Variant selection
-document.querySelectorAll('.variant-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        this.parentElement.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-    });
-});
-
-// Thumbnail switching
-const thumbnails = document.querySelectorAll('.thumbnail');
-thumbnails.forEach(thumb => {
-    thumb.addEventListener('click', () => {
-        thumbnails.forEach(t => t.classList.remove('active'));
-        thumb.classList.add('active');
-    });
-});
-</script>
+<!-- Page Specific Scripts -->
+<script src="assets/js/product-detail.js"></script>
 

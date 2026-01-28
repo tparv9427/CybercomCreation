@@ -40,5 +40,12 @@
         "password": "$2y$10$HuFRgQnHI4qCZxidKGJq.eW5GHzCNAMkl1t2fQoR10K5RQ1FtHL0C",
         "name": "Parv Talati",
         "created_at": "2026-01-27"
+    },
+    "7": {
+        "id": 7,
+        "email": "admin@123.com",
+        "password": "$2y$10$EKyTM1e1fMMtIv\/6N0uBeeTcZS4pmouRv\/4BzGd6nD9PgzwHcDg4.",
+        "name": "admin",
+        "created_at": "2026-01-28"
     }
 }

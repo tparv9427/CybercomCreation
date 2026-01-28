@@ -112,26 +112,9 @@ class ProductController
         $categories = $this->categoryRepo->getAll();
 
         // Get recommendations
-        $products = $this->productRepo->getAll();
-        
-        $brand_recommendations = array_filter($products, function($p) use ($product) {
-            return $p['id'] != $product['id'] && 
-                   $p['category_id'] == $product['category_id'] && 
-                   $p['brand_id'] != $product['brand_id'];
-        });
-        $brand_recommendations = array_slice($brand_recommendations, 0, 4);
-
-        $category_recommendations = array_filter($products, function($p) use ($product) {
-            return $p['id'] != $product['id'] && 
-                   $p['category_id'] == $product['category_id'];
-        });
-        $category_recommendations = array_slice($category_recommendations, 0, 4);
-
-        $other_recommendations = array_filter($products, function($p) use ($product) {
-            return $p['id'] != $product['id'] && 
-                   $p['category_id'] != $product['category_id'];
-        });
-        $other_recommendations = array_slice($other_recommendations, 0, 4);
+        $brand_recommendations = $this->productRepo->getSimilarByBrand($product);
+        $category_recommendations = $this->productRepo->getSimilarByCategory($product);
+        $other_recommendations = $this->productRepo->getFromOtherCategories($product);
 
         // Helper functions
         $getCategory = function($id) {

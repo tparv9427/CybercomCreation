@@ -84,16 +84,31 @@ class PricingService
     }
 
     /**
+     * Calculate payment fee
+     * 
+     * @param string $method
+     * @return float
+     */
+    public function calculatePaymentFee($method)
+    {
+        if ($method === 'cod') {
+            return 5.00;
+        }
+        return 0.00;
+    }
+
+    /**
      * Calculate total
      * 
      * @param float $subtotal
      * @param float $shipping
      * @param float $tax
+     * @param float $paymentFee
      * @return float
      */
-    public function calculateTotal($subtotal, $shipping, $tax)
+    public function calculateTotal($subtotal, $shipping, $tax, $paymentFee = 0.0)
     {
-        return $subtotal + $shipping + $tax;
+        return $subtotal + $shipping + $tax + $paymentFee;
     }
 
     /**
@@ -101,20 +116,23 @@ class PricingService
      * 
      * @param array $cart
      * @param string $shippingMethod
-     * @return array ['subtotal', 'shipping', 'tax', 'total', 'item_count']
+     * @param string $paymentMethod
+     * @return array ['subtotal', 'shipping', 'tax', 'total', 'item_count', 'payment_fee']
      */
-    public function calculateAll($cart, $shippingMethod = 'standard')
+    public function calculateAll($cart, $shippingMethod = 'standard', $paymentMethod = 'card')
     {
         $itemCount = array_sum($cart);
         $subtotal = $this->calculateSubtotal($cart);
         $shipping = $this->calculateShipping($subtotal, $shippingMethod);
+        $paymentFee = $this->calculatePaymentFee($paymentMethod);
         $tax = $this->calculateTax($subtotal, $shipping);
-        $total = $this->calculateTotal($subtotal, $shipping, $tax);
+        $total = $this->calculateTotal($subtotal, $shipping, $tax, $paymentFee);
 
         return [
             'item_count' => $itemCount,
             'subtotal' => $subtotal,
             'shipping' => $shipping,
+            'payment_fee' => $paymentFee,
             'tax' => $tax,
             'total' => $total
         ];

@@ -26,6 +26,9 @@ try {
     
     // Get shipping method from POST data
     $shippingMethod = $_POST['shipping'] ?? 'standard';
+
+    // Get payment method from POST data
+    $paymentMethod = $_POST['payment'] ?? 'card';
     
     // Validate shipping method
     $validMethods = ['standard', 'express', 'white_glove', 'freight'];
@@ -63,7 +66,7 @@ try {
     }
     
     // Calculate pricing using PricingHelper
-    $pricing = PricingHelper::calculateCheckoutPricing($cartItems, $shippingMethod);
+    $pricing = PricingHelper::calculateCheckoutPricing($cartItems, $shippingMethod, $paymentMethod);
     
     // Return success response
     echo json_encode([
@@ -71,12 +74,14 @@ try {
         'pricing' => [
             'subtotal' => $pricing['subtotal_formatted'],
             'shipping' => $pricing['shipping_formatted'],
+            'payment_fee' => $pricing['payment_fee'] > 0 ? $pricing['payment_fee_formatted'] : null,
             'tax' => $pricing['tax_formatted'],
             'total' => $pricing['total_formatted']
         ],
         'raw' => [
             'subtotal' => $pricing['subtotal'],
             'shipping' => $pricing['shipping'],
+            'payment_fee' => $pricing['payment_fee'],
             'tax' => $pricing['tax'],
             'total' => $pricing['total']
         ]

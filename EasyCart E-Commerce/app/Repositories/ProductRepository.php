@@ -116,4 +116,32 @@ class ProductRepository
             return $product['rating'] >= $rating;
         });
     }
+
+    public function getSimilarByBrand($currentProduct, $limit = 4)
+    {
+        $recommendations = array_filter($this->products, function($p) use ($currentProduct) {
+            return $p['id'] != $currentProduct['id'] && 
+                   $p['category_id'] == $currentProduct['category_id'] && 
+                   $p['brand_id'] != $currentProduct['brand_id'];
+        });
+        return array_slice($recommendations, 0, $limit);
+    }
+
+    public function getSimilarByCategory($currentProduct, $limit = 4)
+    {
+        $recommendations = array_filter($this->products, function($p) use ($currentProduct) {
+            return $p['id'] != $currentProduct['id'] && 
+                   $p['category_id'] == $currentProduct['category_id'];
+        });
+        return array_slice($recommendations, 0, $limit);
+    }
+
+    public function getFromOtherCategories($currentProduct, $limit = 4)
+    {
+        $recommendations = array_filter($this->products, function($p) use ($currentProduct) {
+            return $p['id'] != $currentProduct['id'] && 
+                   $p['category_id'] != $currentProduct['category_id'];
+        });
+        return array_slice($recommendations, 0, $limit);
+    }
 }

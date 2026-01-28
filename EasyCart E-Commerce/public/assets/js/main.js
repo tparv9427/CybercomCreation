@@ -580,13 +580,13 @@ function addToCart(productId, event, quantity = 1) {
 }
 
 // Update Quantity (Live - No Reload)
-function updateQuantity(productId, quantity) {
+function updateQuantity(productId, quantity, disableInput = true) {
     if (quantity < 1) return;
 
     const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
     const quantityInput = cartItem?.querySelector('.quantity-input');
 
-    if (quantityInput) {
+    if (quantityInput && disableInput) {
         quantityInput.disabled = true;
     }
 
@@ -604,6 +604,10 @@ function updateQuantity(productId, quantity) {
                 if (quantityInput) {
                     quantityInput.value = quantity;
                     quantityInput.disabled = false;
+                    // Keep focus if we were typing
+                    if (!disableInput) {
+                        quantityInput.focus();
+                    }
                 }
 
                 // Update item total
@@ -616,7 +620,17 @@ function updateQuantity(productId, quantity) {
                 updateCartSummary(data);
                 updateCartCount(data.cart_count);
 
-                showNotification('Cart updated', 'success');
+                // Show discreet success indicator for manual entry
+                if (!disableInput) {
+                    quantityInput.classList.add('updated-flash');
+                    setTimeout(() => quantityInput.classList.remove('updated-flash'), 500);
+                } else {
+                    showNotification('Cart updated', 'success');
+                }
+
+                // Trigger pricing update if on checkout (though usually this function is for cart page)
+                // But if we are on checkout execution context, we might need it.
+                // However, cart page implementation is separate.
             } else {
                 if (quantityInput) {
                     quantityInput.disabled = false;
@@ -651,11 +665,19 @@ function increaseCartQuantity(productId) {
     }
 }
 
-// Validate manual input
+// Validate manual input with Debounce
+let debounceTimer;
 function validateCartQuantity(productId, input) {
-    if (validateMaxStock(input)) {
-        updateQuantity(productId, parseInt(input.value));
-    }
+    clearTimeout(debounceTimer);
+
+    // Immediate visual validation (optional, can stay simple)
+
+    debounceTimer = setTimeout(() => {
+        if (validateMaxStock(input)) {
+            // Pass false to not disable input while typing
+            updateQuantity(productId, parseInt(input.value), false);
+        }
+    }, 500); // 500ms debounce
 }
 
 // Generic Max Stock Validator
@@ -1015,16 +1037,19 @@ document.addEventListener('click', function (e) {
 // ============================================
 function updateCheckoutPricing() {
     const shippingSelect = document.getElementById('shipping-select');
+    const paymentSelect = document.getElementById('payment-select');
+
     if (!shippingSelect) return;
 
     const shippingMethod = shippingSelect.value;
+    const paymentMethod = paymentSelect ? paymentSelect.value : 'card';
 
     fetch('ajax_checkout_pricing.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: 'shipping=' + shippingMethod
+        body: 'shipping=' + shippingMethod + '&payment=' + paymentMethod
     })
         .then(response => {
             if (!response.ok) {
@@ -1037,13 +1062,49 @@ function updateCheckoutPricing() {
             console.log('Pricing update response:', data);
             if (data.success) {
                 // Update Summary DOM
+                const summaryTotals = document.querySelector('.summary-totals');
                 const shippingEl = document.querySelector('.summary-totals .summary-row:nth-child(2) span:last-child');
-                const taxEl = document.querySelector('.summary-totals .summary-row:nth-child(3) span:last-child');
+                const taxEl = document.querySelector('.summary-totals .summary-row:nth-child(3) span:last-child'); // This selector might be fragile if rows change
                 const totalEl = document.querySelector('.summary-totals .summary-total span:last-child');
                 const btnTotalEl = document.querySelector('.btn-place-order');
 
                 if (shippingEl) shippingEl.textContent = data.pricing.shipping;
-                if (taxEl) taxEl.textContent = data.pricing.tax;
+
+                // Handle Payment Fee Row
+                let feeRow = document.getElementById('payment-fee-row');
+
+                if (data.pricing.payment_fee) {
+                    if (!feeRow) {
+                        feeRow = document.createElement('div');
+                        feeRow.id = 'payment-fee-row';
+                        feeRow.className = 'summary-row';
+                        feeRow.innerHTML = `<span>COD Fee:</span><span>${data.pricing.payment_fee}</span>`;
+
+                        // Insert before tax row (assuming tax row is last before total)
+                        const totalRow = document.querySelector('.summary-total');
+                        if (totalRow) {
+                            totalRow.parentNode.insertBefore(feeRow, totalRow);
+                        }
+                    } else {
+                        feeRow.querySelector('span:last-child').textContent = data.pricing.payment_fee;
+                    }
+                } else {
+                    if (feeRow) {
+                        feeRow.remove();
+                    }
+                }
+
+                // We need to re-query tax el because row injection might shift indices if we used nth-child
+                // So let's try to find tax row by content text if possible, or just rely on class structure if we add classes
+                // For now, let's assume the tax row is the one before the total row, excluding our new fee row
+                // Refined selector strategy:
+                const allRows = document.querySelectorAll('.summary-totals .summary-row');
+                allRows.forEach(row => {
+                    if (row.textContent.includes('Tax')) {
+                        row.querySelector('span:last-child').textContent = data.pricing.tax;
+                    }
+                });
+
                 if (totalEl) totalEl.textContent = data.pricing.total;
                 if (btnTotalEl) btnTotalEl.textContent = 'Place Order - ' + data.pricing.total;
             }
@@ -1053,10 +1114,149 @@ function updateCheckoutPricing() {
         });
 }
 
-// Attach listener to shipping select
+// Save item for later
+function saveForLater(productId) {
+    fetch('ajax_cart.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `action=save_for_later&product_id=${productId}`
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove from cart list if present
+                const cartItem = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
+                if (cartItem) {
+                    cartItem.remove();
+                }
+
+                // Update Summaries
+                if (typeof updateCartSummary === 'function' && document.querySelector('.summary-totals')) {
+                    updateCartSummary(data);
+                }
+
+                // Update Cart Count (always present in header ideally)
+                updateCartCount(data.cart_count);
+
+                // Add to Saved List - Only if section exists (Cart Page)
+                let savedSection = document.querySelector('.saved-items-section');
+                if (savedSection || cartItem) { // Only try to manage saved section if we are on cart page (inferred by presence of cartItem or section)
+                    if (data.saved_item_html) {
+                        if (!savedSection) {
+                            // Create section if it doesn't exist
+                            savedSection = document.createElement('div');
+                            savedSection.className = 'saved-items-section';
+                            savedSection.style.marginTop = '3rem';
+                            savedSection.innerHTML = `
+                        <h3 style="margin-bottom: 1.5rem; color: var(--primary);">Saved for Later</h3>
+                        <div class="cart-items"></div>
+                    `;
+                            document.querySelector('.container').appendChild(savedSection);
+                        }
+
+                        // Append item
+                        const savedItemsList = savedSection.querySelector('.cart-items');
+                        savedItemsList.insertAdjacentHTML('beforeend', data.saved_item_html);
+
+                        // Update count in header
+                        const countHeader = savedSection.querySelector('h3');
+                        if (countHeader) {
+                            const count = savedItemsList.children.length;
+                            countHeader.textContent = `Saved for Later (${count})`;
+                        }
+                    }
+
+                    // Check if cart is empty
+                    const remaining = document.querySelectorAll('.cart-layout .cart-item');
+                    if (remaining.length === 0) {
+                        location.reload(); // Reload to show empty state
+                    }
+
+                    // showNotification(data.message || 'Item saved for later', 'success'); // Optional: suppressing notification for instant feel or keep it? User didn't specify. Keeping it.
+                    showNotification(data.message || 'Item saved for later', 'success');
+                } else {
+                    showNotification(data.message || 'Error saving item', 'error');
+                }
+            } else {
+                showNotification(data.message || 'Error saving item', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error processing request', 'error');
+        });
+}
+
+// Move item to cart from saved
+function moveToCartFromSaved(productId) {
+    fetch('ajax_cart.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `action=move_to_cart&product_id=${productId}`
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove from saved list
+                const savedItem = document.getElementById(`saved-item-${productId}`);
+                if (savedItem) {
+                    savedItem.remove();
+                }
+                // Update Saved Count or Remove Section
+                const savedSection = document.querySelector('.saved-items-section');
+                if (savedSection) {
+                    const savedItemsList = savedSection.querySelector('.cart-items');
+                    if (savedItemsList.children.length === 0) {
+                        savedSection.remove();
+                    } else {
+                        const countHeader = savedSection.querySelector('h3');
+                        if (countHeader) {
+                            countHeader.textContent = `Saved for Later (${savedItemsList.children.length})`;
+                        }
+                    }
+                }
+
+                // Update Summaries
+                updateCartSummary(data);
+                updateCartCount(data.cart_count);
+
+                // Add to Cart List
+                if (data.cart_item_html) {
+                    const cartItemsList = document.querySelector('.cart-layout .cart-items');
+                    if (cartItemsList) {
+                        cartItemsList.insertAdjacentHTML('beforeend', data.cart_item_html);
+                    } else {
+                        // Cart was empty, simplest to reload to restore layout
+                        location.reload();
+                        return;
+                    }
+                }
+
+                showNotification(data.message || 'Item moved to cart', 'success');
+            } else {
+                showNotification(data.message || 'Error moving item', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error processing request', 'error');
+        });
+}
+
+// Attach listener to shipping and payment select
 document.addEventListener('DOMContentLoaded', function () {
     const shippingSelect = document.getElementById('shipping-select');
+    const paymentSelect = document.getElementById('payment-select');
+
     if (shippingSelect) {
         shippingSelect.addEventListener('change', updateCheckoutPricing);
+    }
+
+    if (paymentSelect) {
+        paymentSelect.addEventListener('change', updateCheckoutPricing);
     }
 });

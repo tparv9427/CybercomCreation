@@ -14,11 +14,13 @@ class CartService
 {
     private $cartRepo;
     private $productRepo;
+    private $saveRepo;
 
     public function __construct()
     {
         $this->cartRepo = new CartRepository();
         $this->productRepo = new ProductRepository();
+        $this->saveRepo = new \EasyCart\Repositories\SaveForLaterRepository();
     }
 
     /**
@@ -146,5 +148,83 @@ class CartService
     public function get()
     {
         return $this->cartRepo->get();
+    }
+
+    /**
+     * Save item for later
+     * 
+     * @param int $productId
+     * @return bool
+     */
+    public function saveForLater($productId)
+    {
+        $cart = $this->cartRepo->get();
+        // Item doesn't have to be in cart to be saved for later
+        
+        $saved = $this->saveRepo->get();
+        // If in cart, move quantity. If not, default to 1 or add 1? 
+        // Logic: specific request "add this save for later button...". Usually implies "add this item to saved list".
+        // If it's already in saved, we can just ensure it stays there.
+        // If it was in cart, we should remove it from cart.
+        
+        $quantity = isset($cart[$productId]) ? $cart[$productId] : 1;
+        
+        // If already in saved, we might want to just keep it or add quantity?
+        // Simple implementation: Overwrite or set.
+        $saved[$productId] = $quantity; // Store with quantity
+        
+        $this->saveRepo->save($saved);
+        
+        // If it was in cart, remove it
+        if (isset($cart[$productId])) {
+            $this->remove($productId);
+        }
+        
+        return true;
+    }
+
+    /**
+     * Move saved item back to cart
+     * 
+     * @param int $productId
+     * @return bool
+     */
+    public function moveToCartFromSaved($productId)
+    {
+        $saved = $this->saveRepo->get();
+        if(!isset($saved[$productId])) {
+            return false;
+        }
+
+        $this->add($productId, $saved[$productId]);
+        
+        unset($saved[$productId]);
+        $this->saveRepo->save($saved);
+        
+        return true;
+    }
+    
+    /**
+     * Get saved items with product details
+     * 
+     * @return array
+     */
+    public function getSavedItems()
+    {
+        $saved = $this->saveRepo->get();
+        $items = [];
+        
+        foreach ($saved as $productId => $quantity) {
+             $product = $this->productRepo->find($productId);
+             if ($product) {
+                 $items[] = [
+                     'product' => $product,
+                     'quantity' => $quantity,
+                     'total' => $product['price'] * $quantity
+                 ];
+             }
+        }
+        
+        return $items;
     }
 }

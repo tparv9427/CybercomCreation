@@ -52,7 +52,12 @@
             </div>
         </div>
     </div>
-    <button class="quick-add-btn" onclick="addToCart(<?php echo $product['id']; ?>, event)" title="Add to Cart">
-        🛒 Add to Cart
-    </button>
+    <div class="card-actions" style="display: flex; gap: 0.5rem; width: 100%;">
+        <button class="quick-add-btn" onclick="addToCart(<?php echo $product['id']; ?>, event)" title="Add to Cart" style="flex: 1;">
+            🛒 Add to Cart
+        </button>
+        <button class="save-btn" onclick="saveForLater(<?php echo $product['id']; ?>, event)" title="Save for Later" style="width: 40px; background: white; border: 1px solid #ddd; border-radius: 4px; color: #555; cursor: pointer; transition: all 0.2s;">
+            🔖
+        </button>
+    </div>
 </div>

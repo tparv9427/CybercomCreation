@@ -79,16 +79,31 @@ class PricingHelper
     }
     
     /**
+     * Calculate payment fee
+     * 
+     * @param string $method Payment method
+     * @return float Fee amount
+     */
+    public static function calculatePaymentFee($method)
+    {
+        if ($method === 'cod') {
+            return 5.00;
+        }
+        return 0.00;
+    }
+
+    /**
      * Calculate final total
      * 
      * @param float $subtotal Cart subtotal
      * @param float $shipping Shipping cost
      * @param float $tax Tax amount
+     * @param float $paymentFee Payment fee (optional)
      * @return float Total amount
      */
-    public static function calculateTotal($subtotal, $shipping, $tax)
+    public static function calculateTotal($subtotal, $shipping, $tax, $paymentFee = 0.0)
     {
-        return $subtotal + $shipping + $tax;
+        return $subtotal + $shipping + $tax + $paymentFee;
     }
     
     /**
@@ -99,7 +114,7 @@ class PricingHelper
      */
     public static function formatPrice($amount)
     {
-        return '₹' . number_format($amount, 2);
+        return '₹' . number_format($amount, 2); // Using Rupee symbol as per previous requirement
     }
     
     /**
@@ -107,22 +122,26 @@ class PricingHelper
      * 
      * @param array $cartItems Cart items
      * @param string $shippingMethod Shipping method
+     * @param string $paymentMethod Payment method
      * @return array Pricing details
      */
-    public static function calculateCheckoutPricing($cartItems, $shippingMethod = 'standard')
+    public static function calculateCheckoutPricing($cartItems, $shippingMethod = 'standard', $paymentMethod = 'card')
     {
         $subtotal = self::calculateCartSubtotal($cartItems);
         $shipping = self::calculateShipping($shippingMethod, $subtotal);
+        $paymentFee = self::calculatePaymentFee($paymentMethod);
         $tax = self::calculateTax($subtotal, $shipping);
-        $total = self::calculateTotal($subtotal, $shipping, $tax);
+        $total = self::calculateTotal($subtotal, $shipping, $tax, $paymentFee);
         
         return [
             'subtotal' => $subtotal,
             'shipping' => $shipping,
+            'payment_fee' => $paymentFee,
             'tax' => $tax,
             'total' => $total,
             'subtotal_formatted' => self::formatPrice($subtotal),
             'shipping_formatted' => self::formatPrice($shipping),
+            'payment_fee_formatted' => self::formatPrice($paymentFee),
             'tax_formatted' => self::formatPrice($tax),
             'total_formatted' => self::formatPrice($total)
         ];

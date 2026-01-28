@@ -147,6 +147,12 @@ try {
                 case 'remove':
                     $controller->remove();
                     break;
+                case 'save_for_later':
+                    $controller->saveForLater();
+                    break;
+                case 'move_to_cart':
+                    $controller->moveToCart();
+                    break;
                 default:
                     http_response_code(400);
                     echo json_encode(['success' => false, 'message' => 'Invalid action']);
