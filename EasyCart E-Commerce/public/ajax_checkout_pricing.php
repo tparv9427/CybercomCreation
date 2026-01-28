@@ -36,6 +36,10 @@ try {
         $shippingMethod = 'standard';
     }
     
+    // Save to session
+    $_SESSION['shipping_method'] = $shippingMethod;
+    $_SESSION['payment_method'] = $paymentMethod;
+    
     // Get cart from session
     $cart = $_SESSION['cart'] ?? [];
     

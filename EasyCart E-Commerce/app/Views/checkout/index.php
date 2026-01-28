@@ -50,10 +50,10 @@
                     <h3>Shipping Method</h3>
                     <div class="form-group">
                         <select name="shipping" id="shipping-select" class="shipping-select">
-                            <option value="standard" selected>Standard Shipping (3-5 days) - $40.00</option>
-                            <option value="express">Express Shipping (1-2 days) - $80.00 or 10%</option>
-                            <option value="white_glove">White Glove Delivery (Scheduled) - $150.00 or 5%</option>
-                            <option value="freight">Freight Shipping (Bulk Orders) - 3% (Min $200)</option>
+                            <option value="standard" <?php echo ($shipping_method === 'standard') ? 'selected' : ''; ?>>Standard Shipping (3-5 days) - $40.00</option>
+                            <option value="express" <?php echo ($shipping_method === 'express') ? 'selected' : ''; ?>>Express Shipping (1-2 days) - $80.00 or 10%</option>
+                            <option value="white_glove" <?php echo ($shipping_method === 'white_glove') ? 'selected' : ''; ?>>White Glove Delivery (Scheduled) - $150.00 or 5%</option>
+                            <option value="freight" <?php echo ($shipping_method === 'freight') ? 'selected' : ''; ?>>Freight Shipping (Bulk Orders) - 3% (Min $200)</option>
                         </select>
                     </div>
                 </div>

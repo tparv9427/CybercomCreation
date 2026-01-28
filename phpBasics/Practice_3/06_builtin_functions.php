@@ -16,7 +16,7 @@ if (in_array(5, $numbers)) {
 array_push($numbers, 5);
 print_r($numbers);
 
-$more = [6, 7];
-$merged = array_merge($numbers, $more);
+$add = [6, 7];
+$merged = array_merge($numbers, $add);
 print_r($merged);
 ?>

@@ -59,7 +59,10 @@ class CheckoutController
             }
         }
 
-        $pricing = $this->pricingService->calculateAll($cart, 'standard');
+
+
+        $shipping_method = $_SESSION['shipping_method'] ?? 'standard';
+        $pricing = $this->pricingService->calculateAll($cart, $shipping_method);
         $subtotal = $pricing['subtotal'];
         $shipping = $pricing['shipping'];
         $tax = $pricing['tax'];
@@ -87,6 +90,8 @@ class CheckoutController
         }
 
         $shippingMethod = $_POST['shipping'] ?? 'standard';
+        $_SESSION['shipping_method'] = $shippingMethod; // Persist selection
+
         $cart = $this->cartService->get();
         
         $pricing = $this->pricingService->calculateAll($cart, $shippingMethod);
@@ -97,6 +102,7 @@ class CheckoutController
             'pricing' => [
                 'subtotal' => \EasyCart\Helpers\FormatHelper::price($pricing['subtotal']),
                 'shipping' => \EasyCart\Helpers\FormatHelper::price($pricing['shipping']),
+                'payment_fee' => $pricing['payment_fee'] > 0 ? \EasyCart\Helpers\FormatHelper::price($pricing['payment_fee']) : null, // Ensure payment fee key exists or logic handles it
                 'tax' => \EasyCart\Helpers\FormatHelper::price($pricing['tax']),
                 'total' => \EasyCart\Helpers\FormatHelper::price($pricing['total'])
             ]

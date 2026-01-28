@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Basics - Practical Launcher</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 350px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            background-color: #f9f9f9;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .footer {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Select Practical to Run</h1>
+        <form id="launcherForm">
+            <select id="practicalSelect">
+                <option value="Practice_1/01_variables.php">Practical 1: Variables (PHP-001)</option>
+                <option value="Practice_1/02_arrays.php">Practical 2: Arrays (PHP-002)</option>
+                <option value="Practice_2/03_control_structures.php">Practical 3: Control Structures (PHP-003)</option>
+                <option value="Practice_2/04_loops.php">Practical 4: Loops (PHP-004)</option>
+                <option value="Practice_3/05_functions.php">Practical 5: Functions (PHP-005)</option>
+                <option value="Practice_3/06_builtin_functions.php">Practical 6: Built-in Functions (PHP-006)</option>
+                <option value="Practice_4/07_Classes.php">Practical 7: Classes (PHP-007)</option>
+                <option value="Practice_4/08_encapsulation.php">Practical 8: Encapsulation (PHP-008)</option>
+                <option value="Practice_5/09_inheritance.php">Practical 9: Inheritance (PHP-009)</option>
+                <option value="Practice_5/10_magic_methods.php">Practical 10: Magic Methods (PHP-010)</option>
+                <option value="Practice_6/11_cookies.php">Practical 11: Cookies (PHP-011)</option>
+                <option value="Practice_6/12_page2.php">Practical 12: Sessions (PHP-012)</option>
+                <option value="Practice_7/index.php">Practical 13: Namespaces (PHP-013/14)</option>
+            </select>
+            <button type="button" onclick="runPractical()">Run Practical</button>
+        </form>
+        <div class="footer">PHP Basics Practice Set</div>
+    </div>
+
+    <script>
+        function runPractical() {
+            const selectInfo = document.getElementById('practicalSelect');
+            const selectedValue = selectInfo.value;
+            if (selectedValue) {
+                window.location.href = selectedValue;
+            } else {
+                alert("Please select a practical to run.");
+            }
+        }
+    </script>
+
+</body>
+
+</html>
