@@ -1,33 +1,12 @@
 <?php
-require_once 'includes/config.php';
-$page_title = 'Shopping Cart';
-
-$cart_items = [];
-$subtotal = 0;
-$total_items = 0;
-
-$cart = getCart();
-foreach ($cart as $product_id => $quantity) {
-    $product = getProduct($product_id);
-    if ($product) {
-        $cart_items[] = [
-            'product' => $product,
-            'quantity' => $quantity,
-            'total' => $product['price'] * $quantity
-        ];
-        $subtotal += $product['price'] * $quantity;
-        $total_items += $quantity;
-    }
-}
-
-// Shipping: $10 per product in cart
-$shipping = $total_items * 10;
-// Tax: 8% on subtotal only
-$tax = $subtotal * 0.08;
-$total = $subtotal + $shipping + $tax;
-
-include 'includes/header.php';
+// Variables passed from CartController:
+// $page_title, $cart_items, $pricing
 ?>
+
+<link rel="stylesheet" href="/assets/css/cart.css">
+
+
+
 
 <link rel="stylesheet" href="assets/css/cart.css">
 
@@ -49,14 +28,14 @@ include 'includes/header.php';
                         <div class="item-image" onclick="window.location.href='product.php?id=<?php echo $item['product']['id']; ?>'"><?php echo $item['product']['icon']; ?></div>
                         <div class="item-details">
                             <h3 class="item-name"><?php echo $item['product']['name']; ?></h3>
-                            <p class="item-category"><?php echo getCategory($item['product']['category_id'])['name']; ?></p>
+                            <p class="item-category"><?php echo $getCategory($item['product']['category_id'])['name']; ?></p>
                             <p class="item-price"><?php echo formatPrice($item['product']['price']); ?></p>
                         </div>
                         <div class="item-quantity">
                             <div class="quantity-controls">
-                                <button onclick="decreaseCartQuantity(<?php echo $item['product']['id']; ?>)">−</button>
-                                <input type="number" class="quantity-input" id="qty-<?php echo $item['product']['id']; ?>" value="<?php echo $item['quantity']; ?>" min="1" readonly>
-                                <button onclick="increaseCartQuantity(<?php echo $item['product']['id']; ?>)">+</button>
+                                <button class="quantity-btn" onclick="decreaseCartQuantity(<?php echo $item['product']['id']; ?>)">−</button>
+                                <input type="number" class="quantity-input" id="qty-<?php echo $item['product']['id']; ?>" value="<?php echo $item['quantity']; ?>" min="1" max="<?php echo $item['product']['stock']; ?>" onchange="validateCartQuantity(<?php echo $item['product']['id']; ?>, this)">
+                                <button class="quantity-btn" onclick="increaseCartQuantity(<?php echo $item['product']['id']; ?>)">+</button>
                             </div>
                         </div>
                         <div class="item-total"><?php echo formatPrice($item['total']); ?></div>
@@ -69,27 +48,29 @@ include 'includes/header.php';
                 <h3>Order Summary</h3>
                 <div class="summary-row">
                     <span>Subtotal:</span>
-                    <span><?php echo formatPrice($subtotal); ?></span>
+                    <span><?php echo formatPrice($pricing['subtotal']); ?></span>
                 </div>
                 <div class="summary-row">
                     <span>Shipping:</span>
-                    <span><?php echo formatPrice($shipping); ?></span>
+                    <span><?php echo formatPrice($pricing['shipping']); ?></span>
                 </div>
-                <?php if ($total_items > 0): ?>
+                <?php if ($pricing['item_count'] > 0): ?>
                     <div class="free-shipping-notice">
-                        Shipping: $10.00 per item (<?php echo $total_items; ?> item<?php echo $total_items != 1 ? 's' : ''; ?>)
+                        Standard Shipping: $40.00 (Flat Rate)
                     </div>
                 <?php endif; ?>
                 <div class="summary-row">
-                    <span>Tax (8%):</span>
-                    <span><?php echo formatPrice($tax); ?></span>
+                    <span>Tax (18%):</span>
+                    <span><?php echo formatPrice($pricing['tax']); ?></span>
                 </div>
                 <div class="summary-total">
                     <span>Total:</span>
-                    <span><?php echo formatPrice($total); ?></span>
+                    <span><?php echo formatPrice($pricing['total']); ?></span>
                 </div>
-                <a href="checkout.php" class="btn btn-primary">Proceed to Checkout</a>
-                <a href="products.php" class="btn btn-outline">Continue Shopping</a>
+                <div class="cart-actions">
+                    <a href="checkout.php" class="btn btn-primary">Checkout</a>
+                    <a href="products.php" class="btn btn-outline">Continue</a>
+                </div>
             </div>
         </div>
     <?php else: ?>
@@ -102,4 +83,3 @@ include 'includes/header.php';
     <?php endif; ?>
 </div>
 
-<?php include 'includes/footer.php'; ?>

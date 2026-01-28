@@ -23,9 +23,32 @@ class ProductRepository
         if (file_exists($this->productsFile)) {
             $json = file_get_contents($this->productsFile);
             $this->products = json_decode($json, true);
+            $this->dynamicDiscounts();
         } else {
             error_log("Products file not found: {$this->productsFile}");
             $this->products = [];
+        }
+    }
+
+    private function dynamicDiscounts()
+    {
+        foreach ($this->products as $id => &$product) {
+            $originalPrice = $product['original_price'] ?? $product['price'];
+            $discount = 0;
+            $discount = $originalPrice > 900 ? 90 : (
+                $originalPrice > 800 ? 80 : (
+                $originalPrice > 700 ? 70 : (
+                $originalPrice > 600 ? 60 : (
+                $originalPrice > 500 ? 50 : (
+                $originalPrice > 400 ? 40 : (
+                $originalPrice > 300 ? 30 : (
+                $originalPrice > 200 ? 20 : (
+                $originalPrice >= 100 ? 10 : 0
+            ))))))));
+            $product['original_price'] = $originalPrice;
+            $product['discount'] = $discount;
+            $product['discount_percent'] = $discount;
+            $product['price'] = round($originalPrice * (1 - $discount / 100), 2);
         }
     }
 

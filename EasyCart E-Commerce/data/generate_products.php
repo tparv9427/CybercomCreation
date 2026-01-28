@@ -145,8 +145,8 @@ function generateProducts($category_id, $templates, $brand_ids, $adjectives, $qu
         $name = "$adj {$template['name']} $qual";
         
         $base_price = rand($template['price_range'][0] * 100, $template['price_range'][1] * 100) / 100;
-        $discounts = [0, 0, 0, 5, 10, 15, 20, 25, 30];
-        $discount = $discounts[array_rand($discounts)];
+        $discounts = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90];
+        $discount = ($base_price > 1000 ? 10 : ($base_price > 2000 ? 20 : ($base_price > 3000 ? 30 : ($base_price > 4000 ? 40 : ($base_price > 5000 ? 50 : ($base_price > 6000 ? 60 : ($base_price > 7000 ? 70 : ($base_price > 8000 ? 80 : 90))))))));
         $price = round($base_price * (1 - $discount / 100), 2);
         
         $brand_id = $brand_ids[array_rand($brand_ids)];

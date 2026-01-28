@@ -46,6 +46,11 @@ function getBrand($id) {
     return $repo->find($id);
 }
 
+function getBrands() {
+    $repo = new \EasyCart\Repositories\BrandRepository();
+    return $repo->getAll();
+}
+
 function formatPrice($price) {
     return \EasyCart\Helpers\FormatHelper::price($price);
 }
@@ -73,6 +78,8 @@ if (empty($route)) {
         $route = 'product';
     } elseif (strpos($requestUri, 'cart.php') !== false) {
         $route = 'cart';
+    } elseif (strpos($requestUri, 'checkout.php/pricing') !== false) {
+        $route = 'checkout-pricing';
     } elseif (strpos($requestUri, 'checkout.php') !== false) {
         $route = 'checkout';
     } elseif (strpos($requestUri, 'login.php') !== false) {
@@ -95,6 +102,8 @@ if (empty($route)) {
         $route = 'ajax/cart';
     } elseif (strpos($requestUri, 'ajax_wishlist.php') !== false) {
         $route = 'ajax/wishlist';
+    } elseif (strpos($requestUri, 'ajax_checkout_pricing.php') !== false) {
+        $route = 'checkout-pricing';
     } else {
         $route = 'home';
     }
@@ -144,6 +153,11 @@ try {
             }
             break;
 
+        case 'checkout-pricing':
+            $controller = new \EasyCart\Controllers\CheckoutController();
+            $controller->pricing();
+            break;
+
         case 'checkout':
             $controller = new \EasyCart\Controllers\CheckoutController();
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -183,7 +197,12 @@ try {
 
         case 'ajax/wishlist':
             $controller = new \EasyCart\Controllers\WishlistController();
-            $controller->toggle();
+            $action = $_POST['action'] ?? 'toggle';
+            if ($action === 'move') {
+                $controller->moveToCart();
+            } else {
+                $controller->toggle();
+            }
             break;
 
         case 'orders':

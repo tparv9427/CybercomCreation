@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($page_title) ? $page_title . ' - ' . SITE_NAME : SITE_NAME; ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/skeleton.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/skeleton.css">
     <!-- EasyCart v<?php echo EASYCART_VERSION; ?> -->
 </head>
 <body>
@@ -42,6 +42,15 @@
                         <?php endforeach; ?>
                     </div>
                 </div>
+                <div class="dropdown">
+                    <a href="#" class="dropdown-toggle">Brands ▾</a>
+                    <div class="dropdown-menu">
+                        <?php $brands = getBrands(); ?>
+                        <?php foreach ($brands as $brand): ?>
+                            <a href="brand.php?id=<?php echo $brand['id']; ?>"><?php echo $brand['name']; ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
                 <a href="cart.php" class="cart-link">
                     Cart 
                     <?php if (getCartCount() > 0): ?>
@@ -56,7 +65,7 @@
                 </a>
                 <?php if (isLoggedIn()): ?>
                     <a href="orders.php">Orders</a>
-                    <a href="logout.php">Logout</a>
+                    <a href="logout.php" onclick="confirmLogout(event)">Logout</a>
                 <?php else: ?>
                     <a href="login.php">Login</a>
                 <?php endif; ?>

@@ -1,0 +1,58 @@
+<?php
+/**
+ * Reusable Product Card Component - Minimalist Design
+ * 
+ * Shows only essential info (image, name, price) by default.
+ * Reveals additional details (category, rating, add-to-cart) on hover.
+ * 
+ * Required Variables:
+ * @var array $product - Product data array
+ * 
+ * Required Functions:
+ * - $getCategory($id), formatPrice($amount), isInWishlist($productId)
+ */
+?>
+<div class="product-card">
+    <div class="product-image" onclick="window.location.href='product.php?id=<?php echo $product['id']; ?>'">
+        <?php echo $product['icon']; ?>
+        <?php if ($product['discount_percent'] > 0): ?>
+            <span class="product-badge">-<?php echo $product['discount_percent']; ?>%</span>
+        <?php elseif ($product['new']): ?>
+            <span class="product-badge new">New</span>
+        <?php endif; ?>
+        <button class="wishlist-btn <?php echo isInWishlist($product['id']) ? 'active' : ''; ?>" 
+                onclick="toggleWishlist(<?php echo $product['id']; ?>, event)">
+            <?php echo isInWishlist($product['id']) ? '❤️' : '🤍'; ?>
+        </button>
+    </div>
+    <div class="product-info" onclick="window.location.href='product.php?id=<?php echo $product['id']; ?>'">
+        <!-- Always visible -->
+        <div class="product-name"><?php echo $product['name']; ?></div>
+        <div class="product-price">
+            <?php echo formatPrice($product['price']); ?>
+            <?php if ($product['original_price'] > $product['price']): ?>
+                <span class="product-price-original"><?php echo formatPrice($product['original_price']); ?></span>
+            <?php endif; ?>
+        </div>
+        
+        <!-- Revealed on hover -->
+        <div class="product-details-hover">
+            <div class="product-category"><?php echo $getCategory($product['category_id'])['name']; ?></div>
+            <div class="product-rating">
+                <span class="stars">
+                    <?php 
+                    $fullStars = floor($product['rating']);
+                    $halfStar = ($product['rating'] - $fullStars) >= 0.5;
+                    for ($i = 0; $i < $fullStars; $i++) echo '★';
+                    if ($halfStar) echo '☆';
+                    for ($i = ceil($product['rating']); $i < 5; $i++) echo '☆';
+                    ?>
+                </span>
+                <span class="review-count">(<?php echo $product['reviews_count']; ?>)</span>
+            </div>
+        </div>
+    </div>
+    <button class="quick-add-btn" onclick="addToCart(<?php echo $product['id']; ?>, event)" title="Add to Cart">
+        🛒 Add to Cart
+    </button>
+</div>

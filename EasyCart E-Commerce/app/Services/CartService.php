@@ -86,6 +86,17 @@ class CartService
     }
 
     /**
+     * Empty the cart (remove all items)
+     * 
+     * @return bool
+     */
+    public function empty()
+    {
+        $this->cartRepo->save([]);
+        return true;
+    }
+
+    /**
      * Get cart count (total items)
      * 
      * @return int

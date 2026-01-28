@@ -3,7 +3,9 @@
 namespace EasyCart\Controllers;
 
 use EasyCart\Services\WishlistService;
+use EasyCart\Services\CartService;
 use EasyCart\Repositories\ProductRepository;
+use EasyCart\Repositories\CategoryRepository;
 
 /**
  * WishlistController
@@ -13,12 +15,16 @@ use EasyCart\Repositories\ProductRepository;
 class WishlistController
 {
     private $wishlistService;
+    private $cartService;
     private $productRepo;
+    private $categoryRepo;
 
     public function __construct()
     {
         $this->wishlistService = new WishlistService();
+        $this->cartService = new CartService();
         $this->productRepo = new ProductRepository();
+        $this->categoryRepo = new CategoryRepository();
     }
 
     /**
@@ -27,6 +33,7 @@ class WishlistController
     public function index()
     {
         $page_title = 'My Wishlist';
+        $categories = $this->categoryRepo->getAll();
         
         $wishlist = $this->wishlistService->get();
         $wishlist_items = [];
@@ -40,6 +47,10 @@ class WishlistController
 
         $formatPrice = function($price) {
             return \EasyCart\Helpers\FormatHelper::price($price);
+        };
+
+        $getCategory = function($id) {
+            return $this->categoryRepo->find($id);
         };
 
         include __DIR__ . '/../Views/layouts/header.php';
@@ -60,9 +71,34 @@ class WishlistController
 
         echo json_encode([
             'success' => true,
-            'added' => $added,
+            'in_wishlist' => $added,
             'wishlist_count' => $this->wishlistService->getCount(),
             'message' => $added ? 'Added to wishlist' : 'Removed from wishlist'
+        ]);
+    }
+
+    /**
+     * Move item from wishlist to cart (AJAX)
+     */
+    public function moveToCart()
+    {
+        header('Content-Type: application/json');
+        
+        $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+
+        // Add to cart
+        $cartResult = $this->cartService->add($product_id, 1);
+        
+        // Remove from wishlist
+        if ($this->wishlistService->has($product_id)) {
+            $this->wishlistService->remove($product_id);
+        }
+
+        echo json_encode([
+            'success' => true,
+            'cart_count' => $this->cartService->getCount(),
+            'wishlist_count' => $this->wishlistService->getCount(),
+            'message' => 'Moved to cart successfully'
         ]);
     }
 }

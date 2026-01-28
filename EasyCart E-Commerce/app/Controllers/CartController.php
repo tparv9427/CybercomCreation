@@ -5,6 +5,7 @@ namespace EasyCart\Controllers;
 use EasyCart\Services\CartService;
 use EasyCart\Services\PricingService;
 use EasyCart\Repositories\ProductRepository;
+use EasyCart\Repositories\CategoryRepository;
 
 /**
  * CartController
@@ -16,12 +17,14 @@ class CartController
     private $cartService;
     private $pricingService;
     private $productRepo;
+    private $categoryRepo;
 
     public function __construct()
     {
         $this->cartService = new CartService();
         $this->pricingService = new PricingService();
         $this->productRepo = new ProductRepository();
+        $this->categoryRepo = new CategoryRepository();
     }
 
     /**
@@ -30,6 +33,7 @@ class CartController
     public function index()
     {
         $page_title = 'Shopping Cart';
+        $categories = $this->categoryRepo->getAll();
         
         $cart = $this->cartService->get();
         $cart_items = [];
@@ -37,18 +41,25 @@ class CartController
         foreach ($cart as $product_id => $quantity) {
             $product = $this->productRepo->find($product_id);
             if ($product) {
+                // Enforce stock limit on display
+                $adjusted_quantity = min($quantity, $product['stock']);
+                
                 $cart_items[] = [
                     'product' => $product,
-                    'quantity' => $quantity,
-                    'total' => $product['price'] * $quantity
+                    'quantity' => $adjusted_quantity,
+                    'total' => $product['price'] * $adjusted_quantity
                 ];
             }
         }
 
-        $pricing = $this->pricingService->calculateAll($cart);
+        $pricing = $this->pricingService->calculateAll($cart, 'standard');
 
         $formatPrice = function($price) {
             return \EasyCart\Helpers\FormatHelper::price($price);
+        };
+
+        $getCategory = function($id) {
+            return $this->categoryRepo->find($id);
         };
 
         include __DIR__ . '/../Views/layouts/header.php';
@@ -92,7 +103,7 @@ class CartController
         $this->cartService->update($product_id, $quantity);
 
         $cart = $this->cartService->get();
-        $pricing = $this->pricingService->calculateAll($cart);
+        $pricing = $this->pricingService->calculateAll($cart, 'standard');
         
         $product = $this->productRepo->find($product_id);
         $item_total = $product ? $product['price'] * $quantity : 0;
@@ -120,7 +131,7 @@ class CartController
         $this->cartService->remove($product_id);
 
         $cart = $this->cartService->get();
-        $pricing = $this->pricingService->calculateAll($cart);
+        $pricing = $this->pricingService->calculateAll($cart, 'standard');
 
         echo json_encode([
             'success' => true,

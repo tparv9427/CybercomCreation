@@ -65,7 +65,16 @@ class ProductController
             $filtered_products = $this->productRepo->filterByRating($filtered_products, $rating_filter);
         }
 
-        $product_count = count($filtered_products);
+        // Pagination
+        $total_products = count($filtered_products);
+        $limit = 25;
+        $total_pages = ceil($total_products / $limit);
+        $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $current_page = max(1, min($current_page, $total_pages > 0 ? $total_pages : 1));
+        $offset = ($current_page - 1) * $limit;
+        
+        $filtered_products = array_slice($filtered_products, $offset, $limit);
+
         $categories = $this->categoryRepo->getAll();
 
         // Helper functions
@@ -100,6 +109,7 @@ class ProductController
         }
 
         $page_title = $product['name'];
+        $categories = $this->categoryRepo->getAll();
 
         // Get recommendations
         $products = $this->productRepo->getAll();
@@ -187,7 +197,32 @@ class ProductController
 
         $page_title = $brand['name'] . ' Products';
         $filtered_products = $this->productRepo->findByBrand($brand_id);
+        
+        // Pagination
+        $total_products = count($filtered_products);
+        $limit = 25;
+        $total_pages = ceil($total_products / $limit);
+        $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $current_page = max(1, min($current_page, $total_pages > 0 ? $total_pages : 1));
+        $offset = ($current_page - 1) * $limit;
+        
+        $filtered_products = array_slice($filtered_products, $offset, $limit);
+        
         $product_count = count($filtered_products);
+        $categories = $this->categoryRepo->getAll();
+
+        // Helper functions for views
+        $getCategory = function($id) {
+            return $this->categoryRepo->find($id);
+        };
+
+        $isInWishlist = function($productId) {
+            return $this->wishlistService->has($productId);
+        };
+
+        $formatPrice = function($price) {
+            return \EasyCart\Helpers\FormatHelper::price($price);
+        };
 
         include __DIR__ . '/../Views/layouts/header.php';
         include __DIR__ . '/../Views/brand/index.php';

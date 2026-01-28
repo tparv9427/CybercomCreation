@@ -42,7 +42,11 @@
         </div>
     </footer>
 
-    <script src="assets/js/skeleton.js"></script>
-    <script src="assets/js/main.js"></script>
+    <!-- Generic Confirmation Modal -->
+    <?php include __DIR__ . '/../partials/confirmation_modal.php'; ?>
+
+    <script src="/assets/js/skeleton.js"></script>
+    <script src="/assets/js/pagination.js"></script>
+    <script src="/assets/js/main.js"></script>
 </body>
 </html>

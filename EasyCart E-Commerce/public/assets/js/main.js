@@ -115,16 +115,12 @@ document.addEventListener('DOMContentLoaded', function () {
         slide.style.position = 'absolute';
         slide.style.width = '100%';
         slide.style.height = '100%';
-        slide.style.transition = 'transform 0.8s ease-in-out, opacity 0.8s ease-in-out';
+        slide.style.transition = 'transform 0.8s ease-in-out';
 
         if (index === 0) {
             slide.style.transform = 'translateX(0)';
-            slide.style.opacity = '1';
-            slide.style.zIndex = '2';
         } else {
             slide.style.transform = 'translateX(100%)';
-            slide.style.opacity = '0';
-            slide.style.zIndex = '1';
         }
     });
 
@@ -133,16 +129,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const currentSlideEl = slides[currentSlide];
         const nextSlideEl = slides[index];
+        const isNext = index > currentSlide || (currentSlide === slideCount - 1 && index === 0);
 
-        // Animate current slide out (left)
-        currentSlideEl.style.transform = 'translateX(-100%)';
-        currentSlideEl.style.opacity = '0';
-        currentSlideEl.style.zIndex = '1';
+        // Reset next slide to starting position
+        nextSlideEl.style.transition = 'none';
+        nextSlideEl.style.transform = isNext ? 'translateX(100%)' : 'translateX(-100%)';
 
-        // Animate next slide in (from right)
+        // Force reflow
+        void nextSlideEl.offsetWidth;
+
+        // Restore transition
+        nextSlideEl.style.transition = 'transform 0.8s ease-in-out';
+        currentSlideEl.style.transition = 'transform 0.8s ease-in-out';
+
+        // Animate
+        currentSlideEl.style.transform = isNext ? 'translateX(-100%)' : 'translateX(100%)';
         nextSlideEl.style.transform = 'translateX(0)';
-        nextSlideEl.style.opacity = '1';
-        nextSlideEl.style.zIndex = '2';
 
         // Update dots
         dots[currentSlide].classList.remove('active');
@@ -636,8 +638,45 @@ function increaseCartQuantity(productId) {
     const quantityInput = document.getElementById(`qty-${productId}`);
     if (quantityInput) {
         const currentQty = parseInt(quantityInput.value) || 1;
-        updateQuantity(productId, currentQty + 1);
+        const maxQty = parseInt(quantityInput.max) || 999;
+
+        if (currentQty < maxQty) {
+            updateQuantity(productId, currentQty + 1);
+        } else {
+            showNotification(`Sorry, only ${maxQty} items available in stock!`, 'error');
+            // Shake animation for feedback
+            quantityInput.parentElement.classList.add('shake');
+            setTimeout(() => quantityInput.parentElement.classList.remove('shake'), 500);
+        }
     }
+}
+
+// Validate manual input
+function validateCartQuantity(productId, input) {
+    if (validateMaxStock(input)) {
+        updateQuantity(productId, parseInt(input.value));
+    }
+}
+
+// Generic Max Stock Validator
+function validateMaxStock(input) {
+    let value = parseInt(input.value) || 1;
+    const max = parseInt(input.max) || 999;
+
+    if (value > max) {
+        input.value = max;
+        showNotification(`Sorry, only ${max} items available in stock!`, 'error');
+
+        // Shake animation
+        const container = input.parentElement;
+        container.classList.add('shake');
+        setTimeout(() => container.classList.remove('shake'), 500);
+
+        return false;
+    } else if (value < 1) {
+        input.value = 1;
+    }
+    return true;
 }
 
 // Helper function to decrease cart quantity
@@ -653,59 +692,64 @@ function decreaseCartQuantity(productId) {
 
 // Remove from Cart (Live with Animation)
 function removeFromCart(productId) {
-    if (!confirm('Remove this item from cart?')) return;
-
-    const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
-    if (cartItem) {
-        cartItem.style.opacity = '0.5';
-    }
-
-    fetch('ajax_cart.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `action=remove&product_id=${productId}`
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Animate removal
-                if (cartItem) {
-                    cartItem.style.transition = 'all 0.3s ease';
-                    cartItem.style.transform = 'translateX(-100%)';
-                    cartItem.style.opacity = '0';
-
-                    setTimeout(() => {
-                        cartItem.remove();
-
-                        // Check if cart is empty
-                        const remainingItems = document.querySelectorAll('.cart-item').length;
-                        if (remainingItems === 0) {
-                            location.reload(); // Show empty cart message
-                        }
-                    }, 300);
-                }
-
-                // Update cart summary
-                updateCartSummary(data);
-                updateCartCount(data.cart_count);
-
-                showNotification('Item removed from cart', 'info');
-            } else {
-                if (cartItem) {
-                    cartItem.style.opacity = '1';
-                }
-                showNotification(data.message || 'Error removing item', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+    showConfirmationModal({
+        title: 'Remove Item',
+        message: 'Are you sure you want to remove this item from your cart?',
+        confirmText: 'Remove',
+        onConfirm: function () {
+            const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
             if (cartItem) {
-                cartItem.style.opacity = '1';
+                cartItem.style.opacity = '0.5';
             }
-            showNotification('Error removing item', 'error');
-        });
+
+            fetch('ajax_cart.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `action=remove&product_id=${productId}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Animate removal
+                        if (cartItem) {
+                            cartItem.style.transition = 'all 0.3s ease';
+                            cartItem.style.transform = 'translateX(-100%)';
+                            cartItem.style.opacity = '0';
+
+                            setTimeout(() => {
+                                cartItem.remove();
+
+                                // Check if cart is empty
+                                const remainingItems = document.querySelectorAll('.cart-item').length;
+                                if (remainingItems === 0) {
+                                    location.reload(); // Show empty cart message
+                                }
+                            }, 300);
+                        }
+
+                        // Update cart summary
+                        updateCartSummary(data);
+                        updateCartCount(data.cart_count);
+
+                        showNotification('Item removed from cart', 'info');
+                    } else {
+                        if (cartItem) {
+                            cartItem.style.opacity = '1';
+                        }
+                        showNotification(data.message || 'Error removing item', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (cartItem) {
+                        cartItem.style.opacity = '1';
+                    }
+                    showNotification('Error removing item', 'error');
+                });
+        }
+    });
 }
 
 // Update Cart Summary
@@ -795,6 +839,68 @@ function updateCartCount(count) {
             badge.style.display = 'none';
         }
     });
+}
+
+// Move to Cart (Wishlist)
+function moveToCart(productId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    const button = event?.target;
+    if (button) {
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner"></span> Moving...';
+    }
+
+    // Find the wishlist item card to remove it later
+    const wishlistItem = button?.closest('.product-card'); // Assuming it's in a grid card
+
+    fetch('ajax_wishlist.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=move&product_id=' + productId
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Moved to cart!', 'success');
+                updateCartCount(data.cart_count);
+                updateWishlistCount(data.wishlist_count);
+
+                // Animate removal from wishlist view
+                if (wishlistItem) {
+                    wishlistItem.style.transition = 'all 0.3s ease';
+                    wishlistItem.style.transform = 'scale(0.8)';
+                    wishlistItem.style.opacity = '0';
+                    setTimeout(() => {
+                        wishlistItem.remove();
+                        // Check if wishlist is empty and show message if needed
+                        const remaining = document.querySelectorAll('.product-grid .product-card').length;
+                        if (remaining === 0) {
+                            location.reload();
+                        }
+                    }, 300);
+                }
+            } else {
+                showNotification(data.message || 'Error moving to cart', 'error');
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = 'Move to Cart';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error moving to cart', 'error');
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = 'Move to Cart';
+            }
+        });
 }
 
 // Update Wishlist Count
@@ -901,5 +1007,56 @@ document.head.appendChild(style);
 document.addEventListener('click', function (e) {
     if (e.target.closest('.wishlist-btn') || e.target.closest('.btn')) {
         e.stopPropagation();
+    }
+});
+
+// ============================================
+// CHECKOUT PRICING UPDATE (PHASE 4)
+// ============================================
+function updateCheckoutPricing() {
+    const shippingSelect = document.getElementById('shipping-select');
+    if (!shippingSelect) return;
+
+    const shippingMethod = shippingSelect.value;
+
+    fetch('ajax_checkout_pricing.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'shipping=' + shippingMethod
+    })
+        .then(response => {
+            if (!response.ok) {
+                console.error('Response not OK:', response.status);
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Pricing update response:', data);
+            if (data.success) {
+                // Update Summary DOM
+                const shippingEl = document.querySelector('.summary-totals .summary-row:nth-child(2) span:last-child');
+                const taxEl = document.querySelector('.summary-totals .summary-row:nth-child(3) span:last-child');
+                const totalEl = document.querySelector('.summary-totals .summary-total span:last-child');
+                const btnTotalEl = document.querySelector('.btn-place-order');
+
+                if (shippingEl) shippingEl.textContent = data.pricing.shipping;
+                if (taxEl) taxEl.textContent = data.pricing.tax;
+                if (totalEl) totalEl.textContent = data.pricing.total;
+                if (btnTotalEl) btnTotalEl.textContent = 'Place Order - ' + data.pricing.total;
+            }
+        })
+        .catch(error => {
+            console.error('Error updating pricing:', error);
+        });
+}
+
+// Attach listener to shipping select
+document.addEventListener('DOMContentLoaded', function () {
+    const shippingSelect = document.getElementById('shipping-select');
+    if (shippingSelect) {
+        shippingSelect.addEventListener('change', updateCheckoutPricing);
     }
 });

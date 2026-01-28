@@ -6,6 +6,7 @@ use EasyCart\Services\AuthService;
 use EasyCart\Services\CartService;
 use EasyCart\Services\PricingService;
 use EasyCart\Repositories\ProductRepository;
+use EasyCart\Repositories\CategoryRepository;
 
 /**
  * CheckoutController
@@ -18,6 +19,7 @@ class CheckoutController
     private $cartService;
     private $pricingService;
     private $productRepo;
+    private $categoryRepo;
 
     public function __construct()
     {
@@ -25,6 +27,7 @@ class CheckoutController
         $this->cartService = new CartService();
         $this->pricingService = new PricingService();
         $this->productRepo = new ProductRepository();
+        $this->categoryRepo = new CategoryRepository();
     }
 
     /**
@@ -40,6 +43,7 @@ class CheckoutController
         }
 
         $page_title = 'Checkout';
+        $categories = $this->categoryRepo->getAll();
         
         $cart = $this->cartService->get();
         $cart_items = [];
@@ -55,7 +59,7 @@ class CheckoutController
             }
         }
 
-        $pricing = $this->pricingService->calculateAll($cart);
+        $pricing = $this->pricingService->calculateAll($cart, 'standard');
         $subtotal = $pricing['subtotal'];
         $shipping = $pricing['shipping'];
         $tax = $pricing['tax'];
@@ -72,6 +76,35 @@ class CheckoutController
     }
 
     /**
+     * Get updated pricing (AJAX)
+     */
+    public function pricing()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            exit;
+        }
+
+        $shippingMethod = $_POST['shipping'] ?? 'standard';
+        $cart = $this->cartService->get();
+        
+        $pricing = $this->pricingService->calculateAll($cart, $shippingMethod);
+        
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'pricing' => [
+                'subtotal' => \EasyCart\Helpers\FormatHelper::price($pricing['subtotal']),
+                'shipping' => \EasyCart\Helpers\FormatHelper::price($pricing['shipping']),
+                'tax' => \EasyCart\Helpers\FormatHelper::price($pricing['tax']),
+                'total' => \EasyCart\Helpers\FormatHelper::price($pricing['total'])
+            ]
+        ]);
+        exit;
+    }
+
+    /**
      * Process order (POST)
      */
     public function process()
@@ -81,12 +114,12 @@ class CheckoutController
             exit;
         }
 
-        // Process order
+        // Simulating order processing
         $order_id = 'ORD-' . strtoupper(substr(md5(time()), 0, 8));
         $_SESSION['last_order_id'] = $order_id;
         
         // Clear cart
-        $this->cartService->update(0, 0); // This will clear all items
+        $this->cartService->empty(); 
         
         header('Location: order-success.php');
         exit;

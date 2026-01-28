@@ -1,40 +1,7 @@
 <?php
-require_once 'includes/config.php';
-
-$product_id = isset($_GET['id']) ? (int)$_GET['id'] : null;
-$product = getProduct($product_id);
-
-if (!$product) {
-    header('Location: products.php');
-    exit;
-}
-
-$page_title = $product['name'];
-
-// Get recommendations
-// Row 1: Same product from different brands with different prices
-$brand_recommendations = array_filter($products, function($p) use ($product) {
-    return $p['id'] != $product['id'] && 
-           $p['category_id'] == $product['category_id'] && 
-           $p['brand_id'] != $product['brand_id'];
-});
-$brand_recommendations = array_slice($brand_recommendations, 0, 4);
-
-// Row 2: Same category products
-$category_recommendations = array_filter($products, function($p) use ($product) {
-    return $p['id'] != $product['id'] && 
-           $p['category_id'] == $product['category_id'];
-});
-$category_recommendations = array_slice($category_recommendations, 0, 4);
-
-// Row 3: Other categories
-$other_recommendations = array_filter($products, function($p) use ($product) {
-    return $p['id'] != $product['id'] && 
-           $p['category_id'] != $product['category_id'];
-});
-$other_recommendations = array_slice($other_recommendations, 0, 4);
-
-include 'includes/header.php';
+// Variables passed from ProductController:
+// $product, $page_title, $brand_recommendations, $category_recommendations, $other_recommendations
+// Helper functions: $getCategory, $getBrand, $isInWishlist, $formatPrice
 ?>
 
 <link rel="stylesheet" href="assets/css/product-details.css">
@@ -43,7 +10,7 @@ include 'includes/header.php';
 <div class="breadcrumb">
     <a href="index.php">Home</a> / 
     <a href="products.php?category=<?php echo $product['category_id']; ?>">
-        <?php echo getCategory($product['category_id'])['name']; ?>
+        <?php echo $getCategory($product['category_id'])['name']; ?>
     </a> / 
     <?php echo $product['name']; ?>
 </div>
@@ -60,7 +27,7 @@ include 'includes/header.php';
 
         <!-- Right Side - Details -->
         <div class="product-details">
-            <div class="product-category-tag"><?php echo getCategory($product['category_id'])['name']; ?></div>
+            <div class="product-category-tag"><?php echo $getCategory($product['category_id'])['name']; ?></div>
             <h1 class="product-title"><?php echo $product['name']; ?></h1>
             
             <div class="product-rating-section">
@@ -124,7 +91,7 @@ include 'includes/header.php';
                 <div class="quantity-label">Quantity:</div>
                 <div class="quantity-controls">
                     <button class="quantity-btn" onclick="decreaseQty()">−</button>
-                    <input type="number" class="quantity-input" id="quantity" value="1" min="1" max="<?php echo $product['stock']; ?>">
+                    <input type="number" class="quantity-input" id="quantity" value="1" min="1" max="<?php echo $product['stock']; ?>" onchange="validateMaxStock(this)" oninput="validateMaxStock(this)">
                     <button class="quantity-btn" onclick="increaseQty()">+</button>
                 </div>
             </div>
@@ -141,7 +108,7 @@ include 'includes/header.php';
 
             <div class="product-meta">
                 <div class="meta-item">
-                    <strong>Brand:</strong> <?php echo getBrand($product['brand_id'])['name']; ?>
+                    <strong>Brand:</strong> <?php echo $getBrand($product['brand_id'])['name']; ?>
                 </div>
                 <div class="meta-item">
                     <strong>SKU:</strong> <?php echo strtoupper(substr($product['slug'], 0, 10)); ?>
@@ -228,7 +195,7 @@ include 'includes/header.php';
                 <div class="recommendation-card" onclick="window.location.href='product.php?id=<?php echo $rec['id']; ?>'">
                     <div class="recommendation-image"><?php echo $rec['icon']; ?></div>
                     <div class="recommendation-info">
-                        <div class="recommendation-brand"><?php echo getBrand($rec['brand_id'])['name']; ?></div>
+                        <div class="recommendation-brand"><?php echo $getBrand($rec['brand_id'])['name']; ?></div>
                         <div class="recommendation-name"><?php echo $rec['name']; ?></div>
                         <div class="recommendation-price"><?php echo formatPrice($rec['price']); ?></div>
                         <div class="recommendation-rating">
@@ -250,14 +217,14 @@ include 'includes/header.php';
     <!-- Recommendations Row 2: Same Category -->
     <?php if (count($category_recommendations) > 0): ?>
     <div class="recommendations">
-        <h3>More from <?php echo getCategory($product['category_id'])['name']; ?></h3>
+        <h3>More from <?php echo $getCategory($product['category_id'])['name']; ?></h3>
         <p class="recommendations-subtitle">Explore similar products you might like</p>
         <div class="recommendation-grid">
             <?php foreach ($category_recommendations as $rec): ?>
                 <div class="recommendation-card" onclick="window.location.href='product.php?id=<?php echo $rec['id']; ?>'">
                     <div class="recommendation-image"><?php echo $rec['icon']; ?></div>
                     <div class="recommendation-info">
-                        <div class="recommendation-brand"><?php echo getBrand($rec['brand_id'])['name']; ?></div>
+                        <div class="recommendation-brand"><?php echo $getBrand($rec['brand_id'])['name']; ?></div>
                         <div class="recommendation-name"><?php echo $rec['name']; ?></div>
                         <div class="recommendation-price"><?php echo formatPrice($rec['price']); ?></div>
                         <div class="recommendation-rating">
@@ -286,7 +253,7 @@ include 'includes/header.php';
                 <div class="recommendation-card" onclick="window.location.href='product.php?id=<?php echo $rec['id']; ?>'">
                     <div class="recommendation-image"><?php echo $rec['icon']; ?></div>
                     <div class="recommendation-info">
-                        <div class="recommendation-category"><?php echo getCategory($rec['category_id'])['name']; ?></div>
+                        <div class="recommendation-category"><?php echo $getCategory($rec['category_id'])['name']; ?></div>
                         <div class="recommendation-name"><?php echo $rec['name']; ?></div>
                         <div class="recommendation-price"><?php echo formatPrice($rec['price']); ?></div>
                         <div class="recommendation-rating">
@@ -320,9 +287,13 @@ function switchTab(index) {
 
 function increaseQty() {
     const input = document.getElementById('quantity');
-    const max = parseInt(input.max);
-    if (parseInt(input.value) < max) {
-        input.value = parseInt(input.value) + 1;
+    const current = parseInt(input.value) || 0;
+    const max = parseInt(input.max) || 999;
+    
+    if (current < max) {
+        input.value = current + 1;
+    } else {
+        validateMaxStock(input);
     }
 }
 
@@ -351,4 +322,3 @@ thumbnails.forEach(thumb => {
 });
 </script>
 
-<?php include 'includes/footer.php'; ?>

@@ -218,6 +218,11 @@
     color: white;
 }
 
+[data-theme="dark"] .variant-btn:hover,
+[data-theme="dark"] .variant-btn.active {
+    color: var(--card-bg);
+}
+
 .quantity-section {
     display: flex;
     gap: 1rem;
@@ -255,6 +260,7 @@
 .quantity-input {
     width: 60px;
     text-align: center;
+    padding-left: 15px;
     border: none;
     border-left: 1px solid var(--border);
     border-right: 1px solid var(--border);

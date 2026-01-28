@@ -3,6 +3,7 @@
 namespace EasyCart\Controllers;
 
 use EasyCart\Services\AuthService;
+use EasyCart\Repositories\CategoryRepository;
 
 /**
  * OrderController
@@ -29,7 +30,10 @@ class OrderController
         }
 
         $page_title = 'My Orders';
-        $orders = []; // TODO: Implement order repository
+        $categories = (new \EasyCart\Repositories\CategoryRepository())->getAll();
+        
+        // Simulating orders from session for now
+        $orders = isset($_SESSION['orders']) ? $_SESSION['orders'] : [];
 
         include __DIR__ . '/../Views/layouts/header.php';
         include __DIR__ . '/../Views/orders/index.php';
@@ -43,6 +47,7 @@ class OrderController
     {
         $page_title = 'Order Placed Successfully';
         $order_id = $_SESSION['last_order_id'] ?? null;
+        $categories = (new \EasyCart\Repositories\CategoryRepository())->getAll();
 
         include __DIR__ . '/../Views/layouts/header.php';
         include __DIR__ . '/../Views/orders/success.php';

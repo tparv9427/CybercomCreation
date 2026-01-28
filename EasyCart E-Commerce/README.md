@@ -83,6 +83,7 @@ Each directory has its own README.md explaining:
 - [app/Repositories/README.md](app/Repositories/README.md) - Repositories guide
 - [app/Services/README.md](app/Services/README.md) - Services guide
 - [legacy/README.md](legacy/README.md) - Legacy files archive
+- Updated logout modal to confirmation_modal (see app/Views/partials/confirmation_modal.php)
 
 ---
 

@@ -1,11 +1,9 @@
 <?php
-require_once 'includes/config.php';
 if (!isLoggedIn()) {
     header('Location: login.php');
     exit;
 }
 $page_title = 'My Orders';
-include 'includes/header.php';
 ?>
 <link rel="stylesheet" href="assets/css/orders.css">
 <div class="breadcrumb"><a href="index.php">Home</a> / My Orders</div>
@@ -63,4 +61,3 @@ include 'includes/header.php';
         </div>
     </div>
 </div>
-<?php include 'includes/footer.php'; ?>

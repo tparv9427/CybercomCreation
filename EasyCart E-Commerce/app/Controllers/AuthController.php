@@ -3,6 +3,7 @@
 namespace EasyCart\Controllers;
 
 use EasyCart\Services\AuthService;
+use EasyCart\Repositories\CategoryRepository;
 
 /**
  * AuthController
@@ -12,23 +13,21 @@ use EasyCart\Services\AuthService;
 class AuthController
 {
     private $authService;
+    private $categoryRepo;
 
     public function __construct()
     {
         $this->authService = new AuthService();
+        $this->categoryRepo = new CategoryRepository();
     }
 
-    /**
+
+    /*
      * Show login page
      */
     public function showLogin()
     {
-        $page_title = 'Login';
-        $error = '';
-
-        include __DIR__ . '/../Views/layouts/header.php';
-        include __DIR__ . '/../Views/auth/login.php';
-        include __DIR__ . '/../Views/layouts/footer.php';
+        $this->renderAuthView('login');
     }
 
     /**
@@ -52,12 +51,7 @@ class AuthController
             }
             exit;
         } else {
-            $error = 'Invalid email or password';
-            $page_title = 'Login';
-            
-            include __DIR__ . '/../Views/layouts/header.php';
-            include __DIR__ . '/../Views/auth/login.php';
-            include __DIR__ . '/../Views/layouts/footer.php';
+            $this->renderAuthView('login', 'Invalid email or password');
         }
     }
 
@@ -66,12 +60,7 @@ class AuthController
      */
     public function showSignup()
     {
-        $page_title = 'Sign Up';
-        $error = '';
-
-        include __DIR__ . '/../Views/layouts/header.php';
-        include __DIR__ . '/../Views/auth/signup.php';
-        include __DIR__ . '/../Views/layouts/footer.php';
+        $this->renderAuthView('signup');
     }
 
     /**
@@ -79,17 +68,24 @@ class AuthController
      */
     public function signup()
     {
-        $name = $_POST['name'] ?? '';
-        $email = $_POST['email'] ?? '';
+        $name = trim($_POST['name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
+        $confirm = $_POST['confirm_password'] ?? '';
         $error = '';
+        $success = '';
 
         if (empty($name) || empty($email) || empty($password)) {
             $error = 'All fields are required';
+        } elseif ($password !== $confirm) {
+            $error = 'Passwords do not match';
         } else {
+            // Attempt to register
             $userId = $this->authService->register($email, $password, $name);
             
             if ($userId) {
+                // Session setup and guest data merge are handled inside AuthService::register
+
                 header('Location: index.php');
                 exit;
             } else {
@@ -97,10 +93,7 @@ class AuthController
             }
         }
 
-        $page_title = 'Sign Up';
-        include __DIR__ . '/../Views/layouts/header.php';
-        include __DIR__ . '/../Views/auth/signup.php';
-        include __DIR__ . '/../Views/layouts/footer.php';
+        $this->renderAuthView('signup', $error, $success);
     }
 
     /**
@@ -111,5 +104,18 @@ class AuthController
         $this->authService->logout();
         header('Location: index.php');
         exit;
+    }
+
+    /**
+     * Helper to render auth view
+     */
+    private function renderAuthView($mode, $error = '', $success = '')
+    {
+        $page_title = $mode === 'login' ? 'Login' : 'Sign Up';
+        $categories = $this->categoryRepo->getAll();
+        
+        include __DIR__ . '/../Views/layouts/header.php';
+        include __DIR__ . '/../Views/auth/auth_combined.php';
+        include __DIR__ . '/../Views/layouts/footer.php';
     }
 }

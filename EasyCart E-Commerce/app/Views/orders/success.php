@@ -1,8 +1,6 @@
 <?php
-require_once 'includes/config.php';
 $page_title = 'Order Placed';
 $order_id = $_SESSION['last_order_id'] ?? 'ORD-UNKNOWN';
-include 'includes/header.php';
 ?>
 <div class="container" style="text-align: center; padding: 6rem 2rem;">
     <div style="font-size: 5rem; margin-bottom: 2rem;">✅</div>
@@ -14,4 +12,3 @@ include 'includes/header.php';
         <a href="products.php" class="btn btn-outline">Continue Shopping</a>
     </div>
 </div>
-<?php include 'includes/footer.php'; ?>

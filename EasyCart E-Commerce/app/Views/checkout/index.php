@@ -1,47 +1,6 @@
 <?php
-require_once 'includes/config.php';
-
-// Redirect to login if not logged in
-if (!isLoggedIn()) {
-    $_SESSION['checkout_redirect'] = true;
-    header('Location: login.php');
-    exit;
-}
-
-$page_title = 'Checkout';
-$cart_items = [];
-$subtotal = 0;
-$total_items = 0;
-
-foreach (getCart() as $product_id => $quantity) {
-    $product = getProduct($product_id);
-    if ($product) {
-        $cart_items[] = [
-            'product' => $product,
-            'quantity' => $quantity,
-            'total' => $product['price'] * $quantity
-        ];
-        $subtotal += $product['price'] * $quantity;
-        $total_items += $quantity;
-    }
-}
-
-// Shipping: $10 per product in cart
-$shipping = $total_items * 10;
-// Tax: 8% on subtotal only
-$tax = $subtotal * 0.08;
-$total = $subtotal + $shipping + $tax;
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Process order
-    $order_id = 'ORD-' . strtoupper(substr(md5(time()), 0, 8));
-    $_SESSION['last_order_id'] = $order_id;
-    setCart([]); // Clear cart safely
-    header('Location: order-success.php');
-    exit;
-}
-
-include 'includes/header.php';
+// Variables passed from CheckoutController:
+// $page_title, $cart_items, $pricing, $user (optional for pre-filling form)
 ?>
 
 <link rel="stylesheet" href="assets/css/checkout.css">
@@ -62,91 +21,70 @@ include 'includes/header.php';
                 <div class="form-section">
                     <h3>Shipping Information</h3>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label>Full Name *</label>
-                            <input type="text" name="name" required value="<?php echo $_SESSION['user_name'] ?? ''; ?>">
+                        <div class="form-group floating-label">
+                            <input type="text" name="name" required value="<?php echo $_SESSION['user_name'] ?? ''; ?>" id="name">
+                            <label for="name">Full Name *</label>
                         </div>
-                        <div class="form-group">
-                            <label>Phone Number *</label>
-                            <input type="tel" name="phone" required placeholder="10-digit number" maxlength="10" >
+                        <div class="form-group floating-label">
+                            <input type="tel" name="phone" required maxlength="10" id="phone">
+                            <label for="phone">Phone Number *</label>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Address *</label>
-                        <input type="text" name="address" required placeholder="Street address, building name">
+                    <div class="form-group floating-label">
+                        <input type="text" name="address" required id="address">
+                        <label for="address">Address *</label>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label>City *</label>
-                            <input type="text" name="city" required>
+                        <div class="form-group floating-label">
+                            <input type="text" name="city" required id="city">
+                            <label for="city">City *</label>
                         </div>
-                        <div class="form-group">
-                            <label>Zip Code *</label>
-                            <input type="text" name="zip" required placeholder="6-digit pincode" maxlength="6">
+                        <div class="form-group floating-label">
+                            <input type="text" name="zip" required maxlength="6" id="zip">
+                            <label for="zip">Zip Code *</label>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-section">
                     <h3>Shipping Method</h3>
-                    <div class="shipping-options">
-                        <label class="shipping-option" data-shipping="standard">
-                            <input type="radio" name="shipping" value="standard" checked>
-                            <div class="option-content">
-                                <strong>Standard Shipping (3-5 days)</strong>
-                                <span><?php echo $shipping > 0 ? formatPrice($shipping) : 'FREE'; ?></span>
-                            </div>
-                        </label>
-                        <label class="shipping-option" data-shipping="express">
-                            <input type="radio" name="shipping" value="express">
-                            <div class="option-content">
-                                <strong>Express Shipping (1-2 days)</strong>
-                                <span>$25.00</span>
-                            </div>
-                        </label>
+                    <div class="form-group">
+                        <select name="shipping" id="shipping-select" class="shipping-select">
+                            <option value="standard" selected>Standard Shipping (3-5 days) - $40.00</option>
+                            <option value="express">Express Shipping (1-2 days) - $80.00 or 10%</option>
+                            <option value="white_glove">White Glove Delivery (Scheduled) - $150.00 or 5%</option>
+                            <option value="freight">Freight Shipping (Bulk Orders) - 3% (Min $200)</option>
+                        </select>
                     </div>
                 </div>
 
                 <div class="form-section">
                     <h3>Payment Method</h3>
-                    <div class="payment-options">
-                        <label class="payment-option" data-payment="card">
-                            <input type="radio" name="payment" value="card" checked>
-                            <span>💳 Credit/Debit Card</span>
-                        </label>
-                        <label class="payment-option" data-payment="upi">
-                            <input type="radio" name="payment" value="upi">
-                            <span>📱 UPI</span>
-                        </label>
-                        <label class="payment-option" data-payment="netbanking">
-                            <input type="radio" name="payment" value="netbanking">
-                            <span>🏦 Net Banking</span>
-                        </label>
-                        <label class="payment-option" data-payment="wallet">
-                            <input type="radio" name="payment" value="wallet">
-                            <span>👛 Digital Wallet</span>
-                        </label>
-                        <label class="payment-option" data-payment="cod">
-                            <input type="radio" name="payment" value="cod">
-                            <span>💵 Cash on Delivery</span>
-                        </label>
+                    <div class="form-group">
+                        <select name="payment" id="payment-select" class="payment-select">
+                            <option value="card" selected>💳 Credit/Debit Card</option>
+                            <option value="upi">📱 UPI</option>
+                            <option value="netbanking">🏦 Net Banking</option>
+                            <option value="wallet">👛 Digital Wallet</option>
+                            <option value="cod">💵 Cash on Delivery</option>
+                        </select>
                     </div>
                     
                     <!-- Card Details -->
                     <div class="payment-details card-details active" id="cardDetails">
                         <h4 style="margin-bottom: 1rem; color: var(--primary);">Enter Card Details</h4>
-                        <div class="form-group">
-                            <label>Card Number</label>
-                            <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                        <div class="form-group floating-label">
+                            <input type="text" id="cardNumber" maxlength="19">
+                            <label for="cardNumber">Card Number</label>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Expiry Date</label>
-                                <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+                            <div class="form-group floating-label">
+                                <input type="text" id="cardExpiry" maxlength="5">
+                                <label for="cardExpiry">Expiry Date (MM/YY)</label>
                             </div>
-                            <div class="form-group">
-                                <label>CVV</label>
-                                <input type="text" id="cardCVV" placeholder="123" maxlength="3">
+                            <div class="form-group floating-label">
+                                <input type="text" id="cardCVV" maxlength="3">
+                                <label for="cardCVV">CVV</label>
                             </div>
                         </div>
                     </div>
@@ -154,9 +92,9 @@ include 'includes/header.php';
                     <!-- UPI Details -->
                     <div class="payment-details upi-details" id="upiDetails">
                         <h4 style="margin-bottom: 1rem; color: var(--primary);">Pay via UPI</h4>
-                        <div class="form-group">
-                            <label>Enter UPI ID</label>
-                            <input type="text" placeholder="yourname@upi">
+                        <div class="form-group floating-label">
+                            <input type="text" id="upiId">
+                            <label for="upiId">Enter UPI ID</label>
                         </div>
                         <p style="text-align: center; margin: 1rem 0; color: var(--secondary);">OR</p>
                         <p style="text-align: center; color: var(--secondary); margin-bottom: 1rem;">Scan QR Code</p>
@@ -213,12 +151,12 @@ include 'includes/header.php';
                         <h4 style="margin-bottom: 1rem; color: var(--primary);">Cash on Delivery</h4>
                         <p style="margin-bottom: 0.5rem;">💵 Pay when you receive your order</p>
                         <p style="font-size: 0.85rem; color: var(--secondary);">
-                            Please keep exact change handy. ₹50 extra fee may apply for COD orders.
+                            Please keep exact change handy. $5 extra fee may apply for COD orders.
                         </p>
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-place-order">Place Order - <?php echo formatPrice($total); ?></button>
+                <button type="submit" class="btn btn-primary btn-place-order">Place Order - <?php echo formatPrice($pricing['total']); ?></button>
             </form>
         </div>
 
@@ -238,19 +176,19 @@ include 'includes/header.php';
             <div class="summary-totals">
                 <div class="summary-row">
                     <span>Subtotal:</span>
-                    <span><?php echo formatPrice($subtotal); ?></span>
+                    <span><?php echo formatPrice($pricing['subtotal']); ?></span>
                 </div>
                 <div class="summary-row">
                     <span>Shipping:</span>
-                    <span><?php echo formatPrice($shipping); ?></span>
+                    <span><?php echo formatPrice($pricing['shipping']); ?></span>
                 </div>
                 <div class="summary-row">
-                    <span>Tax (8%):</span>
-                    <span><?php echo formatPrice($tax); ?></span>
+                    <span>Tax (18%):</span>
+                    <span><?php echo formatPrice($pricing['tax']); ?></span>
                 </div>
                 <div class="summary-total">
                     <span>Total:</span>
-                    <span><?php echo formatPrice($total); ?></span>
+                    <span><?php echo formatPrice($pricing['total']); ?></span>
                 </div>
             </div>
         </div>
@@ -260,20 +198,12 @@ include 'includes/header.php';
 <script>
 // Payment Method Switching
 document.addEventListener('DOMContentLoaded', function() {
-    const paymentOptions = document.querySelectorAll('.payment-option');
+    const paymentSelect = document.getElementById('payment-select');
     const paymentDetails = document.querySelectorAll('.payment-details');
     
-    paymentOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            const paymentType = this.getAttribute('data-payment');
-            const radio = this.querySelector('input[type="radio"]');
-            
-            // Update radio
-            radio.checked = true;
-            
-            // Remove selected class from all options
-            paymentOptions.forEach(opt => opt.classList.remove('selected'));
-            this.classList.add('selected');
+    if (paymentSelect) {
+        paymentSelect.addEventListener('change', function() {
+            const paymentType = this.value;
             
             // Hide all payment details
             paymentDetails.forEach(detail => detail.classList.remove('active'));
@@ -284,35 +214,54 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectedDetail.classList.add('active');
             }
         });
-    });
-    
-    // Set initial state
-    const checkedOption = document.querySelector('.payment-option input[type="radio"]:checked');
-    if (checkedOption) {
-        checkedOption.closest('.payment-option').classList.add('selected');
     }
 });
 
-// Shipping Method Visual Highlight
+// Floating Label Initialization
 document.addEventListener('DOMContentLoaded', function() {
-    const shippingOptions = document.querySelectorAll('.shipping-option');
+    // Check all floating label inputs for pre-filled values
+    const floatingInputs = document.querySelectorAll('.floating-label input');
     
-    shippingOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            const radio = this.querySelector('input[type="radio"]');
-            radio.checked = true;
-            
-            // Remove selected class from all
-            shippingOptions.forEach(opt => opt.classList.remove('selected'));
-            this.classList.add('selected');
+    // Function to check if input has value
+    function checkInputValue(input) {
+        if (input.value && input.value.trim() !== '') {
+            input.setAttribute('data-has-value', 'true');
+        } else {
+            input.removeAttribute('data-has-value');
+        }
+    }
+    
+    floatingInputs.forEach(input => {
+        // Add placeholder attribute to enable :placeholder-shown pseudo-class
+        if (!input.hasAttribute('placeholder')) {
+            input.setAttribute('placeholder', ' ');
+        }
+        
+        // Check initial value
+        checkInputValue(input);
+        
+        // Update on input change
+        input.addEventListener('input', function() {
+            checkInputValue(this);
+        });
+        
+        // Handle autofill - check after a short delay
+        setTimeout(() => {
+            checkInputValue(input);
+        }, 100);
+        
+        // Also check on animation start (Chrome autofill detection)
+        input.addEventListener('animationstart', function(e) {
+            if (e.animationName === 'onAutoFillStart') {
+                checkInputValue(this);
+            }
         });
     });
     
-    // Set initial state
-    const checkedShipping = document.querySelector('.shipping-option input[type="radio"]:checked');
-    if (checkedShipping) {
-        checkedShipping.closest('.shipping-option').classList.add('selected');
-    }
+    // Periodically check for autofill (fallback)
+    setTimeout(() => {
+        floatingInputs.forEach(input => checkInputValue(input));
+    }, 500);
 });
 
 // Wallet Selection
@@ -349,4 +298,3 @@ document.getElementById('cardCVV')?.addEventListener('input', function(e) {
 });
 </script>
 
-<?php include 'includes/footer.php'; ?>
