@@ -1069,6 +1069,10 @@ body {
     content: 'ℹ';
 }
 
+.notification-saved::before {
+    content: '🔖';
+}
+
 /* Mobile Responsive */
 @media (max-width: 1024px) {
     .product-grid {

@@ -22,7 +22,8 @@
                     <h3>Shipping Information</h3>
                     <div class="form-row">
                         <div class="form-group floating-label">
-                            <input type="text" name="name" required value="<?php echo $_SESSION['user_name'] ?? ''; ?>" id="name">
+                            <input type="text" name="name" required value="<?php echo $_SESSION['user_name'] ?? ''; ?>"
+                                id="name">
                             <label for="name">Full Name *</label>
                         </div>
                         <div class="form-group floating-label">
@@ -50,10 +51,13 @@
                     <h3>Shipping Method</h3>
                     <div class="form-group">
                         <select name="shipping" id="shipping-select" class="shipping-select">
-                            <option value="standard" <?php echo ($shipping_method === 'standard') ? 'selected' : ''; ?>>Standard Shipping (3-5 days) - $40.00</option>
-                            <option value="express" <?php echo ($shipping_method === 'express') ? 'selected' : ''; ?>>Express Shipping (1-2 days) - $80.00 or 10%</option>
+                            <option value="standard" <?php echo ($shipping_method === 'standard') ? 'selected' : ''; ?>>
+                                Standard Shipping (3-5 days) - $40.00</option>
+                            <option value="express" <?php echo ($shipping_method === 'express') ? 'selected' : ''; ?>>
+                                Express Shipping (1-2 days) - $80.00 or 10%</option>
                             <option value="white_glove" <?php echo ($shipping_method === 'white_glove') ? 'selected' : ''; ?>>White Glove Delivery (Scheduled) - $150.00 or 5%</option>
-                            <option value="freight" <?php echo ($shipping_method === 'freight') ? 'selected' : ''; ?>>Freight Shipping (Bulk Orders) - 3% (Min $200)</option>
+                            <option value="freight" <?php echo ($shipping_method === 'freight') ? 'selected' : ''; ?>>
+                                Freight Shipping (Bulk Orders) - 3% (Min $200)</option>
                         </select>
                     </div>
                 </div>
@@ -69,7 +73,7 @@
                             <option value="cod">💵 Cash on Delivery</option>
                         </select>
                     </div>
-                    
+
                     <!-- Card Details -->
                     <div class="payment-details card-details active" id="cardDetails">
                         <h4 style="margin-bottom: 1rem; color: var(--primary);">Enter Card Details</h4>
@@ -101,7 +105,8 @@
                         <div class="upi-qr">
                             📱
                         </div>
-                        <p style="text-align: center; color: var(--secondary); font-size: 0.85rem;">Scan with any UPI app</p>
+                        <p style="text-align: center; color: var(--secondary); font-size: 0.85rem;">Scan with any UPI
+                            app</p>
                     </div>
 
                     <!-- Net Banking Details -->
@@ -127,7 +132,8 @@
 
                     <!-- Wallet Details -->
                     <div class="payment-details wallet-details" id="walletDetails">
-                        <h4 style="margin-bottom: 1rem; color: var(--primary); grid-column: 1/-1;">Choose Digital Wallet</h4>
+                        <h4 style="margin-bottom: 1rem; color: var(--primary); grid-column: 1/-1;">Choose Digital Wallet
+                        </h4>
                         <div class="wallet-option" data-wallet="paytm">
                             <div style="font-size: 2rem; margin-bottom: 0.5rem;">💙</div>
                             <div style="font-weight: 600;">Paytm</div>
@@ -156,7 +162,8 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-place-order">Place Order - <?php echo formatPrice($pricing['total']); ?></button>
+                <button type="submit" class="btn btn-primary btn-place-order">Place Order -
+                    <?php echo formatPrice($pricing['total']); ?></button>
             </form>
         </div>
 
@@ -196,105 +203,128 @@
 </div>
 
 <script>
-// Payment Method Switching
-document.addEventListener('DOMContentLoaded', function() {
-    const paymentSelect = document.getElementById('payment-select');
-    const paymentDetails = document.querySelectorAll('.payment-details');
-    
-    if (paymentSelect) {
-        paymentSelect.addEventListener('change', function() {
-            const paymentType = this.value;
-            
-            // Hide all payment details
-            paymentDetails.forEach(detail => detail.classList.remove('active'));
-            
-            // Show selected payment details
-            const selectedDetail = document.getElementById(paymentType + 'Details');
-            if (selectedDetail) {
-                selectedDetail.classList.add('active');
-            }
-        });
-    }
-});
+    // Payment Method Switching
+    document.addEventListener('DOMContentLoaded', function () {
+        const paymentSelect = document.getElementById('payment-select');
+        const paymentDetails = document.querySelectorAll('.payment-details');
 
-// Floating Label Initialization
-document.addEventListener('DOMContentLoaded', function() {
-    // Check all floating label inputs for pre-filled values
-    const floatingInputs = document.querySelectorAll('.floating-label input');
-    
-    // Function to check if input has value
-    function checkInputValue(input) {
-        if (input.value && input.value.trim() !== '') {
-            input.setAttribute('data-has-value', 'true');
-        } else {
-            input.removeAttribute('data-has-value');
+        if (paymentSelect) {
+            // Initialize payment persistence
+            const savedPayment = localStorage.getItem('selectedPayment');
+
+            if (savedPayment) {
+                // Validate if the saved option exists
+                const optionExists = Array.from(paymentSelect.options).some(opt => opt.value === savedPayment);
+                if (optionExists) {
+                    paymentSelect.value = savedPayment;
+                }
+            }
+
+            // Trigger initial change to show correct details
+            const triggerChange = () => {
+                const paymentType = paymentSelect.value;
+
+                // Hide all payment details
+                paymentDetails.forEach(detail => detail.classList.remove('active'));
+
+                // Show selected payment details
+                const selectedDetail = document.getElementById(paymentType + 'Details');
+                if (selectedDetail) {
+                    selectedDetail.classList.add('active');
+                }
+            };
+
+            // Run once on load
+            triggerChange();
+
+            paymentSelect.addEventListener('change', function () {
+                const paymentType = this.value;
+
+                // Save to localStorage
+                localStorage.setItem('selectedPayment', paymentType);
+
+                triggerChange();
+            });
         }
-    }
-    
-    floatingInputs.forEach(input => {
-        // Add placeholder attribute to enable :placeholder-shown pseudo-class
-        if (!input.hasAttribute('placeholder')) {
-            input.setAttribute('placeholder', ' ');
+    });
+
+    // Floating Label Initialization
+    document.addEventListener('DOMContentLoaded', function () {
+        // Check all floating label inputs for pre-filled values
+        const floatingInputs = document.querySelectorAll('.floating-label input');
+
+        // Function to check if input has value
+        function checkInputValue(input) {
+            if (input.value && input.value.trim() !== '') {
+                input.setAttribute('data-has-value', 'true');
+            } else {
+                input.removeAttribute('data-has-value');
+            }
         }
-        
-        // Check initial value
-        checkInputValue(input);
-        
-        // Update on input change
-        input.addEventListener('input', function() {
-            checkInputValue(this);
-        });
-        
-        // Handle autofill - check after a short delay
-        setTimeout(() => {
+
+        floatingInputs.forEach(input => {
+            // Add placeholder attribute to enable :placeholder-shown pseudo-class
+            if (!input.hasAttribute('placeholder')) {
+                input.setAttribute('placeholder', ' ');
+            }
+
+            // Check initial value
             checkInputValue(input);
-        }, 100);
-        
-        // Also check on animation start (Chrome autofill detection)
-        input.addEventListener('animationstart', function(e) {
-            if (e.animationName === 'onAutoFillStart') {
+
+            // Update on input change
+            input.addEventListener('input', function () {
                 checkInputValue(this);
-            }
+            });
+
+            // Handle autofill - check after a short delay
+            setTimeout(() => {
+                checkInputValue(input);
+            }, 100);
+
+            // Also check on animation start (Chrome autofill detection)
+            input.addEventListener('animationstart', function (e) {
+                if (e.animationName === 'onAutoFillStart') {
+                    checkInputValue(this);
+                }
+            });
+        });
+
+        // Periodically check for autofill (fallback)
+        setTimeout(() => {
+            floatingInputs.forEach(input => checkInputValue(input));
+        }, 500);
+    });
+
+    // Wallet Selection
+    document.addEventListener('DOMContentLoaded', function () {
+        const walletOptions = document.querySelectorAll('.wallet-option');
+
+        walletOptions.forEach(option => {
+            option.addEventListener('click', function () {
+                walletOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+            });
         });
     });
-    
-    // Periodically check for autofill (fallback)
-    setTimeout(() => {
-        floatingInputs.forEach(input => checkInputValue(input));
-    }, 500);
-});
 
-// Wallet Selection
-document.addEventListener('DOMContentLoaded', function() {
-    const walletOptions = document.querySelectorAll('.wallet-option');
-    
-    walletOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            walletOptions.forEach(opt => opt.classList.remove('selected'));
-            this.classList.add('selected');
-        });
+    // Card Number Formatting
+    document.getElementById('cardNumber')?.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\s/g, '');
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formattedValue;
     });
-});
 
-// Card Number Formatting
-document.getElementById('cardNumber')?.addEventListener('input', function(e) {
-    let value = e.target.value.replace(/\s/g, '');
-    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-    e.target.value = formattedValue;
-});
+    // Expiry Date Formatting
+    document.getElementById('cardExpiry')?.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            value = value.slice(0, 2) + '/' + value.slice(2, 4);
+        }
+        e.target.value = value;
+    });
 
-// Expiry Date Formatting
-document.getElementById('cardExpiry')?.addEventListener('input', function(e) {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length >= 2) {
-        value = value.slice(0, 2) + '/' + value.slice(2, 4);
-    }
-    e.target.value = value;
-});
-
-// CVV - Numbers Only
-document.getElementById('cardCVV')?.addEventListener('input', function(e) {
-    e.target.value = e.target.value.replace(/\D/g, '');
-});
+    // CVV - Numbers Only
+    document.getElementById('cardCVV')?.addEventListener('input', function (e) {
+        e.target.value = e.target.value.replace(/\D/g, '');
+    });
 </script>
-

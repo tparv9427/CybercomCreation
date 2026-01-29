@@ -970,6 +970,10 @@ function showNotification(message, type = 'info') {
         notification.style.background = '#FEE2E2';
         notification.style.color = '#991B1B';
         notification.style.border = '1px solid #FECACA';
+    } else if (type === 'saved') {
+        notification.style.background = '#F3E8FF';
+        notification.style.color = '#6B21A8';
+        notification.style.border = '1px solid #D8B4FE';
     } else {
         notification.style.background = '#DBEAFE';
         notification.style.color = '#1E40AF';
@@ -1175,7 +1179,7 @@ function saveForLater(productId) {
                     }
 
                     // showNotification(data.message || 'Item saved for later', 'success'); // Optional: suppressing notification for instant feel or keep it? User didn't specify. Keeping it.
-                    showNotification(data.message || 'Item saved for later', 'success');
+                    showNotification(data.message || 'Item saved for later', 'saved');
                 } else {
                     showNotification(data.message || 'Error saving item', 'error');
                 }

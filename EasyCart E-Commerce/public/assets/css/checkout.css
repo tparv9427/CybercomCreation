@@ -355,8 +355,8 @@
 }
 
 .summary-items {
-    max-height: 300px;
-    overflow-y: auto;
+    /* max-height: 300px; */
+    /* overflow-y: auto; */
     margin-bottom: 1rem;
 }
 
