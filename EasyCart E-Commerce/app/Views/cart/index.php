@@ -41,15 +41,6 @@
                     <span>Subtotal:</span>
                     <span id="summary-subtotal"><?php echo formatPrice($pricing['subtotal']); ?></span>
                 </div>
-                <div class="summary-row">
-                    <span>Tax (18%):</span>
-                    <span id="summary-tax"><?php echo formatPrice($estimated_totals['tax_on_items']); ?></span>
-                </div>
-                <div class="summary-row" style="border-bottom: 2px solid var(--border); margin-bottom: 1rem;">
-                    <span style="font-weight: 700; color: var(--primary);">Cart:</span>
-                    <span id="summary-cart-value"
-                        style="font-weight: 700; color: var(--primary);"><?php echo formatPrice($estimated_totals['cart_value']); ?></span>
-                </div>
 
                 <div class="summary-row">
                     <span>Delivery Type:</span>

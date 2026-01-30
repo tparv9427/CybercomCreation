@@ -54,5 +54,12 @@
         "password": "$2y$10$yaWzTq8Ty\/FdM3AwXyoYLO6xx3z.dIsyvVswlhwlp1r0Ut2RvnC5K",
         "name": "P",
         "created_at": "2026-01-30"
+    },
+    "9": {
+        "id": 9,
+        "email": "renil@gmail.ey",
+        "password": "$2y$10$gU\/L5xBfD0m4yYfz\/1EdH.6th7iyys6fuD3cCLvoqxakaB2xtO4lO",
+        "name": "renil",
+        "created_at": "2026-01-30"
     }
 }

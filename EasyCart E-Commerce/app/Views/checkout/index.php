@@ -232,6 +232,32 @@
                     <span>Subtotal:</span>
                     <span id="subtotal"><?php echo formatPrice($pricing['subtotal']); ?></span>
                 </div>
+                
+                <?php 
+                // Check for applied coupon in session
+                $coupon_data = $_SESSION['applied_coupon'] ?? null;
+                $final_total = $pricing['total'];
+                $discount_amount = 0;
+                
+                if ($coupon_data) {
+                    // Recalculate discount based on current subtotal
+                    $discount_amount = ($pricing['subtotal'] * $coupon_data['percent']) / 100;
+                    $final_total = $pricing['total'] - $discount_amount;
+                }
+                ?>
+
+                <?php if ($coupon_data): ?>
+                <div id="discount-row-container">
+                    <div class="summary-row" style="color: #4caf50; margin-bottom: 0.5rem;">
+                        <span>Discount (<?php echo $coupon_data['percent']; ?>%):</span>
+                        <span>-<?php echo formatPrice($discount_amount); ?></span>
+                    </div>
+                    <button type="button" onclick="removeCoupon()" style="width: 100%; padding: 0.5rem; background: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; margin-bottom: 1rem; transition: all 0.2s;">
+                        Remove Coupon
+                    </button>
+                </div>
+                <?php endif; ?>
+
                 <div class="summary-row">
                     <span>Shipping:</span>
                     <span id="shipping"><?php echo formatPrice($pricing['shipping']); ?></span>
@@ -246,9 +272,164 @@
                 </div>
                 <div class="summary-total">
                     <span>Total:</span>
-                    <span id="total"><?php echo formatPrice($pricing['total']); ?></span>
+                    <span id="total"><?php echo formatPrice($final_total); ?></span>
                 </div>
             </div>
+            
+            <!-- Coupon Code Section -->
+            <div class="coupon-section" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <h4 style="font-size: 1rem; color: var(--primary); margin-bottom: 0.75rem;">Have a Coupon?</h4>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="couponCode" 
+                           placeholder="Enter code" 
+                           value="<?php echo $coupon_data ? htmlspecialchars($coupon_data['code']) : ''; ?>"
+                           <?php echo $coupon_data ? 'disabled' : ''; ?>
+                           style="flex: 1; padding: 0.6rem; border: 1.5px solid var(--border); border-radius: 6px; font-size: 0.9rem;">
+                    <button type="button" 
+                            onclick="applyCoupon()" 
+                            <?php echo $coupon_data ? 'disabled' : ''; ?>
+                            style="padding: 0.6rem 1rem; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background 0.2s;">
+                        <?php echo $coupon_data ? 'Applied' : 'Apply'; ?>
+                    </button>
+                </div>
+                <div id="couponMessage" style="font-size: 0.85rem; margin-top: 0.5rem; display: <?php echo $coupon_data ? 'block' : 'none'; ?>; color: #4caf50;">
+                    <?php echo $coupon_data ? 'Coupon applied successfully!' : ''; ?>
+                </div>
+            </div>
+            
+            <script>
+                // Handle Enter key for coupon input
+                document.getElementById('couponCode').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyCoupon();
+                    }
+                });
+
+                function removeCoupon() {
+                    const btn = document.querySelector('.coupon-section button');
+                    
+                    fetch('ajax_coupon.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'action=remove'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remove Discount Row Container
+                            const discountContainer = document.getElementById('discount-row-container');
+                            if (discountContainer) discountContainer.remove();
+                            
+                            // Reset Total
+                            document.querySelector('#total').textContent = data.new_total;
+                            
+                            // Reset Input State
+                            const codeInput = document.getElementById('couponCode');
+                            codeInput.value = '';
+                            codeInput.disabled = false;
+                            
+                            // Reset Button State
+                            btn.disabled = false;
+                            btn.textContent = 'Apply';
+                            
+                            // Hide Message
+                            const messageEl = document.getElementById('couponMessage');
+                            messageEl.style.display = 'none';
+                        }
+                    })
+                    .catch(error => console.error('Error removing coupon:', error));
+                }
+
+                function applyCoupon() {
+                    const codeInput = document.getElementById('couponCode');
+                    const code = codeInput.value.trim();
+                    const messageEl = document.getElementById('couponMessage');
+                    const btn = document.querySelector('.coupon-section button');
+                    
+                    // Reset state
+                    messageEl.style.display = 'none';
+                    codeInput.classList.remove('error');
+                    
+                    if (!code) {
+                        messageEl.textContent = 'Please enter a coupon code';
+                        messageEl.style.color = '#ef5350';
+                        messageEl.style.display = 'block';
+                        codeInput.classList.add('error');
+                        return;
+                    }
+                    
+                    const originalText = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = 'Applying...';
+                    
+                    fetch('ajax_coupon.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'code=' + encodeURIComponent(code)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                        
+                        if (data.success) {
+                            messageEl.textContent = data.message;
+                            messageEl.style.color = '#4caf50';
+                            messageEl.style.display = 'block';
+                            
+                            // Insert Discount Row
+                            const summaryTotals = document.querySelector('.summary-totals');
+                            const existingContainer = document.getElementById('discount-row-container');
+                            
+                            if (existingContainer) existingContainer.remove();
+                            
+                            const discountContainer = document.createElement('div');
+                            discountContainer.id = 'discount-row-container';
+                            discountContainer.innerHTML = `
+                                <div class="summary-row" style="color: #4caf50; margin-bottom: 0.5rem;">
+                                    <span>Discount (${data.discount_percent}%):</span>
+                                    <span>-${data.discount_amount}</span>
+                                </div>
+                                <button type="button" onclick="removeCoupon()" style="width: 100%; padding: 0.5rem; background: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; margin-bottom: 1rem; transition: all 0.2s;">
+                                    Remove Coupon
+                                </button>
+                            `;
+                            
+                            // Insert after Subtotal
+                            const subtotalRow = document.getElementById('subtotal').closest('.summary-row');
+                            if (subtotalRow) {
+                                subtotalRow.insertAdjacentElement('afterend', discountContainer);
+                            }
+                            
+                            // Update Total
+                            document.querySelector('#total').textContent = data.new_total;
+                            
+                            // Disable input and button to prevent re-submit
+                            codeInput.disabled = true;
+                            btn.textContent = 'Applied';
+                            btn.disabled = true;
+                        } else {
+                            messageEl.textContent = data.message;
+                            messageEl.style.color = '#ef5350';
+                            messageEl.style.display = 'block';
+                            codeInput.classList.add('error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                        messageEl.textContent = 'An error occurred. Please try again.';
+                        messageEl.style.color = '#ef5350';
+                        messageEl.style.display = 'block';
+                    });
+                }
+            </script>
         </div>
     </div>
 </div>

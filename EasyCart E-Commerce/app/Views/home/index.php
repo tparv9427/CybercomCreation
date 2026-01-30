@@ -10,6 +10,7 @@ $banners = require APP_ROOT . '/config/banners.php';
 
 // Include banner carousel component
 include __DIR__ . '/../partials/banner_carousel.php';
+print_r($_SESSION);
 ?>
 
 <!-- Featured Products -->
@@ -32,20 +33,20 @@ include __DIR__ . '/../partials/category_grid.php';
 ?>
 
 <!-- New Arrivals -->
-<?php 
+<?php
 // $newProducts is passed from HomeController
-if (count($newProducts) > 0): 
-?>
-<div class="container">
-    <div class="section-header">
-        <h2 class="section-title">New Arrivals</h2>
-        <p class="section-subtitle">Check out our latest additions</p>
-    </div>
+if (count($newProducts) > 0):
+    ?>
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">New Arrivals</h2>
+            <p class="section-subtitle">Check out our latest additions</p>
+        </div>
 
-    <div class="product-grid">
-        <?php foreach ($newProducts as $product): ?>
-            <?php include __DIR__ . '/../partials/product_card.php'; ?>
-        <?php endforeach; ?>
+        <div class="product-grid">
+            <?php foreach ($newProducts as $product): ?>
+                <?php include __DIR__ . '/../partials/product_card.php'; ?>
+            <?php endforeach; ?>
+        </div>
     </div>
-</div>
 <?php endif; ?>

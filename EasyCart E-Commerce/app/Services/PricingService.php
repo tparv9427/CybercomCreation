@@ -154,10 +154,9 @@ class PricingService
             }
         }
 
-        // Check cart value (Subtotal + Tax on Subtotal)
+        // Check cart value (Subtotal only)
         $subtotal = $this->calculateSubtotal($cart);
-        $taxOnItems = $subtotal * 0.18;
-        $cartValue = $subtotal + $taxOnItems;
+        $cartValue = $subtotal;
 
         if ($cartValue >= 300) {
             return 'freight';
@@ -181,12 +180,12 @@ class PricingService
         $totals = [];
         foreach ($methods as $method) {
             $shipping = $this->calculateShipping($subtotal, $method);
-            $tax = $this->calculateTax($subtotal, $shipping);
-            $totals[] = $subtotal + $shipping + $tax;
+            // Tax removed from estimated calculation on cart page
+            $totals[] = $subtotal + $shipping;
         }
 
         $taxOnItems = $subtotal * 0.18;
-        $cartValue = $subtotal + $taxOnItems;
+        $cartValue = $subtotal;
 
         return [
             'min' => !empty($totals) ? min($totals) : 0,

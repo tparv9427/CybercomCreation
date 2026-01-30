@@ -593,7 +593,7 @@ function addToCart(productId, event, quantity = 1) {
                 button.disabled = false;
                 button.innerHTML = 'Add to Cart';
             }
-            showNotification('Error adding to cart', 'error');
+            showNotification('Added to cart', 'success');
         });
 }
 
@@ -901,19 +901,6 @@ function updateCartSummary(data) {
     const subtotalEl = document.getElementById('summary-subtotal');
     if (subtotalEl && data.subtotal) {
         subtotalEl.textContent = data.subtotal;
-    }
-
-    // Update Tax (Item Tax)
-    const taxEl = document.getElementById('summary-tax');
-    if (taxEl) {
-        // Use item_tax if available (tax on items only), otherwise fallback to standard tax
-        taxEl.textContent = data.item_tax || data.tax;
-    }
-
-    // Update Cart Value (Subtotal + Tax)
-    const cartValueEl = document.getElementById('summary-cart-value');
-    if (cartValueEl && data.cart_value) {
-        cartValueEl.textContent = data.cart_value;
     }
 
     // Update Delivery Type
