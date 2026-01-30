@@ -33,10 +33,10 @@ class ProductController
     public function index()
     {
         // Get filter parameters
-        $category_id = isset($_GET['category']) ? (int)$_GET['category'] : null;
-        $brand_id = isset($_GET['brand']) ? (int)$_GET['brand'] : null;
+        $category_id = isset($_GET['category']) ? (int) $_GET['category'] : null;
+        $brand_id = isset($_GET['brand']) ? (int) $_GET['brand'] : null;
         $price_range = isset($_GET['price']) ? $_GET['price'] : null;
-        $rating_filter = isset($_GET['rating']) ? (float)$_GET['rating'] : null;
+        $rating_filter = isset($_GET['rating']) ? (float) $_GET['rating'] : null;
         $show_new = isset($_GET['new']) ? true : false;
 
         // Filter products
@@ -65,28 +65,47 @@ class ProductController
             $filtered_products = $this->productRepo->filterByRating($filtered_products, $rating_filter);
         }
 
+        // Apply sorting
+        $sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest';
+
+        usort($filtered_products, function ($a, $b) use ($sort) {
+            switch ($sort) {
+                case 'price_low':
+                    return $a['price'] <=> $b['price'];
+                case 'price_high':
+                    return $b['price'] <=> $a['price'];
+                case 'rating':
+                    return $b['rating'] <=> $a['rating'];
+                case 'newest':
+                default:
+                    // Assuming higher ID is newer for now, or add created_at
+                    return $b['id'] <=> $a['id'];
+            }
+        });
+
         // Pagination
         $total_products = count($filtered_products);
-        $limit = 25;
+        $limit = 24;
         $total_pages = ceil($total_products / $limit);
-        $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $current_page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
         $current_page = max(1, min($current_page, $total_pages > 0 ? $total_pages : 1));
         $offset = ($current_page - 1) * $limit;
-        
+
         $filtered_products = array_slice($filtered_products, $offset, $limit);
 
         $categories = $this->categoryRepo->getAll();
+        $brands = $this->brandRepo->getAll(); // Fetch all brands for sidebar
 
         // Helper functions
-        $getCategory = function($id) {
+        $getCategory = function ($id) {
             return $this->categoryRepo->find($id);
         };
 
-        $isInWishlist = function($productId) {
+        $isInWishlist = function ($productId) {
             return $this->wishlistService->has($productId);
         };
 
-        $formatPrice = function($price) {
+        $formatPrice = function ($price) {
             return \EasyCart\Helpers\FormatHelper::price($price);
         };
 
@@ -100,7 +119,7 @@ class ProductController
      */
     public function show($id)
     {
-        $product_id = $id ?? (isset($_GET['id']) ? (int)$_GET['id'] : null);
+        $product_id = $id ?? (isset($_GET['id']) ? (int) $_GET['id'] : null);
         $product = $this->productRepo->find($product_id);
 
         if (!$product) {
@@ -117,19 +136,19 @@ class ProductController
         $other_recommendations = $this->productRepo->getFromOtherCategories($product);
 
         // Helper functions
-        $getCategory = function($id) {
+        $getCategory = function ($id) {
             return $this->categoryRepo->find($id);
         };
 
-        $getBrand = function($id) {
+        $getBrand = function ($id) {
             return $this->brandRepo->find($id);
         };
 
-        $isInWishlist = function($productId) {
+        $isInWishlist = function ($productId) {
             return $this->wishlistService->has($productId);
         };
 
-        $formatPrice = function($price) {
+        $formatPrice = function ($price) {
             return \EasyCart\Helpers\FormatHelper::price($price);
         };
 
@@ -152,9 +171,9 @@ class ProductController
         }
 
         $products = $this->productRepo->getAll();
-        $filtered_products = array_filter($products, function($product) use ($query) {
-            return stripos($product['name'], $query) !== false || 
-                   stripos($product['description'], $query) !== false;
+        $filtered_products = array_filter($products, function ($product) use ($query) {
+            return stripos($product['name'], $query) !== false ||
+                stripos($product['description'], $query) !== false;
         });
 
         $product_count = count($filtered_products);
@@ -170,7 +189,7 @@ class ProductController
      */
     public function brand($id)
     {
-        $brand_id = $id ?? (isset($_GET['id']) ? (int)$_GET['id'] : null);
+        $brand_id = $id ?? (isset($_GET['id']) ? (int) $_GET['id'] : null);
         $brand = $this->brandRepo->find($brand_id);
 
         if (!$brand) {
@@ -180,30 +199,30 @@ class ProductController
 
         $page_title = $brand['name'] . ' Products';
         $filtered_products = $this->productRepo->findByBrand($brand_id);
-        
+
         // Pagination
         $total_products = count($filtered_products);
         $limit = 25;
         $total_pages = ceil($total_products / $limit);
-        $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $current_page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
         $current_page = max(1, min($current_page, $total_pages > 0 ? $total_pages : 1));
         $offset = ($current_page - 1) * $limit;
-        
+
         $filtered_products = array_slice($filtered_products, $offset, $limit);
-        
+
         $product_count = count($filtered_products);
         $categories = $this->categoryRepo->getAll();
 
         // Helper functions for views
-        $getCategory = function($id) {
+        $getCategory = function ($id) {
             return $this->categoryRepo->find($id);
         };
 
-        $isInWishlist = function($productId) {
+        $isInWishlist = function ($productId) {
             return $this->wishlistService->has($productId);
         };
 
-        $formatPrice = function($price) {
+        $formatPrice = function ($price) {
             return \EasyCart\Helpers\FormatHelper::price($price);
         };
 

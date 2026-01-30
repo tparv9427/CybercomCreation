@@ -472,21 +472,23 @@ body {
     background: var(--card-bg);
     border-radius: 12px;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     cursor: pointer;
     box-shadow: var(--shadow);
     position: relative;
     display: flex;
     flex-direction: column;
+    border: 1px solid transparent;
 }
 
 .product-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-hover);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary);
 }
 
 .product-card:hover .product-details-hover {
-    max-height: 100px;
+    max-height: 500px;
     opacity: 1;
     margin-top: 0.5rem;
 }
@@ -637,7 +639,7 @@ body {
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     gap: 0.35rem;

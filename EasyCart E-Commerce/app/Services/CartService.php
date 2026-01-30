@@ -37,13 +37,21 @@ class CartService
             return false;
         }
 
+        $currentStock = isset($product['stock']) ? (int) $product['stock'] : 999;
         $cart = $this->cartRepo->get();
-        
+
         if (!isset($cart[$productId])) {
             $cart[$productId] = 0;
         }
-        
-        $cart[$productId] += $quantity;
+
+        $newQuantity = $cart[$productId] + $quantity;
+
+        // Enforce max stock
+        if ($newQuantity > $currentStock) {
+            $newQuantity = $currentStock;
+        }
+
+        $cart[$productId] = $newQuantity;
         $this->cartRepo->save($cart);
 
         return true;
@@ -54,19 +62,32 @@ class CartService
      * 
      * @param int $productId
      * @param int $quantity
-     * @return bool
+     * @return int The actual updated quantity
      */
     public function update($productId, $quantity)
     {
         if ($quantity <= 0) {
-            return $this->remove($productId);
+            $this->remove($productId);
+            return 0;
+        }
+
+        $product = $this->productRepo->find($productId);
+        if (!$product) {
+            return 0;
+        }
+
+        $currentStock = isset($product['stock']) ? (int) $product['stock'] : 999;
+
+        // Enforce max stock
+        if ($quantity > $currentStock) {
+            $quantity = $currentStock;
         }
 
         $cart = $this->cartRepo->get();
         $cart[$productId] = $quantity;
         $this->cartRepo->save($cart);
 
-        return true;
+        return $quantity;
     }
 
     /**
@@ -78,7 +99,7 @@ class CartService
     public function remove($productId)
     {
         $cart = $this->cartRepo->get();
-        
+
         if (isset($cart[$productId])) {
             unset($cart[$productId]);
             $this->cartRepo->save($cart);
@@ -117,7 +138,7 @@ class CartService
     {
         $total = 0;
         $cart = $this->cartRepo->get();
-        
+
         foreach ($cart as $productId => $quantity) {
             $product = $this->productRepo->find($productId);
             if ($product) {
@@ -160,26 +181,26 @@ class CartService
     {
         $cart = $this->cartRepo->get();
         // Item doesn't have to be in cart to be saved for later
-        
+
         $saved = $this->saveRepo->get();
         // If in cart, move quantity. If not, default to 1 or add 1? 
         // Logic: specific request "add this save for later button...". Usually implies "add this item to saved list".
         // If it's already in saved, we can just ensure it stays there.
         // If it was in cart, we should remove it from cart.
-        
+
         $quantity = isset($cart[$productId]) ? $cart[$productId] : 1;
-        
+
         // If already in saved, we might want to just keep it or add quantity?
         // Simple implementation: Overwrite or set.
         $saved[$productId] = $quantity; // Store with quantity
-        
+
         $this->saveRepo->save($saved);
-        
+
         // If it was in cart, remove it
         if (isset($cart[$productId])) {
             $this->remove($productId);
         }
-        
+
         return true;
     }
 
@@ -192,18 +213,18 @@ class CartService
     public function moveToCartFromSaved($productId)
     {
         $saved = $this->saveRepo->get();
-        if(!isset($saved[$productId])) {
+        if (!isset($saved[$productId])) {
             return false;
         }
 
         $this->add($productId, $saved[$productId]);
-        
+
         unset($saved[$productId]);
         $this->saveRepo->save($saved);
-        
+
         return true;
     }
-    
+
     /**
      * Get saved items with product details
      * 
@@ -213,18 +234,18 @@ class CartService
     {
         $saved = $this->saveRepo->get();
         $items = [];
-        
+
         foreach ($saved as $productId => $quantity) {
-             $product = $this->productRepo->find($productId);
-             if ($product) {
-                 $items[] = [
-                     'product' => $product,
-                     'quantity' => $quantity,
-                     'total' => $product['price'] * $quantity
-                 ];
-             }
+            $product = $this->productRepo->find($productId);
+            if ($product) {
+                $items[] = [
+                    'product' => $product,
+                    'quantity' => $quantity,
+                    'total' => $product['price'] * $quantity
+                ];
+            }
         }
-        
+
         return $items;
     }
 }

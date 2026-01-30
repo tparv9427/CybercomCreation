@@ -18,14 +18,14 @@ class PricingHelper
     public static function calculateCartSubtotal($cartItems)
     {
         $subtotal = 0;
-        
+
         foreach ($cartItems as $item) {
             $subtotal += $item['price'] * $item['quantity'];
         }
-        
+
         return $subtotal;
     }
-    
+
     /**
      * Calculate shipping cost based on method and subtotal
      * 
@@ -44,28 +44,28 @@ class PricingHelper
         switch ($method) {
             case 'standard':
                 return 40.00;
-                
+
             case 'express':
                 // $80 OR 10% of subtotal (whichever is lower)
                 $percentage = $subtotal * 0.10;
                 return min(80.00, $percentage);
-                
+
             case 'white_glove':
                 // $150 OR 5% of subtotal (whichever is lower)
                 $percentage = $subtotal * 0.05;
                 return min(150.00, $percentage);
-                
+
             case 'freight':
                 // 3% of subtotal with minimum $200
                 $percentage = $subtotal * 0.03;
                 return max(200.00, $percentage);
-                
+
             default:
                 // Default to standard shipping
                 return 40.00;
         }
     }
-    
+
     /**
      * Calculate tax (18% on subtotal + shipping)
      * 
@@ -77,7 +77,7 @@ class PricingHelper
     {
         return ($subtotal + $shipping) * 0.18;
     }
-    
+
     /**
      * Calculate payment fee
      * 
@@ -105,7 +105,7 @@ class PricingHelper
     {
         return $subtotal + $shipping + $tax + $paymentFee;
     }
-    
+
     /**
      * Format price with currency symbol
      * 
@@ -114,9 +114,9 @@ class PricingHelper
      */
     public static function formatPrice($amount)
     {
-        return '₹' . number_format($amount, 2); // Using Rupee symbol as per previous requirement
+        return CURRENCY . number_format($amount, 2); // Using Rupee symbol as per previous requirement
     }
-    
+
     /**
      * Calculate all pricing details for checkout
      * 
@@ -132,7 +132,7 @@ class PricingHelper
         $paymentFee = self::calculatePaymentFee($paymentMethod);
         $tax = self::calculateTax($subtotal, $shipping);
         $total = self::calculateTotal($subtotal, $shipping, $tax, $paymentFee);
-        
+
         return [
             'subtotal' => $subtotal,
             'shipping' => $shipping,

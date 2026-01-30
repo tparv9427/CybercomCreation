@@ -528,7 +528,8 @@ function addToCart(productId, event, quantity = 1) {
     }
 
     // Get quantity from input if on product detail page
-    const quantityInput = document.getElementById('quantity');
+    // Get quantity from input if on product detail page
+    const quantityInput = document.getElementById('quantity') || document.getElementById('qty-select');
     if (quantityInput) {
         quantity = parseInt(quantityInput.value) || 1;
     }
@@ -551,6 +552,23 @@ function addToCart(productId, event, quantity = 1) {
             if (data.success) {
                 showNotification('Product added to cart!', 'success');
                 updateCartCount(data.cart_count);
+
+                // Check for shipping category change
+                if (data.shipping_category && data.shipping_category !== currentShippingCategory) {
+                    const oldCategory = currentShippingCategory;
+                    currentShippingCategory = data.shipping_category;
+
+                    if (oldCategory !== null) {
+                        const categoryName = data.shipping_category === 'freight' ? 'Freight' : 'Express';
+                        showNotification(
+                            `Shipping options changed to ${categoryName} category`,
+                            'info'
+                        );
+                    }
+                } else if (data.shipping_category) {
+                    // Initialize category if not set
+                    currentShippingCategory = data.shipping_category;
+                }
 
                 if (button) {
                     button.classList.add('added');
@@ -601,12 +619,36 @@ function updateQuantity(productId, quantity, disableInput = true) {
         .then(data => {
             if (data.success) {
                 // Update quantity input
+                // Update quantity input with server-enforced value if different
                 if (quantityInput) {
-                    quantityInput.value = quantity;
+                    // If server returned a different quantity (e.g. capped by stock), update input
+                    // Use loose comparison or parsing because one might be string
+                    if (data.actual_quantity !== undefined && parseInt(data.actual_quantity) !== parseInt(quantity)) {
+                        quantityInput.value = data.actual_quantity;
+                        quantity = data.actual_quantity; // Update local variable for downstream logic
+                        showNotification(`Quantity adjusted to available stock (${data.actual_quantity})`, 'info');
+                    } else {
+                        quantityInput.value = quantity;
+                    }
+                    quantityInput.setAttribute('data-old-value', quantity); // Store valid value
                     quantityInput.disabled = false;
                     // Keep focus if we were typing
                     if (!disableInput) {
                         quantityInput.focus();
+                    }
+                }
+
+                // Update decrease button state (Minus vs Delete)
+                const decreaseBtn = document.getElementById(`btn-decrease-${productId}`);
+                if (decreaseBtn) {
+                    if (quantity == 1) {
+                        decreaseBtn.textContent = '🗑';
+                        decreaseBtn.classList.add('delete-btn-sm');
+                        decreaseBtn.setAttribute('onclick', `removeFromCart(${productId})`);
+                    } else {
+                        decreaseBtn.textContent = '−'; // minus symbol
+                        decreaseBtn.classList.remove('delete-btn-sm');
+                        decreaseBtn.setAttribute('onclick', `decreaseCartQuantity(${productId})`);
                     }
                 }
 
@@ -619,6 +661,22 @@ function updateQuantity(productId, quantity, disableInput = true) {
                 // Update cart summary
                 updateCartSummary(data);
                 updateCartCount(data.cart_count);
+
+                // Check for shipping category change
+                if (data.shipping_category && data.shipping_category !== currentShippingCategory) {
+                    const oldCategory = currentShippingCategory;
+                    currentShippingCategory = data.shipping_category;
+
+                    if (oldCategory !== null) {
+                        const categoryName = data.shipping_category === 'freight' ? 'Freight' : 'Express';
+                        showNotification(
+                            `Shipping options changed to ${categoryName} category`,
+                            'info'
+                        );
+                    }
+                } else if (data.shipping_category) {
+                    currentShippingCategory = data.shipping_category;
+                }
 
                 // Show discreet success indicator for manual entry
                 if (!disableInput) {
@@ -669,23 +727,62 @@ function increaseCartQuantity(productId) {
 let debounceTimer;
 function validateCartQuantity(productId, input) {
     clearTimeout(debounceTimer);
+    const max = parseInt(input.max) || 999;
+    let value = parseInt(input.value);
 
-    // Immediate visual validation (optional, can stay simple)
+    // Immediate check for max stock (prevent typing huge numbers)
+    if (!isNaN(value) && value > max) {
+        input.value = max;
+        value = max;
+        showNotification(`Sorry, only ${max} items available in stock!`, 'error');
+
+        // Shake animation
+        const container = input.parentElement;
+        container.classList.add('shake');
+        setTimeout(() => container.classList.remove('shake'), 500);
+    }
 
     debounceTimer = setTimeout(() => {
-        if (validateMaxStock(input)) {
-            // Pass false to not disable input while typing
-            updateQuantity(productId, parseInt(input.value), false);
+        let currentValue = parseInt(input.value);
+
+        // Final validation (check for empty/min value)
+        if (input.value === '' || isNaN(currentValue) || currentValue < 1) {
+            const previousValue = input.getAttribute('data-old-value') || 1;
+            input.value = previousValue;
+            showNotification('Please enter a valid quantity', 'error');
+
+            // Shake animation
+            const container = input.parentElement;
+            container.classList.add('shake');
+            setTimeout(() => container.classList.remove('shake'), 500);
+            return;
         }
-    }, 500); // 500ms debounce
+
+        // Always update with the (possibly corrected) value
+        updateQuantity(productId, currentValue, false);
+    }, 300); // 300ms debounce
 }
 
 // Generic Max Stock Validator
 function validateMaxStock(input) {
-    let value = parseInt(input.value) || 1;
+    let value = parseInt(input.value);
     const max = parseInt(input.max) || 999;
 
-    if (value > max) {
+    // Retrieve previous valid value
+    const previousValue = input.getAttribute('data-old-value') || 1;
+
+    if (isNaN(value) || value < 1) {
+        // Revert to previous value
+        input.value = previousValue;
+        showNotification('Invalid cart value', 'error');
+
+        // Shake animation
+        const container = input.parentElement;
+        container.classList.add('shake');
+        setTimeout(() => container.classList.remove('shake'), 500);
+
+        return false;
+    } else if (value > max) {
         input.value = max;
         showNotification(`Sorry, only ${max} items available in stock!`, 'error');
 
@@ -695,8 +792,6 @@ function validateMaxStock(input) {
         setTimeout(() => container.classList.remove('shake'), 500);
 
         return false;
-    } else if (value < 1) {
-        input.value = 1;
     }
     return true;
 }
@@ -755,7 +850,32 @@ function removeFromCart(productId) {
                         updateCartSummary(data);
                         updateCartCount(data.cart_count);
 
-                        showNotification('Item removed from cart', 'info');
+                        // Check for shipping category change
+                        if (data.shipping_category && data.shipping_category !== currentShippingCategory) {
+                            const oldCategory = currentShippingCategory;
+                            currentShippingCategory = data.shipping_category;
+
+                            if (oldCategory !== null) {
+                                const categoryName = data.shipping_category === 'freight' ? 'Freight' : 'Express';
+                                showNotification(
+                                    `Shipping options changed to ${categoryName} category`,
+                                    'info'
+                                );
+                            }
+                        } else if (data.shipping_category) {
+                            currentShippingCategory = data.shipping_category;
+                        }
+
+                        // Check if cart is now empty and reload to show empty state
+                        if (data.cart_count === 0) {
+                            // Reload the page to show empty cart state
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500); // Small delay to show the notification
+                            return;
+                        }
+
+                        showNotification('Item removed from cart', 'success');
                     } else {
                         if (cartItem) {
                             cartItem.style.opacity = '1';
@@ -775,41 +895,117 @@ function removeFromCart(productId) {
 }
 
 // Update Cart Summary
+// Update Cart Summary
 function updateCartSummary(data) {
-    // Find all summary rows
-    const summaryRows = document.querySelectorAll('.cart-summary .summary-row');
-
-    if (data.subtotal && summaryRows[0]) {
-        const subtotalEl = summaryRows[0].querySelector('span:last-child');
-        if (subtotalEl) subtotalEl.textContent = data.subtotal;
+    // Update Subtotal
+    const subtotalEl = document.getElementById('summary-subtotal');
+    if (subtotalEl && data.subtotal) {
+        subtotalEl.textContent = data.subtotal;
     }
 
-    if (data.shipping !== undefined && summaryRows[1]) {
-        const shippingEl = summaryRows[1].querySelector('span:last-child');
-        if (shippingEl) shippingEl.textContent = data.shipping;
+    // Update Tax (Item Tax)
+    const taxEl = document.getElementById('summary-tax');
+    if (taxEl) {
+        // Use item_tax if available (tax on items only), otherwise fallback to standard tax
+        taxEl.textContent = data.item_tax || data.tax;
     }
 
-    if (data.tax && summaryRows[2]) {
-        const taxEl = summaryRows[2].querySelector('span:last-child');
-        if (taxEl) taxEl.textContent = data.tax;
+    // Update Cart Value (Subtotal + Tax)
+    const cartValueEl = document.getElementById('summary-cart-value');
+    if (cartValueEl && data.cart_value) {
+        cartValueEl.textContent = data.cart_value;
     }
 
-    if (data.total) {
-        const totalEl = document.querySelector('.summary-total span:last-child');
-        if (totalEl) totalEl.textContent = data.total;
+    // Update Delivery Type
+    const deliveryTypeEl = document.getElementById('summary-delivery-type');
+    if (deliveryTypeEl && data.shipping_category) {
+        const categoryName = data.shipping_category === 'freight' ? 'Freight' : 'Express';
+        deliveryTypeEl.textContent = `${categoryName} Shipping`;
     }
 
-    // Update free shipping notice
-    const freeShippingNotice = document.querySelector('.free-shipping-notice');
-    if (freeShippingNotice && data.free_shipping_remaining) {
-        if (data.free_shipping_remaining > 0) {
-            freeShippingNotice.textContent = `Add ${data.free_shipping_remaining} more for FREE shipping!`;
-            freeShippingNotice.style.display = 'block';
-        } else {
-            freeShippingNotice.style.display = 'none';
-        }
+    // Update Estimated Total Range
+    const estimatedTotalEl = document.getElementById('summary-estimated-total');
+    if (estimatedTotalEl && data.estimated_total_min && data.estimated_total_max) {
+        estimatedTotalEl.textContent = `${data.estimated_total_min} - ${data.estimated_total_max}`;
     }
 }
+
+// Update Header Cart Count
+function updateCartCount(count) {
+    // Update all cart badges (desktop + mobile if any)
+    const cartLinks = document.querySelectorAll('.cart-link');
+    cartLinks.forEach(link => {
+        let badge = link.querySelector('.badge');
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'badge';
+                link.appendChild(badge);
+            }
+            badge.textContent = count;
+            badge.style.display = 'inline-flex';
+        } else {
+            if (badge) badge.remove();
+        }
+    });
+}
+
+// Update Header Wishlist Count
+function updateWishlistCount(count) {
+    const wishlistLinks = document.querySelectorAll('.wishlist-link');
+    wishlistLinks.forEach(link => {
+        let badge = link.querySelector('.badge');
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'badge';
+                link.appendChild(badge);
+            }
+            badge.textContent = count;
+            badge.style.display = 'inline-flex';
+        } else {
+            if (badge) badge.remove();
+        }
+    });
+}
+
+// Fetch Initial Counts
+function fetchInitialCounts() {
+    // Fetch Cart Count
+    fetch('ajax_cart.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=count'
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateCartCount(data.cart_count);
+            }
+        })
+        .catch(console.error);
+
+    // Fetch Wishlist Count
+    fetch('ajax_wishlist.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=count'
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateWishlistCount(data.wishlist_count);
+            }
+        })
+        .catch(console.error);
+}
+
+// Call on load
+document.addEventListener('DOMContentLoaded', fetchInitialCounts);
 
 // Toggle Wishlist
 function toggleWishlist(productId, event) {
@@ -837,7 +1033,7 @@ function toggleWishlist(productId, event) {
                 } else {
                     button?.classList.remove('active');
                     if (button) button.innerHTML = '🤍';
-                    showNotification('Removed from wishlist', 'info');
+                    showNotification('Removed from wishlist', 'success');
                 }
                 updateWishlistCount(data.wishlist_count);
             } else {
@@ -850,18 +1046,8 @@ function toggleWishlist(productId, event) {
         });
 }
 
-// Update Cart Count
-function updateCartCount(count) {
-    const cartBadges = document.querySelectorAll('.cart-link .badge');
-    cartBadges.forEach(badge => {
-        if (count > 0) {
-            badge.textContent = count;
-            badge.style.display = 'flex';
-        } else {
-            badge.style.display = 'none';
-        }
-    });
-}
+// Update Cart Count - Removed duplicate definition
+// Logic consolidated above
 
 // Move to Cart (Wishlist)
 function moveToCart(productId, event) {
@@ -925,18 +1111,8 @@ function moveToCart(productId, event) {
         });
 }
 
-// Update Wishlist Count
-function updateWishlistCount(count) {
-    const wishlistBadges = document.querySelectorAll('.wishlist-link .badge');
-    wishlistBadges.forEach(badge => {
-        if (count > 0) {
-            badge.textContent = count;
-            badge.style.display = 'flex';
-        } else {
-            badge.style.display = 'none';
-        }
-    });
-}
+// Update Wishlist Count - Removed duplicate definition
+// Logic consolidated above
 
 // Show Notification
 function showNotification(message, type = 'info') {
@@ -1037,15 +1213,25 @@ document.addEventListener('click', function (e) {
 });
 
 // ============================================
+// SHIPPING CATEGORY TRACKING
+// ============================================
+let currentShippingCategory = null; // Track for toast notifications
+
+// ============================================
 // CHECKOUT PRICING UPDATE (PHASE 4)
 // ============================================
 function updateCheckoutPricing() {
-    const shippingSelect = document.getElementById('shipping-select');
+    // Updated to work with radio buttons
+    const shippingRadios = document.querySelectorAll('input[name="shipping"]');
     const paymentSelect = document.getElementById('payment-select');
 
-    if (!shippingSelect) return;
+    let shippingMethod = 'standard';
+    shippingRadios.forEach(radio => {
+        if (radio.checked) {
+            shippingMethod = radio.value;
+        }
+    });
 
-    const shippingMethod = shippingSelect.value;
     const paymentMethod = paymentSelect ? paymentSelect.value : 'card';
 
     fetch('ajax_checkout_pricing.php', {
@@ -1064,6 +1250,13 @@ function updateCheckoutPricing() {
         })
         .then(data => {
             console.log('Pricing update response:', data);
+            if (data.debug) {
+                console.log('🛒 Cart Debug Info:', {
+                    isBuyNow: data.debug.is_buynow,
+                    itemCount: data.debug.cart_items,
+                    cartData: data.debug.cart_data
+                });
+            }
             if (data.success) {
                 // Update Summary DOM
                 const summaryTotals = document.querySelector('.summary-totals');
@@ -1118,8 +1311,22 @@ function updateCheckoutPricing() {
         });
 }
 
+// Add radio button event listeners
+document.addEventListener('DOMContentLoaded', function () {
+    const shippingRadios = document.querySelectorAll('input[name="shipping"]');
+    shippingRadios.forEach(radio => {
+        radio.addEventListener('change', updateCheckoutPricing);
+    });
+});
+
+
 // Save item for later
-function saveForLater(productId) {
+function saveForLater(productId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
     fetch('ajax_cart.php', {
         method: 'POST',
         headers: {

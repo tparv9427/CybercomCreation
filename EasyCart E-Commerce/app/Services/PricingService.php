@@ -27,7 +27,7 @@ class PricingService
     public function calculateSubtotal($cart)
     {
         $subtotal = 0;
-        
+
         foreach ($cart as $productId => $quantity) {
             $product = $this->productRepo->find($productId);
             if ($product) {
@@ -52,17 +52,17 @@ class PricingService
                 // Flat $80 OR 10% of subtotal (whichever is lower)
                 $percentCost = $subtotal * 0.10;
                 return min(80, $percentCost);
-                
+
             case 'white_glove':
                 // Flat $150 OR 5% of subtotal (whichever is lower)
                 $percentCost = $subtotal * 0.05;
                 return min(150, $percentCost);
-                
+
             case 'freight':
                 // 3% of subtotal, Minimum $200
                 $percentCost = $subtotal * 0.03;
                 return max(200, $percentCost);
-                
+
             case 'standard':
             default:
                 // Flat $40
@@ -136,5 +136,78 @@ class PricingService
             'tax' => $tax,
             'total' => $total
         ];
+    }
+
+    /**
+     * Determine shipping category based on cart contents (Cart Value >= 300)
+     * 
+     * @param array $cart Array of product_id => quantity
+     * @return string 'express' or 'freight'
+     */
+    public function determineShippingCategory($cart)
+    {
+        // Check if any product is freight category (price >= 300)
+        foreach ($cart as $productId => $quantity) {
+            $product = $this->productRepo->find($productId);
+            if ($product && $product['price'] >= 300) {
+                return 'freight';
+            }
+        }
+
+        // Check cart value (Subtotal + Tax on Subtotal)
+        $subtotal = $this->calculateSubtotal($cart);
+        $taxOnItems = $subtotal * 0.18;
+        $cartValue = $subtotal + $taxOnItems;
+
+        if ($cartValue >= 300) {
+            return 'freight';
+        }
+
+        return 'express';
+    }
+
+    /**
+     * Calculate estimated total range
+     * 
+     * @param array $cart
+     * @return array ['min' => float, 'max' => float, 'cart_value' => float]
+     */
+    public function calculateEstimatedTotalRange($cart)
+    {
+        $subtotal = $this->calculateSubtotal($cart);
+        $category = $this->determineShippingCategory($cart);
+        $methods = $this->getAllowedShippingMethods($category);
+
+        $totals = [];
+        foreach ($methods as $method) {
+            $shipping = $this->calculateShipping($subtotal, $method);
+            $tax = $this->calculateTax($subtotal, $shipping);
+            $totals[] = $subtotal + $shipping + $tax;
+        }
+
+        $taxOnItems = $subtotal * 0.18;
+        $cartValue = $subtotal + $taxOnItems;
+
+        return [
+            'min' => !empty($totals) ? min($totals) : 0,
+            'max' => !empty($totals) ? max($totals) : 0,
+            'cart_value' => $cartValue,
+            'subtotal' => $subtotal,
+            'tax_on_items' => $taxOnItems
+        ];
+    }
+
+    /**
+     * Get allowed shipping methods for a category
+     * 
+     * @param string $category 'express' or 'freight'
+     * @return array List of allowed shipping method values
+     */
+    public function getAllowedShippingMethods($category)
+    {
+        if ($category === 'freight') {
+            return ['white_glove', 'freight'];
+        }
+        return ['standard', 'express'];
     }
 }

@@ -49,16 +49,59 @@
 
                 <div class="form-section">
                     <h3>Shipping Method</h3>
-                    <div class="form-group">
-                        <select name="shipping" id="shipping-select" class="shipping-select">
-                            <option value="standard" <?php echo ($shipping_method === 'standard') ? 'selected' : ''; ?>>
-                                Standard Shipping (3-5 days) - $40.00</option>
-                            <option value="express" <?php echo ($shipping_method === 'express') ? 'selected' : ''; ?>>
-                                Express Shipping (1-2 days) - $80.00 or 10%</option>
-                            <option value="white_glove" <?php echo ($shipping_method === 'white_glove') ? 'selected' : ''; ?>>White Glove Delivery (Scheduled) - $150.00 or 5%</option>
-                            <option value="freight" <?php echo ($shipping_method === 'freight') ? 'selected' : ''; ?>>
-                                Freight Shipping (Bulk Orders) - 3% (Min $200)</option>
-                        </select>
+                    
+                    <!-- Category 1: Express Shipping -->
+                    <div class="shipping-category" id="express-category">
+                        <h4>Express Shipping</h4>
+                        <label class="radio-option <?php echo $allowed_category !== 'express' ? 'disabled' : ''; ?>">
+                            <div style="display: flex; align-items: flex-start;">
+                                <input type="radio" name="shipping" value="standard" style="margin-top: 4px;"
+                                       <?php echo $allowed_category !== 'express' ? 'disabled' : ''; ?>
+                                       <?php echo $shipping_method === 'standard' ? 'checked' : ''; ?>>
+                                <div>
+                                    <span style="display: block; font-weight: 500;">Standard Shipping (3-5 days) - $40.00</span>
+                                    <small style="display: block; color: var(--text-secondary); margin-top: 4px;">Reliable delivery via standard ground carrier. Best for non-urgent orders.</small>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="radio-option <?php echo $allowed_category !== 'express' ? 'disabled' : ''; ?>">
+                            <div style="display: flex; align-items: flex-start;">
+                                <input type="radio" name="shipping" value="express" style="margin-top: 4px;"
+                                       <?php echo $allowed_category !== 'express' ? 'disabled' : ''; ?>
+                                       <?php echo $shipping_method === 'express' ? 'checked' : ''; ?>>
+                                <div>
+                                    <span style="display: block; font-weight: 500;">Express Shipping (1-2 days) - $80.00 or 10% (whichever is lower)</span>
+                                    <small style="display: block; color: var(--text-secondary); margin-top: 4px;">Priority air shipping for time-sensitive orders. Live tracking included.</small>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Category 2: Freight Shipping -->
+                    <div class="shipping-category" id="freight-category">
+                        <h4>Freight Shipping</h4>
+                        <label class="radio-option <?php echo $allowed_category !== 'freight' ? 'disabled' : ''; ?>">
+                            <div style="display: flex; align-items: flex-start;">
+                                <input type="radio" name="shipping" value="white_glove" style="margin-top: 4px;"
+                                       <?php echo $allowed_category !== 'freight' ? 'disabled' : ''; ?>
+                                       <?php echo $shipping_method === 'white_glove' ? 'checked' : ''; ?>>
+                                <div>
+                                    <span style="display: block; font-weight: 500;">White Glove Delivery (Scheduled) - $150.00 or 5% (whichever is lower)</span>
+                                    <small style="display: block; color: var(--text-secondary); margin-top: 4px;">Premium service. Includes inside delivery, unpacking, assembly, and debris removal.</small>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="radio-option <?php echo $allowed_category !== 'freight' ? 'disabled' : ''; ?>">
+                            <div style="display: flex; align-items: flex-start;">
+                                <input type="radio" name="shipping" value="freight" style="margin-top: 4px;"
+                                       <?php echo $allowed_category !== 'freight' ? 'disabled' : ''; ?>
+                                       <?php echo $shipping_method === 'freight' ? 'checked' : ''; ?>>
+                                <div>
+                                    <span style="display: block; font-weight: 500;">Freight Shipping (Bulk Orders) - 3% or $200 (whichever is higher)</span>
+                                    <small style="display: block; color: var(--text-secondary); margin-top: 4px;">Economical palletized delivery to curbside or dock. Recipient must be present.</small>
+                                </div>
+                            </div>
+                        </label>
                     </div>
                 </div>
 
@@ -162,8 +205,12 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-place-order">Place Order -
-                    <?php echo formatPrice($pricing['total']); ?></button>
+                <div class="checkout-actions" style="display: flex; gap: 1rem; align-items: center; margin-top: 2rem;">
+                    <button type="button" class="btn btn-outline btn-cancel-order" onclick="confirmCancelOrder()"
+                        style="border: 1px solid #ef4444; color: #ef4444; background: white;">Cancel Order</button>
+                    <button type="submit" class="btn btn-primary btn-place-order" style="flex: 1;">Place Order -
+                        <?php echo formatPrice($pricing['total']); ?></button>
+                </div>
             </form>
         </div>
 
@@ -183,26 +230,97 @@
             <div class="summary-totals">
                 <div class="summary-row">
                     <span>Subtotal:</span>
-                    <span><?php echo formatPrice($pricing['subtotal']); ?></span>
+                    <span id="subtotal"><?php echo formatPrice($pricing['subtotal']); ?></span>
                 </div>
                 <div class="summary-row">
                     <span>Shipping:</span>
-                    <span><?php echo formatPrice($pricing['shipping']); ?></span>
+                    <span id="shipping"><?php echo formatPrice($pricing['shipping']); ?></span>
+                </div>
+                <div class="summary-row" id="payment-fee-row" style="display: <?php echo $payment_fee > 0 ? 'flex' : 'none'; ?>;">
+                    <span>Payment Fee:</span>
+                    <span id="payment-fee"><?php echo formatPrice($payment_fee); ?></span>
                 </div>
                 <div class="summary-row">
                     <span>Tax (18%):</span>
-                    <span><?php echo formatPrice($pricing['tax']); ?></span>
+                    <span id="tax"><?php echo formatPrice($pricing['tax']); ?></span>
                 </div>
                 <div class="summary-total">
                     <span>Total:</span>
-                    <span><?php echo formatPrice($pricing['total']); ?></span>
+                    <span id="total"><?php echo formatPrice($pricing['total']); ?></span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+.shipping-category {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-primary);
+}
+
+.shipping-category h4 {
+    margin: 0 0 1rem 0;
+    color: var(--primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.radio-option {
+    display: block;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.radio-option:last-child {
+    margin-bottom: 0;
+}
+
+.radio-option:hover:not(.disabled) {
+    border-color: var(--primary);
+    background: var(--bg-secondary);
+}
+
+.radio-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+.radio-option input[type="radio"] {
+    margin-right: 0.75rem;
+    cursor: pointer;
+}
+
+.radio-option.disabled input[type="radio"] {
+    cursor: not-allowed;
+}
+
+.radio-option span {
+    font-size: 0.95rem;
+}
+</style>
+
 <script>
+    function confirmCancelOrder() {
+        showConfirmationModal({
+            title: 'Cancel Order',
+            message: 'Are you sure you want to cancel this order? Item(s) will be returned to your cart.',
+            confirmText: 'Yes, Cancel',
+            onConfirm: function() {
+                window.location.href = 'checkout.php?action=cancel';
+            }
+        });
+    }
+
     // Payment Method Switching
     document.addEventListener('DOMContentLoaded', function () {
         const paymentSelect = document.getElementById('payment-select');
@@ -236,6 +354,52 @@
 
             // Run once on load
             triggerChange();
+
+            // Sync payment method to server on page load
+            const syncPaymentMethod = () => {
+                const savedPayment = localStorage.getItem('selectedPayment');
+                const currentPayment = paymentSelect.value;
+                
+                // If there's a saved payment different from default, sync to server
+                if (savedPayment && savedPayment !== 'card') {
+                    fetch('ajax_checkout.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `action=pricing&payment=${savedPayment}&shipping=${document.querySelector('input[name="shipping"]:checked')?.value || 'standard'}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.pricing) {
+                            // Update pricing display
+                            const subtotalEl = document.getElementById('subtotal');
+                            const shippingEl = document.getElementById('shipping');
+                            const paymentFeeEl = document.getElementById('payment-fee');
+                            const paymentFeeRow = document.getElementById('payment-fee-row');
+                            const taxEl = document.getElementById('tax');
+                            const totalEl = document.getElementById('total');
+
+                            if (subtotalEl) subtotalEl.textContent = data.pricing.subtotal;
+                            if (shippingEl) shippingEl.textContent = data.pricing.shipping;
+                            if (taxEl) taxEl.textContent = data.pricing.tax;
+                            if (totalEl) totalEl.textContent = data.pricing.total;
+
+                            // Show/hide payment fee row
+                            if (data.pricing.payment_fee) {
+                                if (paymentFeeEl) paymentFeeEl.textContent = data.pricing.payment_fee;
+                                if (paymentFeeRow) paymentFeeRow.style.display = 'flex';
+                            } else {
+                                if (paymentFeeRow) paymentFeeRow.style.display = 'none';
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error syncing payment method:', error));
+                }
+            };
+
+            // Run sync after a short delay to ensure DOM is ready
+            setTimeout(syncPaymentMethod, 100);
 
             paymentSelect.addEventListener('change', function () {
                 const paymentType = this.value;

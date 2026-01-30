@@ -23,26 +23,30 @@ try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         throw new Exception('Invalid request method');
     }
-    
+
     // Get shipping method from POST data
     $shippingMethod = $_POST['shipping'] ?? 'standard';
 
     // Get payment method from POST data
     $paymentMethod = $_POST['payment'] ?? 'card';
-    
+
     // Validate shipping method
     $validMethods = ['standard', 'express', 'white_glove', 'freight'];
     if (!in_array($shippingMethod, $validMethods)) {
         $shippingMethod = 'standard';
     }
-    
+
     // Save to session
     $_SESSION['shipping_method'] = $shippingMethod;
     $_SESSION['payment_method'] = $paymentMethod;
-    
-    // Get cart from session
-    $cart = $_SESSION['cart'] ?? [];
-    
+
+    // Check for buy now cart
+    if (isset($_SESSION['buynow_cart'])) {
+        $cart = $_SESSION['buynow_cart'];
+    } else {
+        $cart = $_SESSION['cart'] ?? [];
+    }
+
     // Check if cart is empty
     if (empty($cart)) {
         echo json_encode([
@@ -51,15 +55,15 @@ try {
         ]);
         exit;
     }
-    
+
     // Use ProductRepository to get product data
     $productRepo = new \EasyCart\Repositories\ProductRepository();
-    
+
     // Build cart items array with prices
     $cartItems = [];
     foreach ($cart as $productId => $quantity) {
         $product = $productRepo->find($productId);
-        
+
         if ($product) {
             $cartItems[] = [
                 'id' => $productId,
@@ -68,10 +72,10 @@ try {
             ];
         }
     }
-    
+
     // Calculate pricing using PricingHelper
     $pricing = PricingHelper::calculateCheckoutPricing($cartItems, $shippingMethod, $paymentMethod);
-    
+
     // Return success response
     echo json_encode([
         'success' => true,
@@ -90,7 +94,7 @@ try {
             'total' => $pricing['total']
         ]
     ]);
-    
+
 } catch (Exception $e) {
     // Return error response
     echo json_encode([

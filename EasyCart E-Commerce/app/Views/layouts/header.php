@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($page_title) ? $page_title . ' - ' . SITE_NAME : SITE_NAME; ?></title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css">
     <link rel="stylesheet" href="/assets/css/skeleton.css">
     <!-- EasyCart v<?php echo EASYCART_VERSION; ?> -->
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -16,20 +20,20 @@
             <div class="logo">
                 <a href="index.php"><?php echo SITE_NAME; ?></a>
             </div>
-            
+
             <!-- Search Bar -->
             <div class="search-container">
                 <input type="text" class="search-bar" id="searchInput" placeholder="Search products...">
                 <button class="search-btn" onclick="performSearch()">🔍</button>
             </div>
-            
+
             <!-- Mobile Menu Toggle -->
             <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
                 <span></span>
                 <span></span>
                 <span></span>
             </button>
-            
+
             <!-- Navigation -->
             <nav class="nav" id="mainNav">
                 <a href="index.php">Home</a>
@@ -38,7 +42,8 @@
                     <a href="#" class="dropdown-toggle">Categories ▾</a>
                     <div class="dropdown-menu">
                         <?php foreach ($categories as $category): ?>
-                            <a href="products.php?category=<?php echo $category['id']; ?>"><?php echo $category['name']; ?></a>
+                            <a
+                                href="products.php?category=<?php echo $category['id']; ?>"><?php echo $category['name']; ?></a>
                         <?php endforeach; ?>
                     </div>
                 </div>
@@ -52,7 +57,7 @@
                     </div>
                 </div>
                 <a href="cart.php" class="cart-link">
-                    Cart 
+                    Cart
                     <?php if (getCartCount() > 0): ?>
                         <span class="badge"><?php echo getCartCount(); ?></span>
                     <?php endif; ?>

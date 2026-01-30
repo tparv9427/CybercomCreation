@@ -31,9 +31,10 @@ class OrderController
 
         $page_title = 'My Orders';
         $categories = (new \EasyCart\Repositories\CategoryRepository())->getAll();
-        
-        // Simulating orders from session for now
-        $orders = isset($_SESSION['orders']) ? $_SESSION['orders'] : [];
+
+        // Retrieve orders for the current user
+        $user_id = $_SESSION['user_id'];
+        $orders = isset($_SESSION['orders'][$user_id]) ? $_SESSION['orders'][$user_id] : [];
 
         include __DIR__ . '/../Views/layouts/header.php';
         include __DIR__ . '/../Views/orders/index.php';

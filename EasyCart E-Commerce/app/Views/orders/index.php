@@ -13,51 +13,47 @@ $page_title = 'My Orders';
         <p class="section-subtitle">Track your purchases</p>
     </div>
     <div class="orders-list">
-        <div class="order-card">
-            <div class="order-header">
-                <div>
-                    <h4>Order #ORD-A1B2C3D4</h4>
-                    <p>Placed on January 15, 2026</p>
-                </div>
-                <span class="order-status delivered">Delivered</span>
+        <?php if (empty($orders)): ?>
+            <div class="empty-state">
+                <p>You haven't placed any orders yet.</p>
+                <a href="index.php" class="btn">Start Shopping</a>
             </div>
-            <div class="order-items">
-                <div class="order-item">
-                    <div class="order-item-image">📱</div>
-                    <div class="order-item-details">
-                        <h5>Awesome Gadget Pro Max</h5>
-                        <p>Quantity: 1</p>
+        <?php else: ?>
+            <?php foreach ($orders as $order): ?>
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <h4>Order #<?= htmlspecialchars($order['id']) ?></h4>
+                            <p>Placed on <?= htmlspecialchars($order['date']) ?></p>
+                        </div>
+                        <span
+                            class="order-status <?= strtolower($order['status']) ?>"><?= htmlspecialchars($order['status']) ?></span>
                     </div>
-                    <div class="order-item-price">$99.99</div>
-                </div>
-            </div>
-            <div class="order-footer">
-                <div class="order-total">Total: $119.99</div>
-                <button class="btn btn-outline">View Details</button>
-            </div>
-        </div>
-        <div class="order-card">
-            <div class="order-header">
-                <div>
-                    <h4>Order #ORD-E5F6G7H8</h4>
-                    <p>Placed on December 28, 2025</p>
-                </div>
-                <span class="order-status processing">Processing</span>
-            </div>
-            <div class="order-items">
-                <div class="order-item">
-                    <div class="order-item-image">👟</div>
-                    <div class="order-item-details">
-                        <h5>Cool Sneaker Elite</h5>
-                        <p>Quantity: 2</p>
+                    <div class="order-items">
+                        <?php foreach ($order['items'] as $item): ?>
+                            <div class="order-item">
+                                <div class="order-item-image">
+                                    <?php if (isset($item['image']) && $item['image']): ?>
+                                        <img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>"
+                                            style="width: 50px; height: 50px; object-fit: cover;">
+                                    <?php else: ?>
+                                        📦
+                                    <?php endif; ?>
+                                </div>
+                                <div class="order-item-details">
+                                    <h5><?= htmlspecialchars($item['name']) ?></h5>
+                                    <p>Quantity: <?= $item['quantity'] ?></p>
+                                </div>
+                                <div class="order-item-price"><?= \EasyCart\Helpers\FormatHelper::price($item['price']) ?></div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
-                    <div class="order-item-price">$99.98</div>
+                    <div class="order-footer">
+                        <div class="order-total">Total: <?= \EasyCart\Helpers\FormatHelper::price($order['total']) ?></div>
+                        <!-- <button class="btn btn-outline">View Details</button> -->
+                    </div>
                 </div>
-            </div>
-            <div class="order-footer">
-                <div class="order-total">Total: $117.98</div>
-                <button class="btn btn-outline">Track Order</button>
-            </div>
-        </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 </div>

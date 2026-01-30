@@ -34,10 +34,10 @@ class WishlistController
     {
         $page_title = 'My Wishlist';
         $categories = $this->categoryRepo->getAll();
-        
+
         $wishlist = $this->wishlistService->get();
         $wishlist_items = [];
-        
+
         foreach ($wishlist as $product_id) {
             $product = $this->productRepo->find($product_id);
             if ($product) {
@@ -45,11 +45,11 @@ class WishlistController
             }
         }
 
-        $formatPrice = function($price) {
+        $formatPrice = function ($price) {
             return \EasyCart\Helpers\FormatHelper::price($price);
         };
 
-        $getCategory = function($id) {
+        $getCategory = function ($id) {
             return $this->categoryRepo->find($id);
         };
 
@@ -64,8 +64,8 @@ class WishlistController
     public function toggle()
     {
         header('Content-Type: application/json');
-        
-        $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+
+        $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
 
         $added = $this->wishlistService->toggle($product_id);
 
@@ -83,12 +83,12 @@ class WishlistController
     public function moveToCart()
     {
         header('Content-Type: application/json');
-        
-        $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+
+        $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
 
         // Add to cart
         $cartResult = $this->cartService->add($product_id, 1);
-        
+
         // Remove from wishlist
         if ($this->wishlistService->has($product_id)) {
             $this->wishlistService->remove($product_id);
@@ -100,5 +100,13 @@ class WishlistController
             'wishlist_count' => $this->wishlistService->getCount(),
             'message' => 'Moved to cart successfully'
         ]);
+    }
+    /**
+     * Get wishlist count (AJAX)
+     */
+    public function count()
+    {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'wishlist_count' => $this->wishlistService->getCount()]);
     }
 }

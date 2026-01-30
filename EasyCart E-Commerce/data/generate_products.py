@@ -3,7 +3,7 @@ import random
 
 # Product templates for each category
 electronics_products = [
-    {"name": "Smartphone", "price_range": (200, 500), "icon": "📱"},
+    {"name": "Smartphone", "price_range": (10, 500), "icon": "📱"},
     {"name": "Tablet", "price_range": (150, 400), "icon": "📱"},
     {"name": "Laptop", "price_range": (400, 1200), "icon": "💻"},
     {"name": "Desktop Computer", "price_range": (500, 1500), "icon": "🖥️"},
@@ -26,7 +26,7 @@ electronics_products = [
 ]
 
 fashion_products = [
-    {"name": "T-Shirt", "price_range": (15, 50), "icon": "👕"},
+    {"name": "T-Shirt", "price_range": (15, 500), "icon": "👕"},
     {"name": "Shirt", "price_range": (25, 80), "icon": "👔"},
     {"name": "Jeans", "price_range": (40, 120), "icon": "👖"},
     {"name": "Pants", "price_range": (35, 100), "icon": "👖"},
@@ -381,6 +381,35 @@ def generate_products():
         }
         product_id += 1
     
+    # Post-processing to enforce specific pricing rules explicitly requested
+    for pid, product in products.items():
+        p_id = int(pid)
+        discount_percent = product['discount_percent']
+        
+        if p_id <= 250:
+            # First 50%: Express Category (Price <= 299)
+            # Force price between 50 and 299
+            new_price = round(random.uniform(50, 299), 2)
+            product['price'] = new_price
+            
+            # Recalculate original price
+            if discount_percent > 0:
+                product['original_price'] = round(new_price / (1 - discount_percent / 100), 2)
+            else:
+                product['original_price'] = new_price
+                
+        else:
+            # Second 50%: Freight Category (Price >= 300)
+            # Force price between 300 and 1000
+            new_price = round(random.uniform(300, 1000), 2)
+            product['price'] = new_price
+            
+             # Recalculate original price
+            if discount_percent > 0:
+                product['original_price'] = round(new_price / (1 - discount_percent / 100), 2)
+            else:
+                product['original_price'] = new_price
+
     return products
 
 # Generate and save products

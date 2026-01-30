@@ -1,53 +1,75 @@
 <?php
 /**
- * Reusable Product Row Item Component
- * 
- * This partial renders a single product in row/list view format.
- * 
- * Required Variables:
- * @var array $product - Product data array with keys: id, name, price, original_price, 
- *                       icon, category_id, discount_percent, new, rating, reviews_count, description
- * 
- * Required Functions (from parent scope):
- * - $getCategory($id) - Returns category array
- * - formatPrice($amount) - Formats price with currency
- * - isInWishlist($productId) - Checks if product is in wishlist
+ * Reusable Product Row Item Component - Amazon Style
  */
 ?>
 <div class="product-row-item" onclick="window.location.href='product.php?id=<?php echo $product['id']; ?>'">
-    <div class="product-row-image">
-        <?php echo $product['icon']; ?>
-        <?php if ($product['discount_percent'] > 0): ?>
-            <span class="product-badge">-<?php echo $product['discount_percent']; ?>%</span>
-        <?php elseif ($product['new']): ?>
-            <span class="product-badge new">New</span>
-        <?php endif; ?>
-        <button class="wishlist-btn <?php echo isInWishlist($product['id']) ? 'active' : ''; ?>" 
-                onclick="toggleWishlist(<?php echo $product['id']; ?>, event)">
-            <?php echo isInWishlist($product['id']) ? '❤️' : '🤍'; ?>
-        </button>
+    <!-- Left: Image -->
+    <div class="product-row-image-container">
+        <div class="product-row-image">
+            <?php echo $product['icon']; ?>
+        </div>
     </div>
+
+    <!-- Center: Info -->
     <div class="product-row-info">
-        <div class="product-category"><?php echo $getCategory($product['category_id'])['name']; ?></div>
-        <div class="product-name"><?php echo $product['name']; ?></div>
-        <div class="product-row-desc"><?php echo $product['description']; ?></div>
-        <div class="product-rating">
+        <div class="product-row-title">
+            <?php echo $product['name']; ?>
+        </div>
+
+        <div class="product-row-rating">
             <span class="stars">
-                <?php 
+                <?php
                 $fullStars = floor($product['rating']);
                 $halfStar = ($product['rating'] - $fullStars) >= 0.5;
-                for ($i = 0; $i < $fullStars; $i++) echo '★';
-                if ($halfStar) echo '☆';
-                for ($i = ceil($product['rating']); $i < 5; $i++) echo '☆';
+                for ($i = 0; $i < $fullStars; $i++)
+                    echo '★';
+                if ($halfStar)
+                    echo '☆';
+                for ($i = ceil($product['rating']); $i < 5; $i++)
+                    echo '☆';
                 ?>
             </span>
-            <span>(<?php echo $product['reviews_count']; ?> reviews)</span>
+            <span class="rating-count"><?php echo $product['reviews_count']; ?></span>
         </div>
-        <div class="product-price" style="margin-top: 1rem;">
-            <?php echo formatPrice($product['price']); ?>
+
+        <div class="product-row-sales-text">1K+ bought in past month</div>
+
+        <div class="product-row-price-block">
+            <div class="price-row">
+                <span class="currency-symbol">$</span>
+                <span class="price-whole"><?php echo floor($product['price']); ?></span>
+                <span
+                    class="price-fraction"><?php echo sprintf('%02d', ($product['price'] - floor($product['price'])) * 100); ?></span>
+            </div>
             <?php if ($product['original_price'] > $product['price']): ?>
-                <span class="product-price-original"><?php echo formatPrice($product['original_price']); ?></span>
+                <span class="original-price">M.R.P.: <span
+                        style="text-decoration: line-through;"><?php echo formatPrice($product['original_price']); ?></span></span>
+                <span class="discount-text">(<?php echo $product['discount_percent']; ?>% off)</span>
             <?php endif; ?>
         </div>
+
+        <?php $shipping_type = ($product['price'] >= 300) ? 'Freight Shipping' : 'Express Shipping'; ?>
+        <div class="product-shipping-type" style="font-size: 0.8rem; color: #565959; margin-top: 4px;">
+            <span style="margin-right: 4px;">🚚</span>
+            <?php echo $shipping_type; ?>
+        </div>
+
+        <?php if ($product['stock'] < 10 && $product['stock'] > 0): ?>
+            <div class="stock-urgency">Only <?php echo $product['stock']; ?> left in stock.</div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Right: Action -->
+    <div class="product-row-action">
+        <button class="btn-amazon-primary" onclick="addToCart(<?php echo $product['id']; ?>, event)">Add to
+            cart</button>
+        <div class="more-buying-choices">
+            <a href="product.php?id=<?php echo $product['id']; ?>">More Buying Choices</a>
+        </div>
+        <button class="save-btn" onclick="saveForLater(<?php echo $product['id']; ?>, event)" title="Save for Later"
+            style="width: fit-content; background: white; border: 1px solid #ddd; border-radius: 4px; color: #555; cursor: pointer; transition: all 0.2s; padding: 2px;">
+            Save for later
+        </button>
     </div>
 </div>

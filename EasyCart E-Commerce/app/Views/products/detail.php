@@ -8,10 +8,10 @@
 
 <!-- Breadcrumb -->
 <div class="breadcrumb">
-    <a href="index.php">Home</a> / 
+    <a href="index.php">Home</a> /
     <a href="products.php?category=<?php echo $product['category_id']; ?>">
         <?php echo $getCategory($product['category_id'])['name']; ?>
-    </a> / 
+    </a> /
     <?php echo $product['name']; ?>
 </div>
 
@@ -25,22 +25,40 @@
 
         </div>
 
-        <!-- Right Side - Details -->
-        <div class="product-details">
-            <div class="product-category-tag"><?php echo $getCategory($product['category_id'])['name']; ?></div>
+        <!-- Right Side - Details (Center Column) -->
+        <div class="product-center">
             <h1 class="product-title"><?php echo $product['name']; ?></h1>
-            
+            <a href="brand.php?id=<?php echo $product['brand_id']; ?>" class="brand-link">
+                Visit the <?php echo $getBrand($product['brand_id'])['name']; ?> Store
+            </a>
+
             <div class="product-rating-section">
-                <span class="stars">
-                    <?php 
-                    $fullStars = floor($product['rating']);
-                    $halfStar = ($product['rating'] - $fullStars) >= 0.5;
-                    for ($i = 0; $i < $fullStars; $i++) echo '★';
-                    if ($halfStar) echo '☆';
-                    for ($i = ceil($product['rating']); $i < 5; $i++) echo '☆';
-                    ?>
-                </span>
-                <span class="rating-text"><?php echo $product['rating']; ?> (<?php echo $product['reviews_count']; ?> reviews)</span>
+                <div class="rating-row">
+                    <span class="rating-score"><?php echo number_format($product['rating'], 1); ?></span>
+                    <span class="stars">
+                        <?php
+                        $fullStars = floor($product['rating']);
+                        $halfStar = ($product['rating'] - $fullStars) >= 0.5;
+                        for ($i = 0; $i < $fullStars; $i++)
+                            echo '★';
+                        if ($halfStar)
+                            echo '☆';
+                        for ($i = ceil($product['rating']); $i < 5; $i++)
+                            echo '☆';
+                        ?>
+                    </span>
+                    <a href="#reviews" class="rating-link" onclick="switchTab(2)">
+                        <?php echo number_format($product['reviews_count']); ?> ratings
+                    </a>
+                    <span style="color: #ccc;">|</span>
+                    <a href="#" class="rating-link">Search this page</a>
+                </div>
+
+                <?php if (isset($product['bought_past_month'])): ?>
+                    <div class="sales-signal-label">
+                        <?php echo $product['bought_past_month']; ?> bought in past month
+                    </div>
+                <?php endif; ?>
             </div>
 
             <div class="price-section">
@@ -51,16 +69,10 @@
                         <span class="price-discount">Save <?php echo $product['discount_percent']; ?>% today!</span>
                     </div>
                 <?php endif; ?>
-                <div class="stock-info">
-                    <?php if ($product['stock'] > 10): ?>
-                        <span class="in-stock">✓ In Stock (<?php echo $product['stock']; ?> available)</span>
-                    <?php elseif ($product['stock'] > 0): ?>
-                        <span class="low-stock">⚠ Only <?php echo $product['stock']; ?> left!</span>
-                    <?php else: ?>
-                        <span class="out-of-stock">✗ Out of Stock</span>
-                    <?php endif; ?>
-                </div>
             </div>
+
+            <!-- Trust Badges -->
+            <?php include __DIR__ . '/../partials/trust_badges.php'; ?>
 
             <div class="offers">
                 <h4>Available Offers</h4>
@@ -87,28 +99,6 @@
                 <?php endforeach; ?>
             <?php endif; ?>
 
-            <div class="quantity-section">
-                <div class="quantity-label">Quantity:</div>
-                <div class="quantity-controls">
-                    <button class="quantity-btn" onclick="decreaseQty()">−</button>
-                    <input type="number" class="quantity-input" id="quantity" value="1" min="1" max="<?php echo $product['stock']; ?>" onchange="validateMaxStock(this)" oninput="validateMaxStock(this)">
-                    <button class="quantity-btn" onclick="increaseQty()">+</button>
-                </div>
-            </div>
-
-            <div class="action-buttons">
-                <button class="btn btn-primary" onclick="addToCart(<?php echo $product['id']; ?>, event)">
-                    Add to Cart
-                </button>
-                <button class="btn btn-wishlist <?php echo isInWishlist($product['id']) ? 'active' : ''; ?>" 
-                        onclick="toggleWishlist(<?php echo $product['id']; ?>, event)">
-                    <?php echo isInWishlist($product['id']) ? '❤️ In Wishlist' : '🤍 Add to Wishlist'; ?>
-                </button>
-                <button class="btn btn-outline" onclick="saveForLater(<?php echo $product['id']; ?>, event)">
-                    🔖 Save for Later
-                </button>
-            </div>
-
             <div class="product-meta">
                 <div class="meta-item">
                     <strong>Brand:</strong> <?php echo $getBrand($product['brand_id'])['name']; ?>
@@ -116,6 +106,73 @@
                 <div class="meta-item">
                     <strong>SKU:</strong> <?php echo strtoupper(substr($product['slug'], 0, 10)); ?>
                 </div>
+            </div>
+        </div>
+
+        <!-- Buy Box (Right Column) -->
+        <div class="buy-box">
+            <div class="buy-box-price"><?php echo formatPrice($product['price']); ?></div>
+
+            <div class="shipping-type-display" style="margin-bottom: 1rem; font-size: 0.9rem; color: #565959;">
+                <?php if ($product['price'] >= 300): ?>
+                    <span style="color: #B12704; font-weight: bold;">Freight Shipping</span>
+                    <br> Heavy item delivery
+                <?php else: ?>
+                    <span style="color: #007600; font-weight: bold;">Express Shipping</span>
+                    <br> Fast delivery available
+                <?php endif; ?>
+            </div>
+
+
+
+
+
+            <?php if ($product['stock'] > 10): ?>
+                <div class="stock-status in-stock">
+                    In Stock
+                    <span style="font-size: 0.9rem; font-weight: 400; color: #565959;">(<?php echo $product['stock']; ?>
+                        available)</span>
+                </div>
+            <?php elseif ($product['stock'] > 0): ?>
+                <div class="stock-status low-stock" style="color: #c7511f;">
+                    Only <?php echo $product['stock']; ?> left in stock - order soon.
+                </div>
+            <?php else: ?>
+                <div class="stock-status out-of-stock">Out of Stock</div>
+            <?php endif; ?>
+
+            <div class="quantity-wrapper">
+                <label for="qty-select">Quantity:</label>
+                <select id="qty-select" class="qty-dropdown">
+                    <?php for ($i = 1; $i <= min(10, max(1, $product['stock'])); $i++): ?>
+                        <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+
+            <div class="buy-box-buttons">
+                <button class="btn-buy-box btn-add-to-cart" onclick="addToCart(<?php echo $product['id']; ?>, event)">
+                    Add to Cart
+                </button>
+                <button class="btn-buy-box btn-buy-now" onclick="buyNow(<?php echo $product['id']; ?>)">
+                    Buy Now
+                </button>
+            </div>
+
+            <div class="seller-info">
+                <div class="seller-row">
+                    <span>Ships from</span> <span>EasyCart</span>
+                </div>
+                <div class="seller-row">
+                    <span>Sold by</span> <span><?php echo $getBrand($product['brand_id'])['name']; ?> Retail</span>
+                </div>
+            </div>
+
+            <div class="wishlist-row">
+                <button class="btn-text-link <?php echo isInWishlist($product['id']) ? 'active' : ''; ?>"
+                    onclick="toggleWishlist(<?php echo $product['id']; ?>, event)">
+                    <?php echo isInWishlist($product['id']) ? 'Remove from Wishlist' : 'Add to Wishlist'; ?>
+                </button>
             </div>
         </div>
     </div>
@@ -154,7 +211,7 @@
     </div>
 
     <!-- Recommendations Row 1: Different Brands, Same Category -->
-    <?php 
+    <?php
     if (count($brand_recommendations) > 0) {
         $products = $brand_recommendations;
         $title = "Similar Products from Other Brands";
@@ -165,7 +222,7 @@
     ?>
 
     <!-- Recommendations Row 2: Same Category -->
-    <?php 
+    <?php
     if (count($category_recommendations) > 0) {
         $products = $category_recommendations;
         // Check if category exists before accessing name to avoid errors
@@ -179,7 +236,7 @@
     ?>
 
     <!-- Recommendations Row 3: Other Categories -->
-    <?php 
+    <?php
     if (count($other_recommendations) > 0) {
         $products = $other_recommendations;
         $title = "You May Also Like";
@@ -192,4 +249,3 @@
 
 <!-- Page Specific Scripts -->
 <script src="assets/js/product-detail.js"></script>
-

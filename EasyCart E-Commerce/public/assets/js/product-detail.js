@@ -3,6 +3,14 @@
  * Handles tabs, quantity controls, variant selection, and image switching.
  */
 
+// Buy Now functionality
+function buyNow(productId) {
+    const qtyInput = document.getElementById('qty-select');
+    const quantity = qtyInput ? qtyInput.value : 1;
+    // Redirect to checkout with buy_now params, bypassing cart
+    window.location.href = `checkout.php?action=buynow&id=${productId}&quantity=${quantity}`;
+}
+
 // Tab Switching
 function switchTab(index) {
     const tabs = document.querySelectorAll('.tab');

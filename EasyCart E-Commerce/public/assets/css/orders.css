@@ -9,15 +9,35 @@
     padding: 2rem;
     border-radius: 20px;
     box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+    border: 1px solid transparent;
+}
+
+.order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary);
 }
 
 .order-header {
     display: flex;
     justify-content: space-between;
     align-items: start;
+    margin-bottom: 0;
+    /* Changed from 1.5rem to 0 for initial state */
+    padding-bottom: 0;
+    /* Changed from 1.5rem to 0 for initial state */
+    border-bottom: 1px solid transparent;
+    /* Hidden by default */
+    transition: all 0.3s ease;
+}
+
+.order-card:hover .order-header {
     margin-bottom: 1.5rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border);
+    border-bottom-color: var(--border);
 }
 
 .order-header h4 {
@@ -54,6 +74,17 @@
 }
 
 .order-items {
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.order-card:hover .order-items {
+    max-height: 1000px;
+    /* Arbitrary large number to allow expansion */
+    opacity: 1;
     margin-bottom: 1.5rem;
 }
 

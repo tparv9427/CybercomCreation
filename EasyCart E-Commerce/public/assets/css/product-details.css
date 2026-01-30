@@ -6,13 +6,170 @@
 
 .product-main {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
+    grid-template-columns: 35% 1fr 300px;
+    gap: 2rem;
     background: var(--card-bg);
-    padding: 3rem;
-    border-radius: 20px;
+    padding: 2rem;
+    border-radius: 0;
     margin-bottom: 3rem;
-    box-shadow: var(--shadow);
+    box-shadow: none;
+    align-items: start;
+}
+
+/* Buy Box Styles */
+.buy-box {
+    border: 1px solid #d5d9d9;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: white;
+    box-shadow: none;
+    position: sticky;
+    top: 2rem;
+}
+
+[data-theme="dark"] .buy-box {
+    background: var(--card-bg);
+    border-color: var(--border);
+}
+
+.buy-box-price {
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.delivery-info {
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.delivery-link {
+    color: #007185;
+    cursor: pointer;
+}
+
+.delivery-link:hover {
+    color: #c7511f;
+    text-decoration: underline;
+}
+
+.stock-location {
+    font-size: 0.85rem;
+    color: #007185;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+}
+
+.stock-status {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+}
+
+.quantity-wrapper {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.qty-dropdown {
+    padding: 0.4rem;
+    border-radius: 7px;
+    border: 1px solid #d5d9d9;
+    background: #f0f2f2;
+    box-shadow: 0 2px 5px rgba(15, 17, 17, .15);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+[data-theme="dark"] .qty-dropdown {
+    background: var(--soft-bg);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.buy-box-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.btn-buy-box {
+    width: 100%;
+    border: none;
+    padding: 0.7rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(213, 217, 217, .5);
+    transition: background 0.2s;
+}
+
+.btn-add-to-cart {
+    background-color: #ffd814;
+    border-color: #fcd200;
+    color: #0F1111;
+}
+
+.btn-add-to-cart:hover {
+    background-color: #f7ca00;
+}
+
+.btn-buy-now {
+    background-color: #ffa41c;
+    border-color: #ff8f00;
+    color: #0F1111;
+}
+
+.btn-buy-now:hover {
+    background-color: #fa8900;
+}
+
+.seller-info {
+    font-size: 0.8rem;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+}
+
+.seller-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.2rem;
+}
+
+.seller-row span:first-child {
+    color: var(--secondary);
+}
+
+.wishlist-row {
+    margin-top: 1rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+}
+
+.btn-text-link {
+    background: none;
+    border: none;
+    color: #007185;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: left;
+    padding: 0;
+}
+
+.btn-text-link:hover {
+    color: #c7511f;
+    text-decoration: underline;
 }
 
 .product-images {
@@ -82,18 +239,63 @@
     font-family: 'Cormorant Garamond', serif;
     font-size: 2.5rem;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     line-height: 1.2;
     color: var(--primary);
 }
 
+.brand-link {
+    display: inline-block;
+    color: #4f46e5;
+    /* Indigo-600 */
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    margin-bottom: 0.25rem;
+}
+
+.brand-link:hover {
+    text-decoration: underline;
+    color: #4338ca;
+    /* Indigo-700 */
+}
+
 .product-rating-section {
     display: flex;
-    align-items: center;
-    gap: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
     margin-bottom: 1.5rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid var(--border);
+}
+
+.rating-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.rating-score {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.rating-link {
+    color: #4f46e5;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.rating-link:hover {
+    color: #c2410c;
+    text-decoration: underline;
+}
+
+.sales-signal-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text);
+    display: inline-block;
 }
 
 .rating-text {
@@ -146,6 +348,50 @@
 .out-of-stock {
     color: #EF4444;
     font-weight: 600;
+}
+
+/* Trust Badges */
+.trust-badges-container {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.trust-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: 80px;
+    text-align: center;
+    cursor: default;
+}
+
+.badge-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--soft-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    transition: all 0.3s;
+}
+
+.trust-badge:hover .badge-icon {
+    background: var(--accent);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(239, 131, 84, 0.3);
+}
+
+.badge-label {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    color: var(--secondary);
+    font-weight: 500;
 }
 
 .offers {

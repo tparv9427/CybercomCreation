@@ -22,45 +22,54 @@ use EasyCart\Services\SessionService;
 SessionService::init();
 
 // Helper functions for backward compatibility with views
-function getCartCount() {
+function getCartCount()
+{
     $cartService = new \EasyCart\Services\CartService();
     return $cartService->getCount();
 }
 
-function getWishlistCount() {
+function getWishlistCount()
+{
     $wishlistService = new \EasyCart\Services\WishlistService();
     return $wishlistService->getCount();
 }
 
-function isLoggedIn() {
+function isLoggedIn()
+{
     return \EasyCart\Services\AuthService::check();
 }
 
-function getCategory($id) {
+function getCategory($id)
+{
     $repo = new \EasyCart\Repositories\CategoryRepository();
     return $repo->find($id);
 }
 
-function getBrand($id) {
+function getBrand($id)
+{
     $repo = new \EasyCart\Repositories\BrandRepository();
     return $repo->find($id);
 }
 
-function getBrands() {
+function getBrands()
+{
     $repo = new \EasyCart\Repositories\BrandRepository();
     return $repo->getAll();
 }
 
-function formatPrice($price) {
+function formatPrice($price)
+{
     return \EasyCart\Helpers\FormatHelper::price($price);
 }
 
-function isInCart($productId) {
+function isInCart($productId)
+{
     $cartService = new \EasyCart\Services\CartService();
     return $cartService->has($productId);
 }
 
-function isInWishlist($productId) {
+function isInWishlist($productId)
+{
     $wishlistService = new \EasyCart\Services\WishlistService();
     return $wishlistService->has($productId);
 }
@@ -71,7 +80,7 @@ $route = $_GET['route'] ?? '';
 // Extract route from URL if not specified
 if (empty($route)) {
     $requestUri = $_SERVER['REQUEST_URI'] ?? '';
-    
+
     if (strpos($requestUri, 'products.php') !== false) {
         $route = 'products';
     } elseif (strpos($requestUri, 'product.php') !== false) {
@@ -153,6 +162,9 @@ try {
                 case 'move_to_cart':
                     $controller->moveToCart();
                     break;
+                case 'count':
+                    $controller->count();
+                    break;
                 default:
                     http_response_code(400);
                     echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -204,10 +216,15 @@ try {
         case 'ajax/wishlist':
             $controller = new \EasyCart\Controllers\WishlistController();
             $action = $_POST['action'] ?? 'toggle';
-            if ($action === 'move') {
-                $controller->moveToCart();
-            } else {
-                $controller->toggle();
+            switch ($action) {
+                case 'move':
+                    $controller->moveToCart();
+                    break;
+                case 'count':
+                    $controller->count();
+                    break;
+                default:
+                    $controller->toggle();
             }
             break;
 

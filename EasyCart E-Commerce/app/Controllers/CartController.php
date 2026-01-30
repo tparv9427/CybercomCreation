@@ -34,20 +34,24 @@ class CartController
     {
         $page_title = 'Shopping Cart';
         $categories = $this->categoryRepo->getAll();
-        
+
         $cart = $this->cartService->get();
         $cart_items = [];
-        
+
         foreach ($cart as $product_id => $quantity) {
             $product = $this->productRepo->find($product_id);
             if ($product) {
                 // Enforce stock limit on display
                 $adjusted_quantity = min($quantity, $product['stock']);
-                
+
+                // Determine shipping type for this product
+                $shipping_type = ($product['price'] >= 300) ? 'Freight Shipping' : 'Express Shipping';
+
                 $cart_items[] = [
                     'product' => $product,
                     'quantity' => $adjusted_quantity,
-                    'total' => $product['price'] * $adjusted_quantity
+                    'total' => $product['price'] * $adjusted_quantity,
+                    'shipping_type' => $shipping_type
                 ];
             }
         }
@@ -55,12 +59,14 @@ class CartController
         $saved_items = $this->cartService->getSavedItems();
 
         $pricing = $this->pricingService->calculateAll($cart, 'standard');
+        $estimated_totals = $this->pricingService->calculateEstimatedTotalRange($cart);
+        $shipping_category = $this->pricingService->determineShippingCategory($cart);
 
-        $formatPrice = function($price) {
+        $formatPrice = function ($price) {
             return \EasyCart\Helpers\FormatHelper::price($price);
         };
 
-        $getCategory = function($id) {
+        $getCategory = function ($id) {
             return $this->categoryRepo->find($id);
         };
 
@@ -75,16 +81,20 @@ class CartController
     public function add()
     {
         header('Content-Type: application/json');
-        
-        $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
-        $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
+
+        $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
+        $quantity = isset($_POST['quantity']) ? (int) $_POST['quantity'] : 1;
 
         $success = $this->cartService->add($product_id, $quantity);
 
         if ($success) {
+            $cart = $this->cartService->get();
+            $shipping_category = $this->pricingService->determineShippingCategory($cart);
+
             echo json_encode([
                 'success' => true,
                 'cart_count' => $this->cartService->getCount(),
+                'shipping_category' => $shipping_category,
                 'message' => 'Product added to cart'
             ]);
         } else {
@@ -98,26 +108,36 @@ class CartController
     public function update()
     {
         header('Content-Type: application/json');
-        
-        $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
-        $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
 
-        $this->cartService->update($product_id, $quantity);
+        $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
+        $quantity = isset($_POST['quantity']) ? (int) $_POST['quantity'] : 1;
+
+        $actual_quantity = $this->cartService->update($product_id, $quantity);
+        // If update returned 0 (removed) or false, handle gracefully, but we assume int return now.
 
         $cart = $this->cartService->get();
+        $shipping_category = $this->pricingService->determineShippingCategory($cart);
         $pricing = $this->pricingService->calculateAll($cart, 'standard');
-        
+
         $product = $this->productRepo->find($product_id);
-        $item_total = $product ? $product['price'] * $quantity : 0;
+        $item_total = $product ? $product['price'] * $actual_quantity : 0;
+
+        $estimated_totals = $this->pricingService->calculateEstimatedTotalRange($cart);
 
         echo json_encode([
             'success' => true,
             'cart_count' => $this->cartService->getCount(),
+            'actual_quantity' => $actual_quantity,
+            'shipping_category' => $shipping_category,
             'item_total' => \EasyCart\Helpers\FormatHelper::price($item_total),
             'subtotal' => \EasyCart\Helpers\FormatHelper::price($pricing['subtotal']),
             'shipping' => \EasyCart\Helpers\FormatHelper::price($pricing['shipping']),
             'tax' => \EasyCart\Helpers\FormatHelper::price($pricing['tax']),
-            'total' => \EasyCart\Helpers\FormatHelper::price($pricing['total'])
+            'item_tax' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['tax_on_items']),
+            'total' => \EasyCart\Helpers\FormatHelper::price($pricing['total']),
+            'cart_value' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['cart_value']),
+            'estimated_total_min' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['min']),
+            'estimated_total_max' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['max'])
         ]);
     }
 
@@ -127,22 +147,30 @@ class CartController
     public function remove()
     {
         header('Content-Type: application/json');
-        
-        $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+
+        $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
 
         $this->cartService->remove($product_id);
 
         $cart = $this->cartService->get();
+        $shipping_category = $this->pricingService->determineShippingCategory($cart);
         $pricing = $this->pricingService->calculateAll($cart, 'standard');
+
+        $estimated_totals = $this->pricingService->calculateEstimatedTotalRange($cart);
 
         echo json_encode([
             'success' => true,
             'cart_count' => $this->cartService->getCount(),
+            'shipping_category' => $shipping_category,
             'message' => 'Product removed from cart',
             'subtotal' => \EasyCart\Helpers\FormatHelper::price($pricing['subtotal']),
             'shipping' => \EasyCart\Helpers\FormatHelper::price($pricing['shipping']),
             'tax' => \EasyCart\Helpers\FormatHelper::price($pricing['tax']),
-            'total' => \EasyCart\Helpers\FormatHelper::price($pricing['total'])
+            'item_tax' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['tax_on_items']),
+            'total' => \EasyCart\Helpers\FormatHelper::price($pricing['total']),
+            'cart_value' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['cart_value']),
+            'estimated_total_min' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['min']),
+            'estimated_total_max' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['max'])
         ]);
     }
 
@@ -155,8 +183,8 @@ class CartController
     public function saveForLater()
     {
         header('Content-Type: application/json');
-        
-        $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+
+        $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
 
         // Perform save logic
         $this->cartService->saveForLater($product_id);
@@ -164,7 +192,7 @@ class CartController
         // Calculate new cart totals
         $cart = $this->cartService->get();
         $pricing = $this->pricingService->calculateAll($cart, 'standard');
-        
+
         // Generate HTML for the saved item
         $product = $this->productRepo->find($product_id);
         $savedItemHtml = '';
@@ -175,6 +203,8 @@ class CartController
             ]);
         }
 
+        $estimated_totals = $this->pricingService->calculateEstimatedTotalRange($cart);
+
         echo json_encode([
             'success' => true,
             'cart_count' => $this->cartService->getCount(),
@@ -182,7 +212,11 @@ class CartController
             'subtotal' => \EasyCart\Helpers\FormatHelper::price($pricing['subtotal']),
             'shipping' => \EasyCart\Helpers\FormatHelper::price($pricing['shipping']),
             'tax' => \EasyCart\Helpers\FormatHelper::price($pricing['tax']),
+            'item_tax' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['tax_on_items']),
             'total' => \EasyCart\Helpers\FormatHelper::price($pricing['total']),
+            'cart_value' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['cart_value']),
+            'estimated_total_min' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['min']),
+            'estimated_total_max' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['max']),
             'saved_item_html' => $savedItemHtml
         ]);
     }
@@ -193,8 +227,8 @@ class CartController
     public function moveToCart()
     {
         header('Content-Type: application/json');
-        
-        $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+
+        $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
 
         $this->cartService->moveToCartFromSaved($product_id);
 
@@ -214,6 +248,8 @@ class CartController
             ]);
         }
 
+        $estimated_totals = $this->pricingService->calculateEstimatedTotalRange($cart);
+
         echo json_encode([
             'success' => true,
             'cart_count' => $this->cartService->getCount(),
@@ -221,51 +257,45 @@ class CartController
             'subtotal' => \EasyCart\Helpers\FormatHelper::price($pricing['subtotal']),
             'shipping' => \EasyCart\Helpers\FormatHelper::price($pricing['shipping']),
             'tax' => \EasyCart\Helpers\FormatHelper::price($pricing['tax']),
+            'item_tax' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['tax_on_items']),
             'total' => \EasyCart\Helpers\FormatHelper::price($pricing['total']),
+            'cart_value' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['cart_value']),
+            'estimated_total_min' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['min']),
+            'estimated_total_max' => \EasyCart\Helpers\FormatHelper::price($estimated_totals['max']),
             'cart_item_html' => $cartItemHtml
         ]);
     }
 
     private function generateSavedItemHtml($item)
     {
-        $price = \EasyCart\Helpers\FormatHelper::price($item['product']['price']);
-        
-        return '
-        <div class="cart-item" style="opacity: 0.9;" id="saved-item-' . $item['product']['id'] . '">
-            <div class="item-image" onclick="window.location.href=\'product.php?id=' . $item['product']['id'] . '\'">' . $item['product']['icon'] . '</div>
-            <div class="item-details">
-                <h3 class="item-name">' . $item['product']['name'] . '</h3>
-                <p class="item-price">' . $price . '</p>
-                <button class="btn btn-sm btn-outline" onclick="moveToCartFromSaved(' . $item['product']['id'] . ')" style="margin-top: 0.5rem;">Move to Cart</button>
-            </div>
-            <div class="item-total"></div> 
-        </div>';
+        $item['formatted_price'] = \EasyCart\Helpers\FormatHelper::price($item['product']['price']);
+
+        ob_start();
+        include __DIR__ . '/../Views/components/saved_item.php';
+        return ob_get_clean();
     }
 
     private function generateCartItemHtml($item)
     {
-        $price = \EasyCart\Helpers\FormatHelper::price($item['product']['price']);
-        $total = \EasyCart\Helpers\FormatHelper::price($item['total']);
-        $category = $this->categoryRepo->find($item['product']['category_id'])['name'];
+        $item['category_name'] = $this->categoryRepo->find($item['product']['category_id'])['name'];
+        $item['formatted_price'] = \EasyCart\Helpers\FormatHelper::price($item['product']['price']);
+        $item['formatted_total'] = \EasyCart\Helpers\FormatHelper::price($item['total']);
 
-        return '
-        <div class="cart-item" data-product-id="' . $item['product']['id'] . '">
-            <div class="item-image" onclick="window.location.href=\'product.php?id=' . $item['product']['id'] . '\'">' . $item['product']['icon'] . '</div>
-            <div class="item-details">
-                <h3 class="item-name">' . $item['product']['name'] . '</h3>
-                <p class="item-category">' . $category . '</p>
-                <p class="item-price">' . $price . '</p>
-                <button class="btn-link" onclick="saveForLater(' . $item['product']['id'] . ')" style="color: var(--primary); margin-top: 0.5rem; display: block; background: none; border: none; padding: 0; cursor: pointer; text-decoration: underline;">Save for Later</button>
-            </div>
-            <div class="item-quantity">
-                <div class="quantity-controls">
-                    <button class="quantity-btn" onclick="decreaseCartQuantity(' . $item['product']['id'] . ')">−</button>
-                    <input type="number" class="quantity-input" id="qty-' . $item['product']['id'] . '" value="' . $item['quantity'] . '" min="1" max="' . $item['product']['stock'] . '" oninput="validateCartQuantity(' . $item['product']['id'] . ', this)">
-                    <button class="quantity-btn" onclick="increaseCartQuantity(' . $item['product']['id'] . ')">+</button>
-                </div>
-            </div>
-            <div class="item-total">' . $total . '</div>
-            <button class="item-remove" onclick="removeFromCart(' . $item['product']['id'] . ')">×</button>
-        </div>';
+        // Ensure shipping_type is set
+        if (!isset($item['shipping_type'])) {
+            $item['shipping_type'] = ($item['product']['price'] >= 300) ? 'Freight Shipping' : 'Express Shipping';
+        }
+
+        ob_start();
+        include __DIR__ . '/../Views/components/cart_item.php';
+        return ob_get_clean();
+    }
+    /**
+     * Get cart count (AJAX)
+     */
+    public function count()
+    {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'cart_count' => $this->cartService->getCount()]);
     }
 }
