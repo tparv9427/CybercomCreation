@@ -1,9 +1,3 @@
-<?php
-// Clear applied coupon if not on checkout page
-if (basename($_SERVER['PHP_SELF']) !== 'checkout.php' && isset($_SESSION['applied_coupon'])) {
-    unset($_SESSION['applied_coupon']);
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -76,7 +70,8 @@ if (basename($_SERVER['PHP_SELF']) !== 'checkout.php' && isset($_SESSION['applie
                 </a>
                 <?php if (isLoggedIn()): ?>
                     <a href="orders.php">Orders</a>
-                    <a href="logout.php" onclick="confirmLogout(event)">Logout<?php echo ($_SESSION['user_name']); ?></a>
+                    <a href="logout.php" onclick="confirmLogout(event)">Logout
+                        (<?php echo strtoupper($_SESSION['user_name']); ?>)</a>
                 <?php else: ?>
                     <a href="login.php">Login</a>
                 <?php endif; ?>

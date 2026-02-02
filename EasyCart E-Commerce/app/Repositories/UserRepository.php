@@ -2,99 +2,68 @@
 
 namespace EasyCart\Repositories;
 
+use EasyCart\Core\Database;
+use PDO;
+
 /**
  * UserRepository
  * 
- * Migrated from: includes/config.php (lines 65-152)
+ * Migrated to PostgreSQL
  */
 class UserRepository
 {
-    private $usersFile;
+    private $pdo;
 
     public function __construct()
     {
-        $this->usersFile = __DIR__ . '/../../data/users.json';
+        $this->pdo = Database::getInstance()->getConnection();
     }
 
     public function getAll()
     {
-        if (file_exists($this->usersFile)) {
-            $json = file_get_contents($this->usersFile);
-            return json_decode($json, true);
-        }
-        
-        // Default users
-        return [
-            1 => [
-                'id' => 1,
-                'email' => 'demo@easycart.com',
-                'password' => password_hash('demo123', PASSWORD_DEFAULT),
-                'name' => 'Demo User',
-                'created_at' => '2026-01-01'
-            ],
-            2 => [
-                'id' => 2,
-                'email' => 'john.doe@example.com',
-                'password' => password_hash('password123', PASSWORD_DEFAULT),
-                'name' => 'John Doe',
-                'created_at' => '2026-01-05'
-            ]
-        ];
+        $stmt = $this->pdo->query("SELECT * FROM users ORDER BY id");
+        return $stmt->fetchAll();
     }
 
-    public function find($userId)
+    public function find($id)
     {
-        $users = $this->getAll();
-        return isset($users[$userId]) ? $users[$userId] : null;
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetch() ?: null;
     }
 
     public function findByEmail($email)
     {
-        $users = $this->getAll();
-        foreach ($users as $user) {
-            if ($user['email'] === $email) {
-                return $user;
-            }
-        }
-        return null;
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = :email");
+        $stmt->execute([':email' => $email]);
+        return $stmt->fetch() ?: null;
     }
 
-    public function save($users)
+    public function create($data)
     {
-        $dataDir = dirname($this->usersFile);
-        if (!is_dir($dataDir)) {
-            mkdir($dataDir, 0777, true);
+        // Hash password if not provided hashed (defensive programming)
+        // Checks if it looks like a hash (bcrypt starts with $2y$)
+        $password = $data['password'];
+        if (substr($password, 0, 4) !== '$2y$') {
+            $password = password_hash($password, PASSWORD_DEFAULT);
         }
-        file_put_contents($this->usersFile, json_encode($users, JSON_PRETTY_PRINT));
-    }
 
-    public function create($email, $password, $name)
-    {
-        $users = $this->getAll();
-        
-        // Check if email exists
-        foreach ($users as $user) {
-            if ($user['email'] === $email) {
-                return false;
-            }
+        $stmt = $this->pdo->prepare("
+            INSERT INTO users (name, email, password, created_at) 
+            VALUES (:name, :email, :password, NOW()) 
+            RETURNING id, name, email, created_at
+        ");
+
+        try {
+            $stmt->execute([
+                ':name' => $data['name'],
+                ':email' => $data['email'],
+                ':password' => $password
+            ]);
+            return $stmt->fetch();
+        } catch (\PDOException $e) {
+            // Likely duplicate email
+            return false;
         }
-        
-        $userId = $this->getNextId($users);
-        $users[$userId] = [
-            'id' => $userId,
-            'email' => $email,
-            'password' => password_hash($password, PASSWORD_DEFAULT),
-            'name' => $name,
-            'created_at' => date('Y-m-d')
-        ];
-        
-        $this->save($users);
-        return $userId;
-    }
-
-    private function getNextId($users)
-    {
-        if (empty($users)) return 1;
-        return max(array_keys($users)) + 1;
     }
 }

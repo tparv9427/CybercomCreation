@@ -3,11 +3,13 @@
 namespace EasyCart\Services;
 
 use EasyCart\Repositories\WishlistRepository;
+use EasyCart\Services\AuthService;
 
 /**
  * WishlistService
  * 
- * Migrated from: ajax_wishlist.php, config.php (wishlist functions)
+ * Handles business logic for wishlists.
+ * Now database-driven, requiring a logged-in user.
  */
 class WishlistService
 {
@@ -18,6 +20,16 @@ class WishlistService
         $this->wishlistRepo = new WishlistRepository();
     }
 
+    private function getUserId()
+    {
+        // Ensure session is started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        return $_SESSION['user_id'] ?? null;
+    }
+
     /**
      * Toggle product in wishlist
      * 
@@ -26,17 +38,19 @@ class WishlistService
      */
     public function toggle($productId)
     {
-        $wishlist = $this->wishlistRepo->get();
+        $userId = $this->getUserId();
+        if (!$userId)
+            return false; // Or redirect to login
+
+        $wishlist = $this->wishlistRepo->get($userId);
 
         if (in_array($productId, $wishlist)) {
             // Remove
-            $wishlist = array_diff($wishlist, [$productId]);
-            $this->wishlistRepo->save(array_values($wishlist));
+            $this->wishlistRepo->remove($userId, $productId);
             return false;
         } else {
             // Add
-            $wishlist[] = $productId;
-            $this->wishlistRepo->save($wishlist);
+            $this->wishlistRepo->add($userId, $productId);
             return true;
         }
     }
@@ -49,13 +63,11 @@ class WishlistService
      */
     public function add($productId)
     {
-        $wishlist = $this->wishlistRepo->get();
-        
-        if (!in_array($productId, $wishlist)) {
-            $wishlist[] = $productId;
-            $this->wishlistRepo->save($wishlist);
-        }
+        $userId = $this->getUserId();
+        if (!$userId)
+            return false;
 
+        $this->wishlistRepo->add($userId, $productId);
         return true;
     }
 
@@ -67,10 +79,11 @@ class WishlistService
      */
     public function remove($productId)
     {
-        $wishlist = $this->wishlistRepo->get();
-        $wishlist = array_diff($wishlist, [$productId]);
-        $this->wishlistRepo->save(array_values($wishlist));
+        $userId = $this->getUserId();
+        if (!$userId)
+            return false;
 
+        $this->wishlistRepo->remove($userId, $productId);
         return true;
     }
 
@@ -82,7 +95,11 @@ class WishlistService
      */
     public function has($productId)
     {
-        $wishlist = $this->wishlistRepo->get();
+        $userId = $this->getUserId();
+        if (!$userId)
+            return false;
+
+        $wishlist = $this->wishlistRepo->get($userId);
         return in_array($productId, $wishlist);
     }
 
@@ -93,7 +110,11 @@ class WishlistService
      */
     public function getCount()
     {
-        return count($this->wishlistRepo->get());
+        $userId = $this->getUserId();
+        if (!$userId)
+            return 0;
+
+        return count($this->wishlistRepo->get($userId));
     }
 
     /**
@@ -103,6 +124,10 @@ class WishlistService
      */
     public function get()
     {
-        return $this->wishlistRepo->get();
+        $userId = $this->getUserId();
+        if (!$userId)
+            return [];
+
+        return $this->wishlistRepo->get($userId);
     }
 }

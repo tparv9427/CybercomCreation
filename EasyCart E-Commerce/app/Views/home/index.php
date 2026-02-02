@@ -10,7 +10,6 @@ $banners = require APP_ROOT . '/config/banners.php';
 
 // Include banner carousel component
 include __DIR__ . '/../partials/banner_carousel.php';
-print_r($_SESSION);
 ?>
 
 <!-- Featured Products -->

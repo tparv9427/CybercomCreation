@@ -34,8 +34,7 @@ $page_title = 'My Orders';
                             <div class="order-item">
                                 <div class="order-item-image">
                                     <?php if (isset($item['image']) && $item['image']): ?>
-                                        <img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>"
-                                            style="width: 50px; height: 50px; object-fit: cover;">
+                                        <img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>">
                                     <?php else: ?>
                                         📦
                                     <?php endif; ?>

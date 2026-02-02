@@ -73,8 +73,14 @@ try {
         }
     }
 
+    // Check for applied coupon
+    $discountAmount = 0.0;
+    if (isset($_SESSION['applied_coupon'])) {
+        $discountAmount = $_SESSION['applied_coupon']['amount'] ?? 0.0;
+    }
+
     // Calculate pricing using PricingHelper
-    $pricing = PricingHelper::calculateCheckoutPricing($cartItems, $shippingMethod, $paymentMethod);
+    $pricing = PricingHelper::calculateCheckoutPricing($cartItems, $shippingMethod, $paymentMethod, $discountAmount);
 
     // Return success response
     echo json_encode([
@@ -84,13 +90,15 @@ try {
             'shipping' => $pricing['shipping_formatted'],
             'payment_fee' => $pricing['payment_fee'] > 0 ? $pricing['payment_fee_formatted'] : null,
             'tax' => $pricing['tax_formatted'],
+            'discount' => $pricing['discount'] > 0 ? $pricing['discount_formatted'] : null,
             'total' => $pricing['total_formatted']
-        ],
+        ], // Removed extra comma here
         'raw' => [
             'subtotal' => $pricing['subtotal'],
             'shipping' => $pricing['shipping'],
             'payment_fee' => $pricing['payment_fee'],
             'tax' => $pricing['tax'],
+            'discount' => $pricing['discount'],
             'total' => $pricing['total']
         ]
     ]);

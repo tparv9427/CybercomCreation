@@ -118,6 +118,14 @@ if (empty($route)) {
     }
 }
 
+// Global Middleware: Coupon Cleanup
+// Ensure coupon is removed if user navigates away from checkout
+if (class_exists('\EasyCart\Services\CouponService')) {
+    $couponService = new \EasyCart\Services\CouponService();
+    // We pass the determined route
+    $couponService->clearIfNavigatedAway($route);
+}
+
 // Route to controller
 try {
     switch ($route) {

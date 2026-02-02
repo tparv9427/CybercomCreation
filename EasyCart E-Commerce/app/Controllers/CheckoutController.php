@@ -6,6 +6,7 @@ use EasyCart\Services\AuthService;
 use EasyCart\Services\CartService;
 use EasyCart\Services\PricingService;
 use EasyCart\Repositories\ProductRepository;
+use EasyCart\Repositories\OrderRepository;
 use EasyCart\Repositories\CategoryRepository;
 
 /**
@@ -20,6 +21,7 @@ class CheckoutController
     private $pricingService;
     private $productRepo;
     private $categoryRepo;
+    private $orderRepo;
 
     public function __construct()
     {
@@ -28,6 +30,7 @@ class CheckoutController
         $this->pricingService = new PricingService();
         $this->productRepo = new ProductRepository();
         $this->categoryRepo = new CategoryRepository();
+        $this->orderRepo = new OrderRepository();
     }
 
     /**
@@ -252,33 +255,28 @@ class CheckoutController
         }
 
         // Create order
-        $order_id = 'ORD-' . strtoupper(substr(md5(time() . rand()), 0, 8));
+        // Generate Order Number
+        $order_number = 'ORD-' . strtoupper(substr(md5(time() . rand()), 0, 8));
 
-        $order = [
-            'id' => $order_id,
+        $orderData = [
+            'order_number' => $order_number,
             'user_id' => $userId,
-            'date' => date('F j, Y'),
-            'items' => $orderItems,
             'subtotal' => $pricing['subtotal'],
-            'shipping' => $pricing['shipping'],
+            'shipping_cost' => $pricing['shipping'],
             'tax' => $pricing['tax'],
             'total' => $pricing['total'],
-            'status' => 'Processing', // Default status
-            'shipping_method' => $shipping_method
+            'status' => 'Processing'
         ];
 
-        // Store order in session (simulating database)
-        if (!isset($_SESSION['orders'])) {
-            $_SESSION['orders'] = [];
-        }
-        if (!isset($_SESSION['orders'][$userId])) {
-            $_SESSION['orders'][$userId] = [];
+        // Save order to DB
+        $dbOrderId = $this->orderRepo->save($orderData, $orderItems);
+
+        if (!$dbOrderId) {
+            // Handle error
+            die("Order processing failed.");
         }
 
-        // Prepend new order so it shows at top
-        array_unshift($_SESSION['orders'][$userId], $order);
-
-        $_SESSION['last_order_id'] = $order_id;
+        $_SESSION['last_order_id'] = $order_number; // Use number for display/success page lookup if needed
 
         // Clear cart ONLY if it's a regular order
         if (!$isBuyNowOrder) {

@@ -4,6 +4,8 @@ namespace EasyCart\Services;
 
 use EasyCart\Repositories\CartRepository;
 use EasyCart\Repositories\ProductRepository;
+use EasyCart\Repositories\SaveForLaterRepository;
+use EasyCart\Services\AuthService;
 
 /**
  * CartService
@@ -20,7 +22,17 @@ class CartService
     {
         $this->cartRepo = new CartRepository();
         $this->productRepo = new ProductRepository();
-        $this->saveRepo = new \EasyCart\Repositories\SaveForLaterRepository();
+        $this->saveRepo = new SaveForLaterRepository();
+    }
+
+    private function getUserId()
+    {
+        // Ensure session is started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        return $_SESSION['user_id'] ?? null;
     }
 
     /**
@@ -142,7 +154,9 @@ class CartService
         foreach ($cart as $productId => $quantity) {
             $product = $this->productRepo->find($productId);
             if ($product) {
-                $total += $product['price'] * $quantity;
+                // Determine price (use sale price if valid)
+                $price = $product['price'];
+                $total += $price * $quantity;
             }
         }
 
@@ -179,27 +193,15 @@ class CartService
      */
     public function saveForLater($productId)
     {
-        $cart = $this->cartRepo->get();
-        // Item doesn't have to be in cart to be saved for later
+        $userId = $this->getUserId();
+        if (!$userId)
+            return false;
 
-        $saved = $this->saveRepo->get();
-        // If in cart, move quantity. If not, default to 1 or add 1? 
-        // Logic: specific request "add this save for later button...". Usually implies "add this item to saved list".
-        // If it's already in saved, we can just ensure it stays there.
-        // If it was in cart, we should remove it from cart.
+        // Add to Saved
+        $this->saveRepo->add($userId, $productId);
 
-        $quantity = isset($cart[$productId]) ? $cart[$productId] : 1;
-
-        // If already in saved, we might want to just keep it or add quantity?
-        // Simple implementation: Overwrite or set.
-        $saved[$productId] = $quantity; // Store with quantity
-
-        $this->saveRepo->save($saved);
-
-        // If it was in cart, remove it
-        if (isset($cart[$productId])) {
-            $this->remove($productId);
-        }
+        // Remove from Cart
+        $this->remove($productId);
 
         return true;
     }
@@ -212,15 +214,22 @@ class CartService
      */
     public function moveToCartFromSaved($productId)
     {
-        $saved = $this->saveRepo->get();
-        if (!isset($saved[$productId])) {
+        $userId = $this->getUserId();
+        if (!$userId)
+            return false;
+
+        // Is it actually saved?
+        $saved = $this->saveRepo->get($userId);
+        // Note: Repository returns array of IDs now, not map like before
+        if (!in_array($productId, $saved)) {
             return false;
         }
 
-        $this->add($productId, $saved[$productId]);
+        // Add to Cart
+        $this->add($productId); // Defaults to 1
 
-        unset($saved[$productId]);
-        $this->saveRepo->save($saved);
+        // Remove from Saved
+        $this->saveRepo->remove($userId, $productId);
 
         return true;
     }
@@ -232,16 +241,20 @@ class CartService
      */
     public function getSavedItems()
     {
-        $saved = $this->saveRepo->get();
+        $userId = $this->getUserId();
+        if (!$userId)
+            return [];
+
+        $savedProductIds = $this->saveRepo->get($userId);
         $items = [];
 
-        foreach ($saved as $productId => $quantity) {
+        foreach ($savedProductIds as $productId) {
             $product = $this->productRepo->find($productId);
             if ($product) {
                 $items[] = [
                     'product' => $product,
-                    'quantity' => $quantity,
-                    'total' => $product['price'] * $quantity
+                    // Quantity concept removed for Saved Items in DB refactor (it's just a set of products)
+                    // But for UI compatibility, we can imply 1 if needed
                 ];
             }
         }

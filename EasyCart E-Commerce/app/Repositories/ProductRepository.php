@@ -2,123 +2,150 @@
 
 namespace EasyCart\Repositories;
 
+use EasyCart\Core\Database;
+use PDO;
+
 /**
  * ProductRepository
  * 
- * Migrated from: includes/config.php
+ * Migrated to PostgreSQL
  */
 class ProductRepository
 {
-    private $products = [];
-    private $productsFile;
+    private $pdo;
 
     public function __construct()
     {
-        $this->productsFile = __DIR__ . '/../../data/products.json';
-        $this->loadProducts();
-    }
-
-    private function loadProducts()
-    {
-        if (file_exists($this->productsFile)) {
-            $json = file_get_contents($this->productsFile);
-            $this->products = json_decode($json, true);
-            // $this->dynamicDiscounts();
-        } else {
-            error_log("Products file not found: {$this->productsFile}");
-            $this->products = [];
-        }
-    }
-
-    private function dynamicDiscounts()
-    {
-        foreach ($this->products as $id => &$product) {
-            $originalPrice = $product['original_price'] ?? $product['price'];
-            $discount = 0;
-            $discount = $originalPrice > 900 ? 90 : (
-                $originalPrice > 800 ? 80 : (
-                    $originalPrice > 700 ? 70 : (
-                        $originalPrice > 600 ? 60 : (
-                            $originalPrice > 500 ? 50 : (
-                                $originalPrice > 400 ? 40 : (
-                                    $originalPrice > 300 ? 30 : (
-                                        $originalPrice > 200 ? 20 : (
-                                            $originalPrice >= 100 ? 10 : 0
-                                        ))))))));
-            $product['original_price'] = $originalPrice;
-            $product['discount'] = $discount;
-            $product['discount_percent'] = $discount;
-            $product['price'] = round($originalPrice * (1 - $discount / 100), 2);
-
-            // Mock "bought in past month" data
-            // Deterministic random based on ID so it stays constant for the same product
-            srand($product['id']);
-            $sales = rand(5, 50) * 10; // 50, 60... 500
-            if (rand(0, 10) > 8)
-                $sales = rand(1, 9) . 'k'; // Occasional "1k+"
-            else
-                $sales .= '+';
-
-            $product['bought_past_month'] = $sales;
-
-            // Mock Trust Badges
-            // Pool of badges: id => [label, icon_char] (using chars/emoji for now as placeholder for SVGs in view)
-            $allBadges = ['free_delivery', 'replacement', 'warranty', 'top_brand', 'secure', 'easycart_delivered'];
-
-            // Pick 3-5 random badges
-            $count = rand(3, 5);
-            $keys = array_rand($allBadges, $count);
-            if (!is_array($keys))
-                $keys = [$keys];
-
-            $product['trust_badges'] = [];
-            foreach ($keys as $key) {
-                $product['trust_badges'][] = $allBadges[$key];
-            }
-
-            srand(); // Reset
-        }
+        $this->pdo = Database::getInstance()->getConnection();
     }
 
     public function getAll()
     {
-        return $this->products;
+        $stmt = $this->pdo->query("SELECT * FROM products ORDER BY id");
+        $products = $stmt->fetchAll();
+        return $this->processProducts($products);
     }
 
     public function find($id)
     {
-        return isset($this->products[$id]) ? $this->products[$id] : null;
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        $product = $stmt->fetch();
+        return $product ? $this->processProduct($product) : null;
     }
 
     public function getFeatured($limit = 20)
     {
-        $featured = array_filter($this->products, function ($product) {
-            return $product['featured'] === true;
-        });
-        return array_slice($featured, 0, $limit);
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE is_featured = true LIMIT :limit");
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $this->processProducts($stmt->fetchAll());
     }
 
     public function getNew($limit = 6)
     {
-        $new = array_filter($this->products, function ($product) {
-            return $product['new'] === true;
-        });
-        return array_slice($new, 0, $limit);
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE is_new = true LIMIT :limit");
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $this->processProducts($stmt->fetchAll());
     }
 
     public function findByCategory($categoryId)
     {
-        return array_filter($this->products, function ($product) use ($categoryId) {
-            return $product['category_id'] == $categoryId;
-        });
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE category_id = :id");
+        $stmt->execute([':id' => $categoryId]);
+        return $this->processProducts($stmt->fetchAll());
     }
 
     public function findByBrand($brandId)
     {
-        return array_filter($this->products, function ($product) use ($brandId) {
-            return $product['brand_id'] == $brandId;
-        });
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE brand_id = :id");
+        $stmt->execute([':id' => $brandId]);
+        return $this->processProducts($stmt->fetchAll());
     }
+
+    // Helper to ensure data types match expected JSON format if needed
+    private function processProduct($product)
+    {
+        if (!$product)
+            return null;
+
+        // Cast types
+        $product['id'] = (int) $product['id'];
+        $product['category_id'] = (int) $product['category_id'];
+        $product['brand_id'] = (int) $product['brand_id'];
+        $product['price'] = (float) $product['price'];
+        if (isset($product['original_price']))
+            $product['original_price'] = (float) $product['original_price'];
+        if (isset($product['rating']))
+            $product['rating'] = (float) $product['rating'];
+
+        // Map 'is_new' from DB to 'new' expected by view
+        $product['new'] = isset($product['is_new']) ? (bool) $product['is_new'] : false;
+
+        // Mock 'discount_percent'
+        if (!isset($product['discount_percent'])) {
+            if (isset($product['original_price']) && $product['original_price'] > $product['price']) {
+                $product['discount_percent'] = round((($product['original_price'] - $product['price']) / $product['original_price']) * 100);
+            } else {
+                $product['discount_percent'] = 0;
+            }
+        }
+
+        // Mock 'trust_badges'
+        if (!isset($product['trust_badges'])) {
+            $product['trust_badges'] = ['secure', 'warranty', 'fast_delivery'];
+        }
+
+        // Mock 'icon' from 'image'
+        if (!isset($product['icon']) && isset($product['image'])) {
+            $imagePath = $product['image'];
+            // If path doesn't start with assets, prepend the directory
+            if (strpos($imagePath, 'assets/') !== 0) {
+                $imagePath = 'assets/images/products/' . $imagePath;
+            }
+            $product['icon'] = '<img src="' . htmlspecialchars($imagePath) . '" alt="' . htmlspecialchars($product['name']) . '">';
+        }
+
+        // Mock 'long_description'
+        if (!isset($product['long_description'])) {
+            $product['long_description'] = $product['description'] ?? '';
+        }
+
+        // Mock 'features'
+        if (!isset($product['features'])) {
+            $product['features'] = [
+                'High quality materials',
+                'Durable and long-lasting',
+                'Premium finish',
+                'Best in class performance'
+            ];
+        }
+
+        // Mock 'specifications'
+        if (!isset($product['specifications'])) {
+            $product['specifications'] = [
+                'Material' => 'Premium Composite',
+                'Warranty' => '1 Year',
+                'Origin' => 'Imported',
+                'Weight' => 'Lightweight'
+            ];
+        }
+
+        // Mock 'bought_past_month'
+        if (!isset($product['bought_past_month'])) {
+            $product['bought_past_month'] = '50+';
+        }
+
+        return $product;
+    }
+
+    private function processProducts($products)
+    {
+        return array_map([$this, 'processProduct'], $products);
+    }
+
+    // --- In-Memory Filters (Kept for compatibility with Controllers) ---
 
     public function filterByPrice($products, $priceRange)
     {
@@ -147,29 +174,41 @@ class ProductRepository
 
     public function getSimilarByBrand($currentProduct, $limit = 4)
     {
-        $recommendations = array_filter($this->products, function ($p) use ($currentProduct) {
-            return $p['id'] != $currentProduct['id'] &&
-                $p['category_id'] == $currentProduct['category_id'] &&
-                $p['brand_id'] != $currentProduct['brand_id'];
-        });
-        return array_slice($recommendations, 0, $limit);
+        // Optimized: fetching from DB directly
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE brand_id = :bid AND id != :pid LIMIT :limit");
+        $stmt->bindValue(':bid', $currentProduct['brand_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':pid', $currentProduct['id'], PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $this->processProducts($stmt->fetchAll());
     }
 
     public function getSimilarByCategory($currentProduct, $limit = 4)
     {
-        $recommendations = array_filter($this->products, function ($p) use ($currentProduct) {
-            return $p['id'] != $currentProduct['id'] &&
-                $p['category_id'] == $currentProduct['category_id'];
-        });
-        return array_slice($recommendations, 0, $limit);
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE category_id = :cid AND id != :pid LIMIT :limit");
+        $stmt->bindValue(':cid', $currentProduct['category_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':pid', $currentProduct['id'], PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $this->processProducts($stmt->fetchAll());
     }
 
     public function getFromOtherCategories($currentProduct, $limit = 4)
     {
-        $recommendations = array_filter($this->products, function ($p) use ($currentProduct) {
-            return $p['id'] != $currentProduct['id'] &&
-                $p['category_id'] != $currentProduct['category_id'];
-        });
-        return array_slice($recommendations, 0, $limit);
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE category_id != :cid AND id != :pid LIMIT :limit");
+        $stmt->bindValue(':cid', $currentProduct['category_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':pid', $currentProduct['id'], PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $this->processProducts($stmt->fetchAll());
+    }
+
+    public function search($query)
+    {
+        if (empty($query))
+            return [];
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE name ILIKE :q OR description ILIKE :q");
+        $stmt->execute([':q' => "%$query%"]);
+        return $this->processProducts($stmt->fetchAll());
     }
 }

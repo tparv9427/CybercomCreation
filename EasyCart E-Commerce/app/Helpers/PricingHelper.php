@@ -101,9 +101,10 @@ class PricingHelper
      * @param float $paymentFee Payment fee (optional)
      * @return float Total amount
      */
-    public static function calculateTotal($subtotal, $shipping, $tax, $paymentFee = 0.0)
+    public static function calculateTotal($subtotal, $shipping, $tax, $paymentFee = 0.0, $discount = 0.0)
     {
-        return $subtotal + $shipping + $tax + $paymentFee;
+        $total = $subtotal + $shipping + $tax + $paymentFee - $discount;
+        return max(0, $total); // Ensure total is never negative
     }
 
     /**
@@ -125,24 +126,26 @@ class PricingHelper
      * @param string $paymentMethod Payment method
      * @return array Pricing details
      */
-    public static function calculateCheckoutPricing($cartItems, $shippingMethod = 'standard', $paymentMethod = 'card')
+    public static function calculateCheckoutPricing($cartItems, $shippingMethod = 'standard', $paymentMethod = 'card', $discount = 0.0)
     {
         $subtotal = self::calculateCartSubtotal($cartItems);
         $shipping = self::calculateShipping($shippingMethod, $subtotal);
         $paymentFee = self::calculatePaymentFee($paymentMethod);
         $tax = self::calculateTax($subtotal, $shipping);
-        $total = self::calculateTotal($subtotal, $shipping, $tax, $paymentFee);
+        $total = self::calculateTotal($subtotal, $shipping, $tax, $paymentFee, $discount);
 
         return [
             'subtotal' => $subtotal,
             'shipping' => $shipping,
             'payment_fee' => $paymentFee,
             'tax' => $tax,
+            'discount' => $discount,
             'total' => $total,
             'subtotal_formatted' => self::formatPrice($subtotal),
             'shipping_formatted' => self::formatPrice($shipping),
             'payment_fee_formatted' => self::formatPrice($paymentFee),
             'tax_formatted' => self::formatPrice($tax),
+            'discount_formatted' => self::formatPrice($discount),
             'total_formatted' => self::formatPrice($total)
         ];
     }

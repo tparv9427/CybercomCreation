@@ -74,19 +74,13 @@
 }
 
 .order-items {
-    max-height: 0;
-    opacity: 0;
-    margin: 0;
-    overflow: hidden;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: none;
+    opacity: 1;
+    margin: 1.5rem 0;
+    overflow: visible;
 }
 
-.order-card:hover .order-items {
-    max-height: 1000px;
-    /* Arbitrary large number to allow expansion */
-    opacity: 1;
-    margin-bottom: 1.5rem;
-}
+
 
 .order-item {
     display: grid;
@@ -105,6 +99,20 @@
     align-items: center;
     justify-content: center;
     font-size: 2.5rem;
+    overflow: hidden;
+    flex-shrink: 0;
+    /* Prevent shrinking */
+}
+
+.order-item-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+}
+
+[data-theme="dark"] .order-item-image img {
+    mix-blend-mode: normal;
 }
 
 [data-theme="dark"] .order-item-image {

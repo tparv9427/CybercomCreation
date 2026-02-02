@@ -19,27 +19,40 @@ class CouponService
      */
     public function validateCoupon($code)
     {
-        if (!file_exists($this->couponsFile)) {
-            return false;
-        }
+        $pdo = \EasyCart\Core\Database::getInstance()->getConnection();
 
-        $json = file_get_contents($this->couponsFile);
-        $coupons = json_decode($json, true);
-
-        if (!$coupons) {
-            return false;
-        }
-
-        // Case-insensitive check
         $code = strtoupper(trim($code));
+        $stmt = $pdo->prepare("SELECT discount_percent FROM coupons WHERE code = :code");
+        $stmt->execute([':code' => $code]);
+        $row = $stmt->fetch();
 
-        if (array_key_exists($code, $coupons)) {
+        if ($row) {
             return [
                 'code' => $code,
-                'percent' => $coupons[$code]
+                'percent' => $row['discount_percent']
             ];
         }
 
         return false;
+    }
+
+    /**
+     * Clear applied coupon if user navigates away from checkout
+     * 
+     * @param string $currentRoute
+     * @return void
+     */
+    public function clearIfNavigatedAway($currentRoute)
+    {
+        // Allowed routes that preserve the coupon
+        // 'checkout' is the main one. 
+        // 'checkout-pricing' is an AJAX route for pricing updates, so we must allow it.
+        // 'ajax/cart' etc are different routes.
+
+        $allowed = ['checkout', 'checkout-pricing'];
+
+        if (!in_array($currentRoute, $allowed) && isset($_SESSION['applied_coupon'])) {
+            unset($_SESSION['applied_coupon']);
+        }
     }
 }

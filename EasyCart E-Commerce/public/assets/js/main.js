@@ -1246,10 +1246,10 @@ function updateCheckoutPricing() {
             }
             if (data.success) {
                 // Update Summary DOM
-                const summaryTotals = document.querySelector('.summary-totals');
-                const shippingEl = document.querySelector('.summary-totals .summary-row:nth-child(2) span:last-child');
-                const taxEl = document.querySelector('.summary-totals .summary-row:nth-child(3) span:last-child'); // This selector might be fragile if rows change
-                const totalEl = document.querySelector('.summary-totals .summary-total span:last-child');
+                // Update Summary DOM using stable IDs
+                const shippingEl = document.getElementById('shipping');
+                const taxEl = document.getElementById('tax');
+                const totalEl = document.getElementById('total');
                 const btnTotalEl = document.querySelector('.btn-place-order');
 
                 if (shippingEl) shippingEl.textContent = data.pricing.shipping;
@@ -1262,33 +1262,26 @@ function updateCheckoutPricing() {
                         feeRow = document.createElement('div');
                         feeRow.id = 'payment-fee-row';
                         feeRow.className = 'summary-row';
-                        feeRow.innerHTML = `<span>COD Fee:</span><span>${data.pricing.payment_fee}</span>`;
+                        feeRow.innerHTML = `<span>Payment Fee:</span><span id="payment-fee">${data.pricing.payment_fee}</span>`;
 
-                        // Insert before tax row (assuming tax row is last before total)
-                        const totalRow = document.querySelector('.summary-total');
-                        if (totalRow) {
-                            totalRow.parentNode.insertBefore(feeRow, totalRow);
+                        // Insert before tax row
+                        const taxRow = taxEl ? taxEl.closest('.summary-row') : document.querySelector('.summary-total');
+                        if (taxRow) {
+                            taxRow.parentNode.insertBefore(feeRow, taxRow);
                         }
                     } else {
-                        feeRow.querySelector('span:last-child').textContent = data.pricing.payment_fee;
+                        // Update existing fee
+                        const feeSpan = document.getElementById('payment-fee');
+                        if (feeSpan) feeSpan.textContent = data.pricing.payment_fee;
+                        feeRow.style.display = 'flex';
                     }
                 } else {
                     if (feeRow) {
-                        feeRow.remove();
+                        feeRow.style.display = 'none';
                     }
                 }
 
-                // We need to re-query tax el because row injection might shift indices if we used nth-child
-                // So let's try to find tax row by content text if possible, or just rely on class structure if we add classes
-                // For now, let's assume the tax row is the one before the total row, excluding our new fee row
-                // Refined selector strategy:
-                const allRows = document.querySelectorAll('.summary-totals .summary-row');
-                allRows.forEach(row => {
-                    if (row.textContent.includes('Tax')) {
-                        row.querySelector('span:last-child').textContent = data.pricing.tax;
-                    }
-                });
-
+                if (taxEl) taxEl.textContent = data.pricing.tax;
                 if (totalEl) totalEl.textContent = data.pricing.total;
                 if (btnTotalEl) btnTotalEl.textContent = 'Place Order - ' + data.pricing.total;
             }

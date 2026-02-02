@@ -2,40 +2,42 @@
 
 namespace EasyCart\Repositories;
 
+use EasyCart\Core\Database;
+use PDO;
+
 /**
  * CategoryRepository
  * 
- * Migrated from: includes/config.php (lines 27-33, 163-166)
+ * Migrated to PostgreSQL
  */
 class CategoryRepository
 {
-    private $categories;
+    private $pdo;
 
     public function __construct()
     {
-        // Load from global config
-        global $categories;
-        $this->categories = $categories ?? $this->getDefaultCategories();
-    }
-
-    private function getDefaultCategories()
-    {
-        return [
-            1 => ['id' => 1, 'name' => 'Electronics', 'slug' => 'electronics'],
-            2 => ['id' => 2, 'name' => 'Fashion', 'slug' => 'fashion'],
-            3 => ['id' => 3, 'name' => 'Home & Living', 'slug' => 'home-living'],
-            4 => ['id' => 4, 'name' => 'Sports', 'slug' => 'sports'],
-            5 => ['id' => 5, 'name' => 'Books', 'slug' => 'books']
-        ];
+        $this->pdo = Database::getInstance()->getConnection();
     }
 
     public function getAll()
     {
-        return $this->categories;
+        $stmt = $this->pdo->query("SELECT * FROM categories ORDER BY id");
+        $results = $stmt->fetchAll();
+
+        // Map to ID-keyed array to maintain compatibility with existing views if necessary
+        // The existing views might iterate or look up by ID.
+        // Array_column can re-index.
+        $categories = [];
+        foreach ($results as $row) {
+            $categories[$row['id']] = $row;
+        }
+        return $categories;
     }
 
     public function find($id)
     {
-        return isset($this->categories[$id]) ? $this->categories[$id] : null;
+        $stmt = $this->pdo->prepare("SELECT * FROM categories WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetch() ?: null;
     }
 }

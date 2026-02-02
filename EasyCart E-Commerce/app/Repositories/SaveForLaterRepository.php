@@ -2,68 +2,37 @@
 
 namespace EasyCart\Repositories;
 
-/**
- * SaveForLaterRepository
- * 
- * Handles storage of items saved for later
- */
+use EasyCart\Core\Database;
+
 class SaveForLaterRepository
 {
-    private $saveFile;
+    private $pdo;
 
     public function __construct()
     {
-        $this->saveFile = __DIR__ . '/../../data/user_saved_items.json';
+        $this->pdo = Database::getInstance()->getConnection();
     }
 
-    public function get()
+    public function get($userId)
     {
-        if (!isset($_SESSION)) {
-            session_start();
-        }
-
-        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] !== null) {
-            // Logged in user
-            return isset($_SESSION['saved_items']) ? $_SESSION['saved_items'] : [];
-        } else {
-            // Guest
-            return isset($_SESSION['guest_saved_items']) ? $_SESSION['guest_saved_items'] : [];
-        }
+        $stmt = $this->pdo->prepare("SELECT product_id FROM saved_items WHERE user_id = :user_id");
+        $stmt->execute([':user_id' => $userId]);
+        return $stmt->fetchAll(\PDO::FETCH_COLUMN);
     }
 
-    public function save($data)
+    public function add($userId, $productId)
     {
-        if (!isset($_SESSION)) {
-            session_start();
-        }
-
-        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] !== null) {
-            $_SESSION['saved_items'] = $data;
-            $this->saveToDisk($_SESSION['user_id'], $data);
-        } else {
-            $_SESSION['guest_saved_items'] = $data;
-        }
+        $stmt = $this->pdo->prepare("
+            INSERT INTO saved_items (user_id, product_id) 
+            VALUES (:user_id, :product_id)
+            ON CONFLICT (user_id, product_id) DO NOTHING
+        ");
+        $stmt->execute([':user_id' => $userId, ':product_id' => $productId]);
     }
 
-    public function saveToDisk($userId, $data)
+    public function remove($userId, $productId)
     {
-        $allData = file_exists($this->saveFile) ? json_decode(file_get_contents($this->saveFile), true) : [];
-        $allData[$userId] = $data;
-        
-        $dir = dirname($this->saveFile);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
-        
-        file_put_contents($this->saveFile, json_encode($allData, JSON_PRETTY_PRINT));
-    }
-
-    public function loadFromDisk($userId)
-    {
-        if (file_exists($this->saveFile)) {
-            $allData = json_decode(file_get_contents($this->saveFile), true);
-            return isset($allData[$userId]) ? $allData[$userId] : [];
-        }
-        return [];
+        $stmt = $this->pdo->prepare("DELETE FROM saved_items WHERE user_id = :user_id AND product_id = :product_id");
+        $stmt->execute([':user_id' => $userId, ':product_id' => $productId]);
     }
 }
