@@ -97,17 +97,9 @@ class ProductController
         $brands = $this->brandRepo->getAll(); // Fetch all brands for sidebar
 
         // Helper functions
-        $getCategory = function ($id) {
-            return $this->categoryRepo->find($id);
-        };
-
-        $isInWishlist = function ($productId) {
-            return $this->wishlistService->has($productId);
-        };
-
-        $formatPrice = function ($price) {
-            return \EasyCart\Helpers\FormatHelper::price($price);
-        };
+        $getCategory = [\EasyCart\Helpers\ViewHelper::class, 'getCategory'];
+        $isInWishlist = [\EasyCart\Helpers\ViewHelper::class, 'isInWishlist'];
+        $formatPrice = [\EasyCart\Helpers\ViewHelper::class, 'formatPrice'];
 
         include __DIR__ . '/../Views/layouts/header.php';
         include __DIR__ . '/../Views/products/index.php';
@@ -136,21 +128,10 @@ class ProductController
         $other_recommendations = $this->productRepo->getFromOtherCategories($product);
 
         // Helper functions
-        $getCategory = function ($id) {
-            return $this->categoryRepo->find($id);
-        };
-
-        $getBrand = function ($id) {
-            return $this->brandRepo->find($id);
-        };
-
-        $isInWishlist = function ($productId) {
-            return $this->wishlistService->has($productId);
-        };
-
-        $formatPrice = function ($price) {
-            return \EasyCart\Helpers\FormatHelper::price($price);
-        };
+        $getCategory = [\EasyCart\Helpers\ViewHelper::class, 'getCategory'];
+        $getBrand = [\EasyCart\Helpers\ViewHelper::class, 'getBrand'];
+        $isInWishlist = [\EasyCart\Helpers\ViewHelper::class, 'isInWishlist'];
+        $formatPrice = [\EasyCart\Helpers\ViewHelper::class, 'formatPrice'];
 
         include __DIR__ . '/../Views/layouts/header.php';
         include __DIR__ . '/../Views/products/detail.php';
@@ -213,18 +194,13 @@ class ProductController
         $product_count = count($filtered_products);
         $categories = $this->categoryRepo->getAll();
 
-        // Helper functions for views
-        $getCategory = function ($id) {
-            return $this->categoryRepo->find($id);
-        };
-
-        $isInWishlist = function ($productId) {
-            return $this->wishlistService->has($productId);
-        };
-
-        $formatPrice = function ($price) {
-            return \EasyCart\Helpers\FormatHelper::price($price);
-        };
+        // Helper functions defined in ViewHelper
+        // Used directly in views via static calls: EasyCart\Helpers\ViewHelper::getCategory($id)
+        // Or we can assign them to variables if view expects $getCategory variable
+        $getCategory = [\EasyCart\Helpers\ViewHelper::class, 'getCategory'];
+        $isInWishlist = [\EasyCart\Helpers\ViewHelper::class, 'isInWishlist'];
+        $formatPrice = [\EasyCart\Helpers\ViewHelper::class, 'formatPrice'];
+        $getBrand = [\EasyCart\Helpers\ViewHelper::class, 'getBrand'];
 
         include __DIR__ . '/../Views/layouts/header.php';
         include __DIR__ . '/../Views/brand/index.php';

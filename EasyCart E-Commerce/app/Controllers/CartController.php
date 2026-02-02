@@ -62,13 +62,8 @@ class CartController
         $estimated_totals = $this->pricingService->calculateEstimatedTotalRange($cart);
         $shipping_category = $this->pricingService->determineShippingCategory($cart);
 
-        $formatPrice = function ($price) {
-            return \EasyCart\Helpers\FormatHelper::price($price);
-        };
-
-        $getCategory = function ($id) {
-            return $this->categoryRepo->find($id);
-        };
+        $formatPrice = [\EasyCart\Helpers\ViewHelper::class, 'formatPrice'];
+        $getCategory = [\EasyCart\Helpers\ViewHelper::class, 'getCategory'];
 
         include __DIR__ . '/../Views/layouts/header.php';
         include __DIR__ . '/../Views/cart/index.php';
@@ -269,10 +264,7 @@ class CartController
     private function generateSavedItemHtml($item)
     {
         $item['formatted_price'] = \EasyCart\Helpers\FormatHelper::price($item['product']['price']);
-
-        ob_start();
-        include __DIR__ . '/../Views/components/saved_item.php';
-        return ob_get_clean();
+        return \EasyCart\Core\View::render('components/saved_item', $item);
     }
 
     private function generateCartItemHtml($item)
@@ -286,9 +278,7 @@ class CartController
             $item['shipping_type'] = ($item['product']['price'] >= 300) ? 'Freight Shipping' : 'Express Shipping';
         }
 
-        ob_start();
-        include __DIR__ . '/../Views/components/cart_item.php';
-        return ob_get_clean();
+        return \EasyCart\Core\View::render('components/cart_item', $item);
     }
     /**
      * Get cart count (AJAX)

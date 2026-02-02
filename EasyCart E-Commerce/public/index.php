@@ -18,8 +18,8 @@ require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../config/constants.php';
 
 // Initialize session
-use EasyCart\Services\SessionService;
-SessionService::init();
+use EasyCart\Core\Session;
+Session::init();
 
 // Helper functions for backward compatibility with views
 function getCartCount()

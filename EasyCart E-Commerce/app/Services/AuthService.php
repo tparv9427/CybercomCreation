@@ -12,10 +12,14 @@ use EasyCart\Repositories\UserRepository;
 class AuthService
 {
     private $userRepo;
+    private $cartRepo;
+    private $wishlistRepo;
 
     public function __construct()
     {
         $this->userRepo = new UserRepository();
+        $this->cartRepo = new \EasyCart\Repositories\CartRepository();
+        $this->wishlistRepo = new \EasyCart\Repositories\WishlistRepository();
     }
 
     /**
@@ -41,7 +45,7 @@ class AuthService
     public function login($email, $password)
     {
         $user = $this->userRepo->findByEmail($email);
-        
+
         if (!$user) {
             return false;
         }
@@ -56,7 +60,7 @@ class AuthService
         $_SESSION['user_email'] = $user['email'];
 
         // Merge guest data
-        SessionService::mergeGuestData($user['id']);
+        $this->mergeGuestData($user['id']);
 
         return $user;
     }
@@ -72,15 +76,13 @@ class AuthService
     public function register($email, $password, $name)
     {
         $userId = $this->userRepo->create($email, $password, $name);
-        
+
         if ($userId) {
             // Auto-login
             $_SESSION['user_id'] = $userId;
-            $_SESSION['user_name'] = $name;
-            $_SESSION['user_email'] = $email;
 
             // Merge guest data
-            SessionService::mergeGuestData($userId);
+            $this->mergeGuestData($userId);
         }
 
         return $userId;
@@ -93,10 +95,7 @@ class AuthService
     {
         // Clear session
         $_SESSION['user_id'] = null;
-        $_SESSION['user_name'] = null;
-        $_SESSION['user_email'] = null;
-        unset($_SESSION['cart']);
-        unset($_SESSION['wishlist']);
+        unset($_SESSION['cart_id']);
     }
 
     /**
@@ -111,5 +110,22 @@ class AuthService
         }
 
         return $this->userRepo->find($_SESSION['user_id']);
+    }
+
+    /**
+     * Merge guest data into user account
+     */
+    private function mergeGuestData($userId)
+    {
+        // Transfer cart ownership from guest to user
+        $this->cartRepo->transferGuestCartToUser($userId);
+
+        // Merge Wishlist
+        if (isset($_SESSION['guest_wishlist']) && !empty($_SESSION['guest_wishlist'])) {
+            foreach ($_SESSION['guest_wishlist'] as $pid => $val) {
+                $this->wishlistRepo->add($userId, $pid);
+            }
+            unset($_SESSION['guest_wishlist']);
+        }
     }
 }

@@ -36,18 +36,10 @@ class HomeController
         $newProducts = $this->productRepo->getNew();
         $categories = $this->categoryRepo->getAll();
 
-        // Helper functions for backward compatibility
-        $getCategory = function($id) {
-            return $this->categoryRepo->find($id);
-        };
-
-        $isInWishlist = function($productId) {
-            return $this->wishlistService->has($productId);
-        };
-
-        $formatPrice = function($price) {
-            return \EasyCart\Helpers\FormatHelper::price($price);
-        };
+        // Helper functions for backward compatibility - simplified using ViewHelper
+        $getCategory = [\EasyCart\Helpers\ViewHelper::class, 'getCategory'];
+        $isInWishlist = [\EasyCart\Helpers\ViewHelper::class, 'isInWishlist'];
+        $formatPrice = [\EasyCart\Helpers\ViewHelper::class, 'formatPrice'];
 
         // Include header
         include __DIR__ . '/../Views/layouts/header.php';

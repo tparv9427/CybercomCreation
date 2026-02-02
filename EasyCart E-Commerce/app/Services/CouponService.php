@@ -4,12 +4,7 @@ namespace EasyCart\Services;
 
 class CouponService
 {
-    private $couponsFile;
-
-    public function __construct()
-    {
-        $this->couponsFile = __DIR__ . '/../../data/coupons.json';
-    }
+    // DB-driven, no file needed
 
     /**
      * Validate a coupon code and return the discount percentage/details.

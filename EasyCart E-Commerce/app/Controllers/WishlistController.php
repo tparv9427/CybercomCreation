@@ -45,13 +45,8 @@ class WishlistController
             }
         }
 
-        $formatPrice = function ($price) {
-            return \EasyCart\Helpers\FormatHelper::price($price);
-        };
-
-        $getCategory = function ($id) {
-            return $this->categoryRepo->find($id);
-        };
+        $formatPrice = [\EasyCart\Helpers\ViewHelper::class, 'formatPrice'];
+        $getCategory = [\EasyCart\Helpers\ViewHelper::class, 'getCategory'];
 
         include __DIR__ . '/../Views/layouts/header.php';
         include __DIR__ . '/../Views/wishlist/index.php';
