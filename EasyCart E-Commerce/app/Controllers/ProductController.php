@@ -115,7 +115,7 @@ class ProductController
         $product = $this->productRepo->find($product_id);
 
         if (!$product) {
-            header('Location: products.php');
+            header('Location: /products');
             exit;
         }
 
@@ -147,7 +147,7 @@ class ProductController
         $page_title = 'Search Results';
 
         if (empty($query)) {
-            header('Location: products.php');
+            header('Location: /products');
             exit;
         }
 
@@ -174,7 +174,7 @@ class ProductController
         $brand = $this->brandRepo->find($brand_id);
 
         if (!$brand) {
-            header('Location: products.php');
+            header('Location: /products');
             exit;
         }
 

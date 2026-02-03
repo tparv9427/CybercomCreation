@@ -9,10 +9,10 @@
             <div class="footer-section">
                 <h4>Quick Links</h4>
                 <ul>
-                    <li><a href="index.php">Home</a></li>
-                    <li><a href="products.php">Shop</a></li>
-                    <li><a href="cart.php">Cart</a></li>
-                    <li><a href="wishlist.php">Wishlist</a></li>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">Shop</a></li>
+                    <li><a href="/cart">Cart</a></li>
+                    <li><a href="/wishlist">Wishlist</a></li>
                 </ul>
             </div>
             <div class="footer-section">
@@ -23,7 +23,7 @@
                     foreach ($footerCategories as $category):
                         ?>
                         <li><a
-                                href="products.php?category=<?php echo $category['id']; ?>"><?php echo $category['name']; ?></a>
+                                href="/products?category=<?php echo $category['id']; ?>"><?php echo $category['name']; ?></a>
                         </li>
                     <?php endforeach; ?>
                 </ul>
@@ -54,3 +54,4 @@
 </body>
 
 </html>
+

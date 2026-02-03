@@ -4,14 +4,16 @@
 // Helper functions: $getCategory, $getBrand, $isInWishlist, $formatPrice
 ?>
 
-<link rel="stylesheet" href="assets/css/product-details.css">
+<link rel="stylesheet" href="/assets/css/product-details.css">
 
 <!-- Breadcrumb -->
 <div class="breadcrumb">
-    <a href="index.php">Home</a> /
-    <a href="products.php?category=<?php echo $product['category_id']; ?>">
-        <?php echo $getCategory($product['category_id'])['name']; ?>
-    </a> /
+    <a href="/">Home</a> /
+    <?php if (isset($product['category_id']) && $product['category_id']): ?>
+        <a href="/products?category=<?php echo $product['category_id']; ?>">
+            <?php echo $getCategory($product['category_id'])['name']; ?>
+        </a> /
+    <?php endif; ?>
     <?php echo $product['name']; ?>
 </div>
 
@@ -28,9 +30,11 @@
         <!-- Right Side - Details (Center Column) -->
         <div class="product-center">
             <h1 class="product-title"><?php echo $product['name']; ?></h1>
-            <a href="brand.php?id=<?php echo $product['brand_id']; ?>" class="brand-link">
-                Visit the <?php echo $getBrand($product['brand_id'])['name']; ?> Store
-            </a>
+            <?php if (isset($product['brand_name']) && $product['brand_name']): ?>
+                <a href="/brand/<?php echo urlencode($product['brand_name']); ?>" class="brand-link">
+                    Visit the <?php echo htmlspecialchars($product['brand_name']); ?> Store
+                </a>
+            <?php endif; ?>
 
             <div class="product-rating-section">
                 <div class="rating-row">
@@ -100,9 +104,11 @@
             <?php endif; ?>
 
             <div class="product-meta">
-                <div class="meta-item">
-                    <strong>Brand:</strong> <?php echo $getBrand($product['brand_id'])['name']; ?>
-                </div>
+                <?php if (isset($product['brand_name']) && $product['brand_name']): ?>
+                    <div class="meta-item">
+                        <strong>Brand:</strong> <?php echo htmlspecialchars($product['brand_name']); ?>
+                    </div>
+                <?php endif; ?>
                 <div class="meta-item">
                     <strong>SKU:</strong> <?php echo strtoupper(substr($product['slug'], 0, 10)); ?>
                 </div>
@@ -151,7 +157,9 @@
             </div>
 
             <div class="buy-box-buttons">
-                <button class="btn-buy-box btn-add-to-cart" onclick="addToCart(<?php echo $product['id']; ?>, event)">
+                <button class="btn-buy-box btn-add-to-cart add-to-cart-btn-<?php echo $product['id']; ?>"
+                    data-product-id="<?php echo $product['id']; ?>"
+                    onclick="addToCart(<?php echo $product['id']; ?>, event)">
                     Add to Cart
                 </button>
                 <button class="btn-buy-box btn-buy-now" onclick="buyNow(<?php echo $product['id']; ?>)">
@@ -163,9 +171,11 @@
                 <div class="seller-row">
                     <span>Ships from</span> <span>EasyCart</span>
                 </div>
-                <div class="seller-row">
-                    <span>Sold by</span> <span><?php echo $getBrand($product['brand_id'])['name']; ?> Retail</span>
-                </div>
+                <?php if (isset($product['brand_name']) && $product['brand_name']): ?>
+                    <div class="seller-row">
+                        <span>Sold by</span> <span><?php echo htmlspecialchars($product['brand_name']); ?> Retail</span>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <div class="wishlist-row">
@@ -248,4 +258,4 @@
 </div>
 
 <!-- Page Specific Scripts -->
-<script src="assets/js/product-detail.js"></script>
+<script src="/assets/js/product-detail.js"></script>

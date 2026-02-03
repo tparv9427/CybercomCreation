@@ -1,12 +1,12 @@
 <?php
 if (!isLoggedIn()) {
-    header('Location: login.php');
+    header('Location: /login');
     exit;
 }
 $page_title = 'My Orders';
 ?>
-<link rel="stylesheet" href="assets/css/orders.css">
-<div class="breadcrumb"><a href="index.php">Home</a> / My Orders</div>
+<link rel="stylesheet" href="/assets/css/orders.css">
+<div class="breadcrumb"><a href="/">Home</a> / My Orders</div>
 <div class="container">
     <div class="section-header">
         <h2 class="section-title">My Orders</h2>
@@ -16,7 +16,7 @@ $page_title = 'My Orders';
         <?php if (empty($orders)): ?>
             <div class="empty-state">
                 <p>You haven't placed any orders yet.</p>
-                <a href="index.php" class="btn">Start Shopping</a>
+                <a href="/" class="btn">Start Shopping</a>
             </div>
         <?php else: ?>
             <?php foreach ($orders as $order): ?>

@@ -27,3 +27,4 @@ if (mobileSignInBtn && container) {
         container.classList.remove("right-panel-active");
     });
 }
+

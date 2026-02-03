@@ -39,19 +39,37 @@ class WishlistService
     public function toggle($productId)
     {
         $userId = $this->getUserId();
-        if (!$userId)
-            return false; // Or redirect to login
 
-        $wishlist = $this->wishlistRepo->get($userId);
+        if ($userId) {
+            // Logged-in user: use database
+            $wishlist = $this->wishlistRepo->get($userId);
 
-        if (in_array($productId, $wishlist)) {
-            // Remove
-            $this->wishlistRepo->remove($userId, $productId);
-            return false;
+            if (in_array($productId, $wishlist)) {
+                // Remove
+                $this->wishlistRepo->remove($userId, $productId);
+                return false;
+            } else {
+                // Add
+                $this->wishlistRepo->add($userId, $productId);
+                return true;
+            }
         } else {
-            // Add
-            $this->wishlistRepo->add($userId, $productId);
-            return true;
+            // Guest user: use session
+            if (!isset($_SESSION['guest_wishlist'])) {
+                $_SESSION['guest_wishlist'] = [];
+            }
+
+            $key = array_search($productId, $_SESSION['guest_wishlist']);
+            if ($key !== false) {
+                // Remove
+                unset($_SESSION['guest_wishlist'][$key]);
+                $_SESSION['guest_wishlist'] = array_values($_SESSION['guest_wishlist']); // Re-index
+                return false;
+            } else {
+                // Add
+                $_SESSION['guest_wishlist'][] = $productId;
+                return true;
+            }
         }
     }
 
@@ -96,11 +114,15 @@ class WishlistService
     public function has($productId)
     {
         $userId = $this->getUserId();
-        if (!$userId)
-            return false;
 
-        $wishlist = $this->wishlistRepo->get($userId);
-        return in_array($productId, $wishlist);
+        if ($userId) {
+            // Logged-in user: check database
+            $wishlist = $this->wishlistRepo->get($userId);
+            return in_array($productId, $wishlist);
+        } else {
+            // Guest user: check session
+            return isset($_SESSION['guest_wishlist']) && in_array($productId, $_SESSION['guest_wishlist']);
+        }
     }
 
     /**
@@ -111,10 +133,12 @@ class WishlistService
     public function getCount()
     {
         $userId = $this->getUserId();
-        if (!$userId)
-            return 0;
 
-        return count($this->wishlistRepo->get($userId));
+        if ($userId) {
+            return count($this->wishlistRepo->get($userId));
+        } else {
+            return isset($_SESSION['guest_wishlist']) ? count($_SESSION['guest_wishlist']) : 0;
+        }
     }
 
     /**
@@ -125,9 +149,11 @@ class WishlistService
     public function get()
     {
         $userId = $this->getUserId();
-        if (!$userId)
-            return [];
 
-        return $this->wishlistRepo->get($userId);
+        if ($userId) {
+            return $this->wishlistRepo->get($userId);
+        } else {
+            return $_SESSION['guest_wishlist'] ?? [];
+        }
     }
 }

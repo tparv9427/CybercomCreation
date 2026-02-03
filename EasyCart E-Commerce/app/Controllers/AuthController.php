@@ -45,9 +45,9 @@ class AuthController
             // Redirect to checkout if that's where they came from
             if (isset($_SESSION['checkout_redirect'])) {
                 unset($_SESSION['checkout_redirect']);
-                header('Location: checkout.php');
+                header('Location: /checkout');
             } else {
-                header('Location: index.php');
+                header('Location: /');
             }
             exit;
         } else {
@@ -82,11 +82,11 @@ class AuthController
         } else {
             // Attempt to register
             $userId = $this->authService->register($email, $password, $name);
-            
+
             if ($userId) {
                 // Session setup and guest data merge are handled inside AuthService::register
 
-                header('Location: index.php');
+                header('Location: /');
                 exit;
             } else {
                 $error = 'Email already exists';
@@ -102,7 +102,7 @@ class AuthController
     public function logout()
     {
         $this->authService->logout();
-        header('Location: index.php');
+        header('Location: /');
         exit;
     }
 
@@ -113,7 +113,7 @@ class AuthController
     {
         $page_title = $mode === 'login' ? 'Login' : 'Sign Up';
         $categories = $this->categoryRepo->getAll();
-        
+
         include __DIR__ . '/../Views/layouts/header.php';
         include __DIR__ . '/../Views/auth/auth_combined.php';
         include __DIR__ . '/../Views/layouts/footer.php';

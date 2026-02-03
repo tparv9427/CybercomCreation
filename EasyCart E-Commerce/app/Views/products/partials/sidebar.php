@@ -3,11 +3,11 @@
     <h4 class="filter-title">Category</h4>
     <ul class="filter-list">
         <li class="filter-item <?php echo !$category_id ? 'active' : ''; ?>">
-            <a href="products.php">All Products</a>
+            <a href="/products">All Products</a>
         </li>
         <?php foreach ($categories as $cat): ?>
             <li class="filter-item <?php echo $category_id == $cat['id'] ? 'active' : ''; ?>">
-                <a href="products.php?category=<?php echo $cat['id']; ?>">
+                <a href="/products?category=<?php echo $cat['id']; ?>">
                     <?php echo $cat['name']; ?>
                 </a>
             </li>
@@ -29,15 +29,14 @@
         ];
         foreach ($priceOptions as $value => $label):
             $isActive = $price_range == $value || (!$price_range && $value == '');
-            $url = 'products.php?';
+            $url = '/products?';
             if ($category_id)
                 $url .= 'category=' . $category_id . '&';
             if ($value)
                 $url .= 'price=' . $value;
             ?>
             <div class="filter-item <?php echo $isActive ? 'active' : ''; ?>">
-                <input type="radio" name="price" class="filter-checkbox" <?php echo $isActive ? 'checked' : ''; ?>
-                onclick="window.location.href='
+                <input type="radio" name="price" class="filter-checkbox" <?php echo $isActive ? 'checked' : ''; ?> onclick="window.location.href='
             <?php echo $url; ?>'">
                 <span onclick="window.location.href='<?php echo $url; ?>'">
                     <?php echo $label; ?>
@@ -52,12 +51,12 @@
     <h4 class="filter-title">Brand</h4>
     <ul class="filter-list">
         <li class="filter-item <?php echo !$brand_id ? 'active' : ''; ?>">
-            <a href="products.php<?php echo $category_id ? '?category=' . $category_id : ''; ?>">All Brands</a>
+            <a href="/products<?php echo $category_id ? '?category=' . $category_id : ''; ?>">All Brands</a>
         </li>
         <?php foreach ($brands as $brand): ?>
             <li class="filter-item <?php echo $brand_id == $brand['id'] ? 'active' : ''; ?>">
                 <a
-                    href="products.php?brand=<?php echo $brand['id']; ?><?php echo $category_id ? '&category=' . $category_id : ''; ?>">
+                    href="/products?brand=<?php echo $brand['id']; ?><?php echo $category_id ? '&category=' . $category_id : ''; ?>">
                     <?php echo $brand['name']; ?>
                 </a>
             </li>
@@ -71,7 +70,7 @@
     <div class="filter-list">
         <?php for ($i = 4; $i >= 3; $i--):
             $isActive = $rating_filter == $i;
-            $url = 'products.php?';
+            $url = '/products?';
             if ($category_id)
                 $url .= 'category=' . $category_id . '&';
             if ($brand_id)

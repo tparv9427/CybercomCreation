@@ -22,7 +22,7 @@
     const confirmModalMessage = document.getElementById('confirmModalMessage');
     const confirmModalBtn = document.getElementById('confirmModalBtn');
     const closeModalBtn = confirmationModal ? confirmationModal.querySelector('.close-modal') : null;
-    
+
     let confirmCallback = null;
 
     /**
@@ -35,15 +35,15 @@
      */
     function showConfirmationModal(options) {
         if (!confirmationModal) return;
-        
+
         // Set content
         if (confirmModalTitle) confirmModalTitle.textContent = options.title || 'Confirm Action';
         if (confirmModalMessage) confirmModalMessage.textContent = options.message || 'Are you sure?';
         if (confirmModalBtn) confirmModalBtn.textContent = options.confirmText || 'Confirm';
-        
+
         // Store callback
         confirmCallback = options.onConfirm || null;
-        
+
         // Show modal
         confirmationModal.classList.add('show');
         document.body.style.overflow = 'hidden';
@@ -59,7 +59,7 @@
 
     // Confirm button click
     if (confirmModalBtn) {
-        confirmModalBtn.addEventListener('click', function() {
+        confirmModalBtn.addEventListener('click', function () {
             if (confirmCallback && typeof confirmCallback === 'function') {
                 confirmCallback();
             }
@@ -68,7 +68,7 @@
     }
 
     // Close on click outside
-    window.addEventListener('click', function(event) {
+    window.addEventListener('click', function (event) {
         if (event.target === confirmationModal) {
             closeConfirmationModal();
         }
@@ -78,9 +78,9 @@
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', closeConfirmationModal);
     }
-    
+
     // Close on Escape key
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape' && confirmationModal && confirmationModal.classList.contains('show')) {
             closeConfirmationModal();
         }
@@ -93,8 +93,8 @@
             title: 'Confirm Logout',
             message: 'Are you sure you want to log out of your account?',
             confirmText: 'Logout',
-            onConfirm: function() {
-                window.location.href = 'logout.php';
+            onConfirm: function () {
+                window.location.href = '/logout';
             }
         });
     }

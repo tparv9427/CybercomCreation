@@ -3,10 +3,10 @@
 // $page_title, $cart_items, $pricing, $user (optional for pre-filling form)
 ?>
 
-<link rel="stylesheet" href="assets/css/checkout.css">
+<link rel="stylesheet" href="/assets/css/checkout.css">
 
 <div class="breadcrumb">
-    <a href="index.php">Home</a> / <a href="cart.php">Cart</a> / Checkout
+    <a href="/">Home</a> / <a href="/cart">Cart</a> / Checkout
 </div>
 
 <div class="container">
@@ -18,6 +18,7 @@
     <div class="checkout-layout">
         <div class="checkout-form">
             <form method="POST" id="checkoutForm">
+                <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                 <div class="form-section">
                     <h3>Shipping Information</h3>
                     <div class="form-row">
@@ -313,6 +314,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRF-TOKEN': getCsrfToken()
                         },
                         body: 'action=remove'
                     })
@@ -369,6 +371,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRF-TOKEN': getCsrfToken()
                         },
                         body: 'code=' + encodeURIComponent(code)
                     })
@@ -497,7 +500,7 @@
             message: 'Are you sure you want to cancel this order? Item(s) will be returned to your cart.',
             confirmText: 'Yes, Cancel',
             onConfirm: function() {
-                window.location.href = 'checkout.php?action=cancel';
+                window.location.href = '/checkout?action=cancel';
             }
         });
     }
@@ -547,6 +550,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRF-TOKEN': getCsrfToken()
                         },
                         body: `action=pricing&payment=${savedPayment}&shipping=${document.querySelector('input[name="shipping"]:checked')?.value || 'standard'}`
                     })
@@ -673,3 +677,4 @@
         e.target.value = e.target.value.replace(/\D/g, '');
     });
 </script>
+

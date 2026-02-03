@@ -25,7 +25,7 @@ class OrderController
     public function index()
     {
         if (!AuthService::check()) {
-            header('Location: login.php');
+            header('Location: /login');
             exit;
         }
 

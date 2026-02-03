@@ -2,6 +2,11 @@
 // ENHANCED MAIN.JS - PHASE 3 COMPLETE
 // ============================================
 
+// CSRF Token Helper
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+
 // Dark Mode Toggle
 const themeToggle = document.getElementById('themeToggle');
 const html = document.documentElement;
@@ -41,7 +46,7 @@ function performSearch() {
     const query = searchInput.value.trim();
 
     if (query) {
-        window.location.href = 'search.php?q=' + encodeURIComponent(query);
+        window.location.href = '/search?q=' + encodeURIComponent(query);
     }
 }
 
@@ -540,16 +545,39 @@ function addToCart(productId, event, quantity = 1) {
         button.innerHTML = '<span class="spinner"></span> Adding...';
     }
 
-    fetch('ajax_cart.php', {
+    fetch('/ajax/cart', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': getCsrfToken()
         },
         body: 'action=add&product_id=' + productId + '&quantity=' + quantity
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
+            if (data.max_stock_reached) {
+                showNotification(data.message, 'error');
+
+                // Disable all add to cart buttons for this product
+                const productButtons = document.querySelectorAll(`.add-to-cart-btn-${productId}`);
+                productButtons.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('disabled', 'max-added');
+                    btn.innerHTML = 'Max Added';
+                    btn.title = 'Maximum stock quantity reached';
+                });
+
+                // Specifically handle the button clicked if reference exists but class search missed it
+                if (button && !button.classList.contains(`add-to-cart-btn-${productId}`)) {
+                    button.disabled = true;
+                    button.innerHTML = 'Max Added';
+                }
+
+                // Still update cart count if success
+                if (data.success) {
+                    updateCartCount(data.cart_count);
+                }
+            } else if (data.success) {
                 showNotification('Product added to cart!', 'success');
                 updateCartCount(data.cart_count);
 
@@ -593,7 +621,7 @@ function addToCart(productId, event, quantity = 1) {
                 button.disabled = false;
                 button.innerHTML = 'Add to Cart';
             }
-            showNotification('Added to cart', 'success');
+            showNotification('Error connecting to server', 'error');
         });
 }
 
@@ -608,10 +636,11 @@ function updateQuantity(productId, quantity, disableInput = true) {
         quantityInput.disabled = true;
     }
 
-    fetch('ajax_cart.php', {
+    fetch('/ajax/cart', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': getCsrfToken()
         },
         body: `action=update&product_id=${productId}&quantity=${quantity}`
     })
@@ -636,6 +665,35 @@ function updateQuantity(productId, quantity, disableInput = true) {
                     if (!disableInput) {
                         quantityInput.focus();
                     }
+                }
+
+                // Update Add to Cart buttons state globally based on max stock
+                const maxStock = data.max_stock || 999;
+                const currentQty = parseInt(data.actual_quantity);
+                const productButtons = document.querySelectorAll(`.add-to-cart-btn-${productId}`);
+
+                if (currentQty >= maxStock) {
+                    productButtons.forEach(btn => {
+                        btn.disabled = true;
+                        btn.classList.add('disabled', 'max-added');
+                        if (btn.tagName === 'BUTTON') {
+                            btn.innerHTML = 'Max Added';
+                            btn.title = 'Maximum stock quantity reached';
+                        }
+                    });
+                } else {
+                    productButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('disabled', 'max-added');
+                        btn.title = 'Add to Cart';
+                        if (btn.tagName === 'BUTTON') {
+                            if (btn.classList.contains('quick-add-btn')) {
+                                btn.innerHTML = '🛒 Add to Cart';
+                            } else {
+                                btn.innerHTML = 'Add to Cart';
+                            }
+                        }
+                    });
                 }
 
                 // Update decrease button state (Minus vs Delete)
@@ -819,10 +877,11 @@ function removeFromCart(productId) {
                 cartItem.style.opacity = '0.5';
             }
 
-            fetch('ajax_cart.php', {
+            fetch('/ajax/cart', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 body: `action=remove&product_id=${productId}`
             })
@@ -849,6 +908,21 @@ function removeFromCart(productId) {
                         // Update cart summary
                         updateCartSummary(data);
                         updateCartCount(data.cart_count);
+
+                        // Re-enable Add to Cart buttons globally for this product
+                        const productButtons = document.querySelectorAll(`.add-to-cart-btn-${productId}`);
+                        productButtons.forEach(btn => {
+                            btn.disabled = false;
+                            btn.classList.remove('disabled', 'max-added');
+                            btn.title = 'Add to Cart';
+                            if (btn.tagName === 'BUTTON') {
+                                if (btn.classList.contains('quick-add-btn')) {
+                                    btn.innerHTML = '🛒 Add to Cart';
+                                } else {
+                                    btn.innerHTML = 'Add to Cart';
+                                }
+                            }
+                        });
 
                         // Check for shipping category change
                         if (data.shipping_category && data.shipping_category !== currentShippingCategory) {
@@ -959,10 +1033,11 @@ function updateWishlistCount(count) {
 // Fetch Initial Counts
 function fetchInitialCounts() {
     // Fetch Cart Count
-    fetch('ajax_cart.php', {
+    fetch('/ajax/cart', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': getCsrfToken()
         },
         body: 'action=count'
     })
@@ -975,10 +1050,11 @@ function fetchInitialCounts() {
         .catch(console.error);
 
     // Fetch Wishlist Count
-    fetch('ajax_wishlist.php', {
+    fetch('/ajax/wishlist', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': getCsrfToken()
         },
         body: 'action=count'
     })
@@ -1003,10 +1079,11 @@ function toggleWishlist(productId, event) {
 
     const button = event?.target.closest('.wishlist-btn');
 
-    fetch('ajax_wishlist.php', {
+    fetch('/ajax/wishlist', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': getCsrfToken()
         },
         body: 'action=toggle&product_id=' + productId
     })
@@ -1020,7 +1097,7 @@ function toggleWishlist(productId, event) {
                 } else {
                     button?.classList.remove('active');
                     if (button) button.innerHTML = '🤍';
-                    showNotification('Removed from wishlist', 'success');
+                    showNotification('Removed from wishlist', 'error');
                 }
                 updateWishlistCount(data.wishlist_count);
             } else {
@@ -1052,10 +1129,11 @@ function moveToCart(productId, event) {
     // Find the wishlist item card to remove it later
     const wishlistItem = button?.closest('.product-card'); // Assuming it's in a grid card
 
-    fetch('ajax_wishlist.php', {
+    fetch('/ajax/wishlist', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': getCsrfToken()
         },
         body: 'action=move&product_id=' + productId
     })
@@ -1221,10 +1299,11 @@ function updateCheckoutPricing() {
 
     const paymentMethod = paymentSelect ? paymentSelect.value : 'card';
 
-    fetch('ajax_checkout_pricing.php', {
+    fetch('/checkout/pricing', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': getCsrfToken()
         },
         body: 'shipping=' + shippingMethod + '&payment=' + paymentMethod
     })
@@ -1307,10 +1386,11 @@ function saveForLater(productId, event) {
         event.stopPropagation();
     }
 
-    fetch('ajax_cart.php', {
+    fetch('/ajax/cart', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': getCsrfToken()
         },
         body: `action=save_for_later&product_id=${productId}`
     })
@@ -1382,10 +1462,11 @@ function saveForLater(productId, event) {
 
 // Move item to cart from saved
 function moveToCartFromSaved(productId) {
-    fetch('ajax_cart.php', {
+    fetch('/ajax/cart', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': getCsrfToken()
         },
         body: `action=move_to_cart&product_id=${productId}`
     })
@@ -1451,3 +1532,5 @@ document.addEventListener('DOMContentLoaded', function () {
         paymentSelect.addEventListener('change', updateCheckoutPricing);
     }
 });
+
+

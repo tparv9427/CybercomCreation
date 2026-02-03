@@ -80,17 +80,25 @@ class CartController
         $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
         $quantity = isset($_POST['quantity']) ? (int) $_POST['quantity'] : 1;
 
-        $success = $this->cartService->add($product_id, $quantity);
+        $result = $this->cartService->add($product_id, $quantity);
 
-        if ($success) {
+        if ($result['success']) {
             $cart = $this->cartService->get();
             $shipping_category = $this->pricingService->determineShippingCategory($cart);
+
+            $message = 'Product added to cart';
+            if ($result['max_stock_reached']) {
+                $message = "Maximum stock reached! Only {$result['max_stock']} available.";
+            }
 
             echo json_encode([
                 'success' => true,
                 'cart_count' => $this->cartService->getCount(),
                 'shipping_category' => $shipping_category,
-                'message' => 'Product added to cart'
+                'message' => $message,
+                'max_stock_reached' => $result['max_stock_reached'],
+                'current_quantity' => $result['current_quantity'],
+                'max_stock' => $result['max_stock']
             ]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Product not found']);
@@ -116,6 +124,7 @@ class CartController
 
         $product = $this->productRepo->find($product_id);
         $item_total = $product ? $product['price'] * $actual_quantity : 0;
+        $max_stock = $product ? (int) $product['stock'] : 0;
 
         $estimated_totals = $this->pricingService->calculateEstimatedTotalRange($cart);
 
@@ -123,6 +132,7 @@ class CartController
             'success' => true,
             'cart_count' => $this->cartService->getCount(),
             'actual_quantity' => $actual_quantity,
+            'max_stock' => $max_stock,
             'shipping_category' => $shipping_category,
             'item_total' => \EasyCart\Helpers\FormatHelper::price($item_total),
             'subtotal' => \EasyCart\Helpers\FormatHelper::price($pricing['subtotal']),

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= csrf_token() ?>">
     <title><?php echo isset($page_title) ? $page_title . ' - ' . SITE_NAME : SITE_NAME; ?></title>
     <link
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap"
@@ -18,7 +19,7 @@
     <header class="header">
         <div class="header-container">
             <div class="logo">
-                <a href="index.php"><?php echo SITE_NAME; ?></a>
+                <a href="/"><?php echo SITE_NAME; ?></a>
             </div>
 
             <!-- Search Bar -->
@@ -36,14 +37,13 @@
 
             <!-- Navigation -->
             <nav class="nav" id="mainNav">
-                <a href="index.php">Home</a>
-                <a href="products.php">Shop</a>
+                <a href="/">Home</a>
+                <a href="/products">Shop</a>
                 <div class="dropdown">
                     <a href="#" class="dropdown-toggle">Categories ▾</a>
                     <div class="dropdown-menu">
                         <?php foreach ($categories as $category): ?>
-                            <a
-                                href="products.php?category=<?php echo $category['id']; ?>"><?php echo $category['name']; ?></a>
+                            <a href="/products?category=<?php echo $category['id']; ?>"><?php echo $category['name']; ?></a>
                         <?php endforeach; ?>
                     </div>
                 </div>
@@ -52,28 +52,28 @@
                     <div class="dropdown-menu">
                         <?php $brands = getBrands(); ?>
                         <?php foreach ($brands as $brand): ?>
-                            <a href="brand.php?id=<?php echo $brand['id']; ?>"><?php echo $brand['name']; ?></a>
+                            <a href="/brand/<?php echo $brand['id']; ?>"><?php echo $brand['name']; ?></a>
                         <?php endforeach; ?>
                     </div>
                 </div>
-                <a href="cart.php" class="cart-link">
+                <a href="/cart" class="cart-link">
                     Cart
                     <?php if (getCartCount() > 0): ?>
                         <span class="badge"><?php echo getCartCount(); ?></span>
                     <?php endif; ?>
                 </a>
-                <a href="wishlist.php" class="wishlist-link">
+                <a href="/wishlist" class="wishlist-link">
                     Wishlist
                     <?php if (getWishlistCount() > 0): ?>
                         <span class="badge"><?php echo getWishlistCount(); ?></span>
                     <?php endif; ?>
                 </a>
                 <?php if (isLoggedIn()): ?>
-                    <a href="orders.php">Orders</a>
-                    <a href="logout.php" onclick="confirmLogout(event)">Logout
+                    <a href="/orders">Orders</a>
+                    <a href="/logout" onclick="confirmLogout(event)">Logout
                         (<?php echo strtoupper($_SESSION['user_name']); ?>)</a>
                 <?php else: ?>
-                    <a href="login.php">Login</a>
+                    <a href="/login">Login</a>
                 <?php endif; ?>
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
                     <span class="sun-icon">☀️</span>

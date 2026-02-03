@@ -51,7 +51,7 @@ class CheckoutController
                     'quantity' => $_GET['quantity']
                 ];
             }
-            header('Location: login.php');
+            header('Location: /login');
             exit;
         }
 
@@ -60,7 +60,7 @@ class CheckoutController
             $pending = $_SESSION['pending_buynow'];
             unset($_SESSION['pending_buynow']);
             // Redirect to self with params to properly set state
-            header("Location: checkout.php?action=buynow&id={$pending['id']}&quantity={$pending['quantity']}");
+            header("Location: /checkout?action=buynow&id={$pending['id']}&quantity={$pending['quantity']}");
             exit;
         }
 
@@ -86,7 +86,7 @@ class CheckoutController
                 $_SESSION['buynow_cart'] = [$productId => $quantity];
                 $cart = [$productId => $quantity];
             } else {
-                header('Location: index.php'); // Invalid product
+                header('Location: /'); // Invalid product
                 exit;
             }
         } else {
@@ -99,7 +99,7 @@ class CheckoutController
 
         // Redirect if empty (only for normal cart)
         if (empty($cart) && !$isBuyNow) {
-            header('Location: index.php');
+            header('Location: /');
             exit;
         }
 
@@ -203,7 +203,7 @@ class CheckoutController
     public function process()
     {
         if (!AuthService::check()) {
-            header('Location: login.php');
+            header('Location: /login');
             exit;
         }
 
@@ -220,7 +220,7 @@ class CheckoutController
         }
 
         if (empty($cart)) {
-            header('Location: index.php'); // Redirect if cart is empty
+            header('Location: /'); // Redirect if cart is empty
             exit;
         }
 
@@ -286,7 +286,7 @@ class CheckoutController
             unset($_SESSION['buynow_cart']);
         }
 
-        header('Location: order-success.php');
+        header('Location: /order/success');
         exit;
     }
 
@@ -307,7 +307,7 @@ class CheckoutController
         }
 
         // Otherwise just redirect to cart
-        header('Location: cart.php');
+        header('Location: /cart');
         exit;
     }
 }

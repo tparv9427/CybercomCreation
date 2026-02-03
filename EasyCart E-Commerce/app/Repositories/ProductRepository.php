@@ -3,12 +3,13 @@
 namespace EasyCart\Repositories;
 
 use EasyCart\Core\Database;
+use EasyCart\Database\Queries;
 use PDO;
 
 /**
  * ProductRepository
  * 
- * Migrated to PostgreSQL
+ * Updated to use new schema with centralized queries
  */
 class ProductRepository
 {
@@ -21,14 +22,14 @@ class ProductRepository
 
     public function getAll()
     {
-        $stmt = $this->pdo->query("SELECT * FROM products ORDER BY id");
+        $stmt = $this->pdo->query(Queries::PRODUCT_GET_ALL);
         $products = $stmt->fetchAll();
         return $this->processProducts($products);
     }
 
     public function find($id)
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE id = :id");
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_FIND_BY_ID);
         $stmt->execute([':id' => $id]);
         $product = $stmt->fetch();
         return $product ? $this->processProduct($product) : null;
@@ -36,7 +37,7 @@ class ProductRepository
 
     public function getFeatured($limit = 20)
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE is_featured = true LIMIT :limit");
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_GET_FEATURED);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $this->processProducts($stmt->fetchAll());
@@ -44,7 +45,7 @@ class ProductRepository
 
     public function getNew($limit = 6)
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE is_new = true LIMIT :limit");
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_GET_NEW);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $this->processProducts($stmt->fetchAll());
@@ -52,15 +53,15 @@ class ProductRepository
 
     public function findByCategory($categoryId)
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE category_id = :id");
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_FIND_BY_CATEGORY);
         $stmt->execute([':id' => $categoryId]);
         return $this->processProducts($stmt->fetchAll());
     }
 
-    public function findByBrand($brandId)
+    public function findByBrand($brandName)
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE brand_id = :id");
-        $stmt->execute([':id' => $brandId]);
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_FIND_BY_BRAND);
+        $stmt->execute([':brand_name' => $brandName]);
         return $this->processProducts($stmt->fetchAll());
     }
 
@@ -70,11 +71,18 @@ class ProductRepository
         if (!$product)
             return null;
 
-        // Cast types
-        $product['id'] = (int) $product['id'];
-        $product['category_id'] = (int) $product['category_id'];
-        $product['brand_id'] = (int) $product['brand_id'];
+        // Map new schema fields to old field names for compatibility
+        $product['id'] = (int) $product['entity_id'];
+        $product['brand_id'] = null; // No longer used, brand is in attributes
         $product['price'] = (float) $product['price'];
+
+        // Get category_id from catalog_category_product table
+        if (!isset($product['category_id']) || !$product['category_id']) {
+            $catStmt = $this->pdo->prepare(Queries::PRODUCT_GET_CATEGORY_ID);
+            $catStmt->execute([':pid' => $product['entity_id']]);
+            $product['category_id'] = $catStmt->fetchColumn() ?: null;
+        }
+
         if (isset($product['original_price']))
             $product['original_price'] = (float) $product['original_price'];
         if (isset($product['rating']))
@@ -97,12 +105,25 @@ class ProductRepository
             $product['trust_badges'] = ['secure', 'warranty', 'fast_delivery'];
         }
 
+        // Get primary image from catalog_product_image table
+        if (!isset($product['image'])) {
+            $imageStmt = $this->pdo->prepare(Queries::PRODUCT_GET_PRIMARY_IMAGE);
+            $imageStmt->execute([':product_id' => $product['entity_id']]);
+            $imagePath = $imageStmt->fetchColumn();
+
+            if ($imagePath) {
+                $product['image'] = $imagePath;
+            }
+        }
+
         // Mock 'icon' from 'image'
         if (!isset($product['icon']) && isset($product['image'])) {
             $imagePath = $product['image'];
-            // If path doesn't start with assets, prepend the directory
-            if (strpos($imagePath, 'assets/') !== 0) {
-                $imagePath = 'assets/images/products/' . $imagePath;
+            // If path doesn't start with /assets, prepend the directory
+            if (strpos($imagePath, '/assets/') !== 0 && strpos($imagePath, 'assets/') !== 0) {
+                $imagePath = '/assets/images/products/' . $imagePath;
+            } elseif (strpos($imagePath, 'assets/') === 0) {
+                $imagePath = '/' . $imagePath;
             }
             $product['icon'] = '<img src="' . htmlspecialchars($imagePath) . '" alt="' . htmlspecialchars($product['name']) . '">';
         }
@@ -174,10 +195,16 @@ class ProductRepository
 
     public function getSimilarByBrand($currentProduct, $limit = 4)
     {
-        // Optimized: fetching from DB directly
-        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE brand_id = :bid AND id != :pid LIMIT :limit");
-        $stmt->bindValue(':bid', $currentProduct['brand_id'], PDO::PARAM_INT);
-        $stmt->bindValue(':pid', $currentProduct['id'], PDO::PARAM_INT);
+        // Get brand name from current product
+        $brandName = $currentProduct['brand_name'] ?? null;
+
+        if (!$brandName) {
+            return [];
+        }
+
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_SIMILAR_BY_BRAND);
+        $stmt->bindValue(':brand_name', $brandName, PDO::PARAM_STR);
+        $stmt->bindValue(':pid', $currentProduct['entity_id'], PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $this->processProducts($stmt->fetchAll());
@@ -185,9 +212,18 @@ class ProductRepository
 
     public function getSimilarByCategory($currentProduct, $limit = 4)
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE category_id = :cid AND id != :pid LIMIT :limit");
-        $stmt->bindValue(':cid', $currentProduct['category_id'], PDO::PARAM_INT);
-        $stmt->bindValue(':pid', $currentProduct['id'], PDO::PARAM_INT);
+        // Get category from current product
+        $categoryStmt = $this->pdo->prepare(Queries::PRODUCT_GET_CATEGORY_ID);
+        $categoryStmt->execute([':pid' => $currentProduct['entity_id']]);
+        $categoryId = $categoryStmt->fetchColumn();
+
+        if (!$categoryId) {
+            return [];
+        }
+
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_SIMILAR_BY_CATEGORY);
+        $stmt->bindValue(':cid', $categoryId, PDO::PARAM_INT);
+        $stmt->bindValue(':pid', $currentProduct['entity_id'], PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $this->processProducts($stmt->fetchAll());
@@ -195,9 +231,14 @@ class ProductRepository
 
     public function getFromOtherCategories($currentProduct, $limit = 4)
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE category_id != :cid AND id != :pid LIMIT :limit");
-        $stmt->bindValue(':cid', $currentProduct['category_id'], PDO::PARAM_INT);
-        $stmt->bindValue(':pid', $currentProduct['id'], PDO::PARAM_INT);
+        // Get category from current product
+        $categoryStmt = $this->pdo->prepare(Queries::PRODUCT_GET_CATEGORY_ID);
+        $categoryStmt->execute([':pid' => $currentProduct['entity_id']]);
+        $categoryId = $categoryStmt->fetchColumn();
+
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_FROM_OTHER_CATEGORIES);
+        $stmt->bindValue(':cid', $categoryId, PDO::PARAM_INT);
+        $stmt->bindValue(':pid', $currentProduct['entity_id'], PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $this->processProducts($stmt->fetchAll());
@@ -207,7 +248,8 @@ class ProductRepository
     {
         if (empty($query))
             return [];
-        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE name ILIKE :q OR description ILIKE :q");
+
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_SEARCH);
         $stmt->execute([':q' => "%$query%"]);
         return $this->processProducts($stmt->fetchAll());
     }

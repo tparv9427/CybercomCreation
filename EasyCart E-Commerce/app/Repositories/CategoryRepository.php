@@ -3,12 +3,13 @@
 namespace EasyCart\Repositories;
 
 use EasyCart\Core\Database;
+use EasyCart\Database\Queries;
 use PDO;
 
 /**
  * CategoryRepository
  * 
- * Migrated to PostgreSQL
+ * Updated to use new schema with centralized queries
  */
 class CategoryRepository
 {
@@ -21,23 +22,39 @@ class CategoryRepository
 
     public function getAll()
     {
-        $stmt = $this->pdo->query("SELECT * FROM categories ORDER BY id");
+        $stmt = $this->pdo->query(Queries::CATEGORY_GET_ALL);
         $results = $stmt->fetchAll();
 
-        // Map to ID-keyed array to maintain compatibility with existing views if necessary
-        // The existing views might iterate or look up by ID.
-        // Array_column can re-index.
+        // Map to ID-keyed array to maintain compatibility with existing views
+        // Map entity_id to id for backward compatibility
         $categories = [];
         foreach ($results as $row) {
-            $categories[$row['id']] = $row;
+            $row['id'] = $row['entity_id']; // Backward compatibility
+            $categories[$row['entity_id']] = $row;
         }
         return $categories;
     }
 
     public function find($id)
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM categories WHERE id = :id");
+        $stmt = $this->pdo->prepare(Queries::CATEGORY_FIND_BY_ID);
         $stmt->execute([':id' => $id]);
-        return $stmt->fetch() ?: null;
+        $category = $stmt->fetch();
+
+        if ($category) {
+            $category['id'] = $category['entity_id']; // Backward compatibility
+        }
+
+        return $category ?: null;
+    }
+
+    /**
+     * Get products in a category
+     */
+    public function getCategoryProducts($categoryId)
+    {
+        $stmt = $this->pdo->prepare(Queries::CATEGORY_GET_PRODUCTS);
+        $stmt->execute([':category_id' => $categoryId]);
+        return $stmt->fetchAll();
     }
 }

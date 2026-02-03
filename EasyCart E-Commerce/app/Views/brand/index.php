@@ -4,8 +4,8 @@
 
 <!-- Breadcrumb -->
 <div class="breadcrumb">
-    <a href="index.php">Home</a> / 
-    <a href="products.php">Brands</a> / 
+    <a href="/">Home</a> / 
+    <a href="/products">Brands</a> / 
     <?php echo $brand['name']; ?>
 </div>
 
@@ -52,7 +52,7 @@
         <?php else: ?>
             <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
                 <h3 style="font-size: 1.5rem; color: var(--secondary); margin-bottom: 1rem;">No products found for this brand</h3>
-                <a href="products.php" class="btn" style="margin-top: 2rem;">View All Products</a>
+                <a href="/products" class="btn" style="margin-top: 2rem;">View All Products</a>
             </div>
         <?php endif; ?>
     </div>
@@ -72,3 +72,5 @@
     include __DIR__ . '/../partials/pagination.php'; 
     ?>
 </div>
+
+

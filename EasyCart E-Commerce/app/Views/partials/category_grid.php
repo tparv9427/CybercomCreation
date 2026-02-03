@@ -24,7 +24,7 @@ $subtitle = $subtitle ?? "Find what you're looking for";
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
         <?php foreach ($categories as $category): ?>
-            <a href="products.php?category=<?php echo $category['id']; ?>" style="text-decoration: none;">
+            <a href="/products?category=<?php echo $category['id']; ?>" style="text-decoration: none;">
                 <div style="background: var(--card-bg); padding: 3rem 2rem; border-radius: 20px; text-align: center; transition: all 0.3s; box-shadow: var(--shadow); cursor: pointer;">
                     <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: var(--primary); margin-bottom: 0.5rem;">
                         <?php echo htmlspecialchars($category['name']); ?>
@@ -35,3 +35,5 @@ $subtitle = $subtitle ?? "Find what you're looking for";
         <?php endforeach; ?>
     </div>
 </div>
+
+

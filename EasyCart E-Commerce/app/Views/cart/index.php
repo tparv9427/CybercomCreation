@@ -10,10 +10,10 @@
 
 
 
-<link rel="stylesheet" href="assets/css/cart.css">
+<link rel="stylesheet" href="/assets/css/cart.css">
 
 <div class="breadcrumb">
-    <a href="index.php">Home</a> / Shopping Cart
+    <a href="/">Home</a> / Shopping Cart
 </div>
 
 <div class="container">
@@ -58,8 +58,8 @@
                 </div>
 
                 <div class="cart-actions">
-                    <button class="btn btn-primary" onclick="window.location.href='checkout.php'">Checkout</button>
-                    <button class="btn btn-outline" onclick="window.location.href='index.php'">Continue Shopping</button>
+                    <button class="btn btn-primary" onclick="window.location.href='/checkout'">Checkout</button>
+                    <button class="btn btn-outline" onclick="window.location.href='/'">Continue Shopping</button>
                 </div>
             </div>
         </div>
@@ -70,7 +70,7 @@
             <div class="empty-icon">🛒</div>
             <h3>Your cart is empty</h3>
             <p>Add some products to get started!</p>
-            <a href="products.php" class="btn">Shop Now</a>
+            <a href="/products" class="btn">Shop Now</a>
         </div>
     <?php endif; ?>
 
@@ -89,3 +89,4 @@
         </div>
     <?php endif; ?>
 </div>
+

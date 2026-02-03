@@ -1,13 +1,89 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
-
-    # Redirect Trailing Slashes...
+    
+    # ============================================================================
+    # SECURITY: Block any URL containing .php (except internal rewrites)
+    # ============================================================================
+    RewriteCond %{THE_REQUEST} \.php [NC]
+    RewriteRule ^ - [F,L]
+    
+    # ============================================================================
+    # SECURITY: Block direct access to PHP files (except index.php)
+    # ============================================================================
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteCond %{REQUEST_FILENAME} \.php$
+    RewriteCond %{REQUEST_URI} !^/index\.php$
+    RewriteRule ^ - [F,L]
+    
+    # ============================================================================
+    # Asset Access: Allow access to /assets directory
+    # ============================================================================
+    RewriteCond %{REQUEST_URI} ^/assets/
+    RewriteRule ^ - [L]
+    
+    # Asset Access: Allow access to root-level assets (for future migration)
+    # ============================================================================
+    RewriteCond %{REQUEST_URI} ^/(css|js|images)/
+    RewriteCond %{DOCUMENT_ROOT}/../%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ ../$1 [L]
+    
+    # ============================================================================
+    # URL Cleanup: Redirect trailing slashes
+    # ============================================================================
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)/$ /$1 [L,R=301]
-
-    # Handle Front Controller...
+    
+    # ============================================================================
+    # Front Controller: Route all requests to index.php
+    # ============================================================================
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# ============================================================================
+# Security Headers
+# ============================================================================
+<IfModule mod_headers.c>
+    # Prevent MIME type sniffing
+    Header set X-Content-Type-Options "nosniff"
+    
+    # Prevent clickjacking
+    Header set X-Frame-Options "SAMEORIGIN"
+    
+    # Enable XSS protection
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # Referrer policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Remove server signature
+    Header unset X-Powered-By
+</IfModule>
+
+# ============================================================================
+# Directory Security
+# ============================================================================
+# Disable directory browsing
+Options -Indexes
+
+# Disable server signature
+ServerSignature Off
+
+# ============================================================================
+# File Protection: Block access to sensitive files
+# ============================================================================
+<FilesMatch "\.(env|log|sql|md|json|lock|git|gitignore|htaccess|htpasswd)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ============================================================================
+# PHP Security Settings
+# ============================================================================
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value error_log /var/log/php_errors.log
 </IfModule>

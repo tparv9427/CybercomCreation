@@ -2,8 +2,8 @@
 // Variables passed from WishlistController:
 // $page_title, $wishlist_items
 ?>
-<link rel="stylesheet" href="assets/css/cart.css">
-<div class="breadcrumb"><a href="index.php">Home</a> / Wishlist</div>
+<link rel="stylesheet" href="/assets/css/cart.css">
+<div class="breadcrumb"><a href="/">Home</a> / Wishlist</div>
 <div class="container">
     <div class="section-header">
         <h2 class="section-title">My Wishlist</h2>
@@ -20,7 +20,9 @@
             <div class="empty-icon">🤍</div>
             <h3>Your wishlist is empty</h3>
             <p>Save items you love for later!</p>
-            <a href="products.php" class="btn">Start Shopping</a>
+            <a href="/products" class="btn">Start Shopping</a>
         </div>
     <?php endif; ?>
 </div>
+
+

@@ -13,19 +13,19 @@
  */
 ?>
 <div class="product-card">
-    <div class="product-image" onclick="window.location.href='product.php?id=<?php echo $product['id']; ?>'">
+    <div class="product-image" onclick="window.location.href='/product/<?php echo $product['id']; ?>'">
         <?php echo $product['icon']; ?>
         <?php if ($product['discount_percent'] > 0): ?>
             <span class="product-badge">-<?php echo $product['discount_percent']; ?>%</span>
         <?php elseif ($product['new']): ?>
             <span class="product-badge new">New</span>
         <?php endif; ?>
-        <button class="wishlist-btn <?php echo isInWishlist($product['id']) ? 'active' : ''; ?>" 
-                onclick="toggleWishlist(<?php echo $product['id']; ?>, event)">
+        <button class="wishlist-btn <?php echo isInWishlist($product['id']) ? 'active' : ''; ?>"
+            onclick="toggleWishlist(<?php echo $product['id']; ?>, event)">
             <?php echo isInWishlist($product['id']) ? '❤️' : '🤍'; ?>
         </button>
     </div>
-    <div class="product-info" onclick="window.location.href='product.php?id=<?php echo $product['id']; ?>'">
+    <div class="product-info" onclick="window.location.href='/product/<?php echo $product['id']; ?>'">
         <!-- Always visible -->
         <div class="product-name"><?php echo $product['name']; ?></div>
         <div class="product-price">
@@ -34,18 +34,21 @@
                 <span class="product-price-original"><?php echo formatPrice($product['original_price']); ?></span>
             <?php endif; ?>
         </div>
-        
+
         <!-- Revealed on hover -->
         <div class="product-details-hover">
             <div class="product-category"><?php echo $getCategory($product['category_id'])['name']; ?></div>
             <div class="product-rating">
                 <span class="stars">
-                    <?php 
+                    <?php
                     $fullStars = floor($product['rating']);
                     $halfStar = ($product['rating'] - $fullStars) >= 0.5;
-                    for ($i = 0; $i < $fullStars; $i++) echo '★';
-                    if ($halfStar) echo '☆';
-                    for ($i = ceil($product['rating']); $i < 5; $i++) echo '☆';
+                    for ($i = 0; $i < $fullStars; $i++)
+                        echo '★';
+                    if ($halfStar)
+                        echo '☆';
+                    for ($i = ceil($product['rating']); $i < 5; $i++)
+                        echo '☆';
                     ?>
                 </span>
                 <span class="review-count">(<?php echo $product['reviews_count']; ?>)</span>
@@ -53,10 +56,13 @@
         </div>
     </div>
     <div class="card-actions" style="display: flex; gap: 0.5rem; width: 100%;">
-        <button class="quick-add-btn" onclick="addToCart(<?php echo $product['id']; ?>, event)" title="Add to Cart" style="flex: 1;">
+        <button class="quick-add-btn add-to-cart-btn-<?php echo $product['id']; ?>"
+            data-product-id="<?php echo $product['id']; ?>" onclick="addToCart(<?php echo $product['id']; ?>, event)"
+            title="Add to Cart" style="flex: 1;">
             🛒 Add to Cart
         </button>
-        <button class="save-btn" onclick="saveForLater(<?php echo $product['id']; ?>, event)" title="Save for Later" style="width: 40px; background: white; border: 1px solid #ddd; border-radius: 4px; color: #555; cursor: pointer; transition: all 0.2s;">
+        <button class="save-btn" onclick="saveForLater(<?php echo $product['id']; ?>, event)" title="Save for Later"
+            style="width: 40px; background: white; border: 1px solid #ddd; border-radius: 4px; color: #555; cursor: pointer; transition: all 0.2s;">
             🔖
         </button>
     </div>

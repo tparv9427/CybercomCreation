@@ -18,7 +18,7 @@
     <p class="recommendations-subtitle"><?php echo $subtitle; ?></p>
     <div class="recommendation-grid">
         <?php foreach ($products as $rec): ?>
-            <div class="recommendation-card" onclick="window.location.href='product.php?id=<?php echo $rec['id']; ?>'">
+            <div class="recommendation-card" onclick="window.location.href='/product/<?php echo $rec['id']; ?>'">
                 <div class="recommendation-image"><?php echo $rec['icon']; ?></div>
                 <div class="recommendation-info">
                     <?php if (isset($showCategory) && $showCategory): ?>
@@ -44,3 +44,5 @@
     </div>
 </div>
 <?php endif; ?>
+
+

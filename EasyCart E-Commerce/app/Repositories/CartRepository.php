@@ -3,7 +3,13 @@
 namespace EasyCart\Repositories;
 
 use EasyCart\Core\Database;
+use EasyCart\Database\Queries;
 
+/**
+ * CartRepository
+ * 
+ * Updated to use new schema: sales_cart, sales_cart_product
+ */
 class CartRepository
 {
     private $pdo;
@@ -33,22 +39,19 @@ class CartRepository
 
         // Try to find existing cart
         if ($userId) {
-            $stmt = $this->pdo->prepare("SELECT id FROM carts WHERE user_id = :user_id");
+            $stmt = $this->pdo->prepare(Queries::CART_FIND_BY_USER);
             $stmt->execute([':user_id' => $userId]);
         } else {
-            $stmt = $this->pdo->prepare("SELECT id FROM carts WHERE session_id = :session_id");
+            $stmt = $this->pdo->prepare(Queries::CART_FIND_BY_SESSION);
             $stmt->execute([':session_id' => $sessionId]);
         }
 
-        $cartId = $stmt->fetchColumn();
+        $cart = $stmt->fetch();
+        $cartId = $cart ? $cart['cart_id'] : null;
 
         // Create new cart if not found
         if (!$cartId) {
-            $stmt = $this->pdo->prepare("
-                INSERT INTO carts (user_id, session_id) 
-                VALUES (:user_id, :session_id) 
-                RETURNING id
-            ");
+            $stmt = $this->pdo->prepare(Queries::CART_CREATE);
             $stmt->execute([
                 ':user_id' => $userId,
                 ':session_id' => $sessionId
@@ -68,17 +71,13 @@ class CartRepository
     {
         $cartId = $this->getCartId();
 
-        $stmt = $this->pdo->prepare("
-            SELECT product_id, quantity 
-            FROM cart_items 
-            WHERE cart_id = :cart_id
-        ");
+        $stmt = $this->pdo->prepare(Queries::CART_GET_PRODUCTS);
         $stmt->execute([':cart_id' => $cartId]);
         $items = $stmt->fetchAll();
 
         $cart = [];
         foreach ($items as $item) {
-            $cart[$item['product_id']] = $item['quantity'];
+            $cart[$item['product_entity_id']] = $item['quantity'];
         }
 
         return $cart;
@@ -95,15 +94,12 @@ class CartRepository
             $this->pdo->beginTransaction();
 
             // Clear existing items
-            $stmt = $this->pdo->prepare("DELETE FROM cart_items WHERE cart_id = :cart_id");
+            $stmt = $this->pdo->prepare(Queries::CART_CLEAR_PRODUCTS);
             $stmt->execute([':cart_id' => $cartId]);
 
             // Insert new items
             if (!empty($cartData)) {
-                $itemStmt = $this->pdo->prepare("
-                    INSERT INTO cart_items (cart_id, product_id, quantity) 
-                    VALUES (:cart_id, :product_id, :quantity)
-                ");
+                $itemStmt = $this->pdo->prepare(Queries::CART_ADD_PRODUCT);
                 foreach ($cartData as $productId => $quantity) {
                     $itemStmt->execute([
                         ':cart_id' => $cartId,
@@ -114,7 +110,11 @@ class CartRepository
             }
 
             // Update cart timestamp
-            $stmt = $this->pdo->prepare("UPDATE carts SET updated_at = CURRENT_TIMESTAMP WHERE id = :cart_id");
+            $stmt = $this->pdo->prepare("
+                UPDATE sales_cart 
+                SET updated_at = CURRENT_TIMESTAMP 
+                WHERE cart_id = :cart_id
+            ");
             $stmt->execute([':cart_id' => $cartId]);
 
             $this->pdo->commit();
@@ -139,17 +139,17 @@ class CartRepository
     public function loadUserCart($userId)
     {
         $stmt = $this->pdo->prepare("
-            SELECT ci.product_id, ci.quantity 
-            FROM cart_items ci
-            JOIN carts c ON ci.cart_id = c.id
-            WHERE c.user_id = :user_id
+            SELECT ci.product_entity_id, ci.quantity 
+            FROM sales_cart_product ci
+            JOIN sales_cart c ON ci.cart_id = c.cart_id
+            WHERE c.user_id = :user_id AND c.is_active = TRUE
         ");
         $stmt->execute([':user_id' => $userId]);
         $items = $stmt->fetchAll();
 
         $cart = [];
         foreach ($items as $item) {
-            $cart[$item['product_id']] = $item['quantity'];
+            $cart[$item['product_entity_id']] = $item['quantity'];
         }
 
         return $cart;
@@ -168,37 +168,39 @@ class CartRepository
 
         try {
             // Check if user already has a cart
-            $stmt = $this->pdo->prepare("SELECT id FROM carts WHERE user_id = :user_id");
+            $stmt = $this->pdo->prepare(Queries::CART_FIND_BY_USER);
             $stmt->execute([':user_id' => $userId]);
-            $userCartId = $stmt->fetchColumn();
+            $userCart = $stmt->fetch();
+            $userCartId = $userCart ? $userCart['cart_id'] : null;
 
             if ($userCartId && $userCartId != $guestCartId) {
                 // Merge guest cart into user cart
                 $this->pdo->beginTransaction();
 
                 // Get guest items
-                $stmt = $this->pdo->prepare("SELECT product_id, quantity FROM cart_items WHERE cart_id = :cart_id");
+                $stmt = $this->pdo->prepare(Queries::CART_GET_PRODUCTS);
                 $stmt->execute([':cart_id' => $guestCartId]);
                 $guestItems = $stmt->fetchAll();
 
                 // Merge into user cart
                 $mergeStmt = $this->pdo->prepare("
-                    INSERT INTO cart_items (cart_id, product_id, quantity) 
+                    INSERT INTO sales_cart_product (cart_id, product_entity_id, quantity) 
                     VALUES (:cart_id, :product_id, :quantity)
-                    ON CONFLICT (cart_id, product_id) 
-                    DO UPDATE SET quantity = cart_items.quantity + EXCLUDED.quantity
+                    ON CONFLICT (cart_id, product_entity_id) 
+                    DO UPDATE SET quantity = sales_cart_product.quantity + EXCLUDED.quantity,
+                                  updated_at = CURRENT_TIMESTAMP
                 ");
 
                 foreach ($guestItems as $item) {
                     $mergeStmt->execute([
                         ':cart_id' => $userCartId,
-                        ':product_id' => $item['product_id'],
+                        ':product_id' => $item['product_entity_id'],
                         ':quantity' => $item['quantity']
                     ]);
                 }
 
-                // Delete guest cart
-                $stmt = $this->pdo->prepare("DELETE FROM carts WHERE id = :cart_id");
+                // Inactivate guest cart (don't delete)
+                $stmt = $this->pdo->prepare(Queries::CART_INACTIVATE);
                 $stmt->execute([':cart_id' => $guestCartId]);
 
                 $this->pdo->commit();
@@ -207,11 +209,7 @@ class CartRepository
                 $_SESSION['cart_id'] = $userCartId;
             } else {
                 // Just update ownership of guest cart
-                $stmt = $this->pdo->prepare("
-                    UPDATE carts 
-                    SET user_id = :user_id, session_id = NULL 
-                    WHERE id = :cart_id
-                ");
+                $stmt = $this->pdo->prepare(Queries::CART_UPDATE_OWNERSHIP);
                 $stmt->execute([
                     ':user_id' => $userId,
                     ':cart_id' => $guestCartId

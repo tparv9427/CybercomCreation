@@ -8,7 +8,9 @@ $order_id = $_SESSION['last_order_id'] ?? 'ORD-UNKNOWN';
     <p style="font-size: 1.2rem; color: var(--text); margin-bottom: 2rem;">Your order ID is: <strong><?php echo $order_id; ?></strong></p>
     <p style="color: var(--secondary); margin-bottom: 3rem;">We'll send you a confirmation email shortly.</p>
     <div style="display: flex; gap: 1rem; justify-content: center;">
-        <a href="orders.php" class="btn btn-primary">View Orders</a>
-        <a href="products.php" class="btn btn-outline">Continue Shopping</a>
+        <a href="/orders" class="btn btn-primary">View Orders</a>
+        <a href="/products" class="btn btn-outline">Continue Shopping</a>
     </div>
 </div>
+
+

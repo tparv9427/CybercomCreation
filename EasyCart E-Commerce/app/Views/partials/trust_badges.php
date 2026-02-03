@@ -46,3 +46,4 @@ if (isset($product['trust_badges']) && !empty($product['trust_badges'])): ?>
         endforeach; ?>
     </div>
 <?php endif; ?>
+

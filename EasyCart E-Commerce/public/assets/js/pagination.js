@@ -110,3 +110,4 @@ function initPaginationLinks() {
     // Re-run the event listener setup
     document.dispatchEvent(new Event('DOMContentLoaded'));
 }
+

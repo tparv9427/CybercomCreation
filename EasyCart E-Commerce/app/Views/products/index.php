@@ -6,7 +6,7 @@
 <?php include __DIR__ . '/partials/breadcrumb.php'; ?>
 
 <!-- Custom CSS for Products Page -->
-<link rel="stylesheet" href="assets/css/products.css">
+<link rel="stylesheet" href="/assets/css/products.css">
 
 <!-- Main Content -->
 <div class="container plp-container">
@@ -41,3 +41,4 @@
         ?>
     </div>
 </div>
+

@@ -1,5 +1,5 @@
 <div class="cart-item" data-product-id="<?php echo $item['product']['id']; ?>">
-    <div class="item-image" onclick="window.location.href='product.php?id=<?php echo $item['product']['id']; ?>'">
+    <div class="item-image" onclick="window.location.href='/product/<?php echo $item['product']['id']; ?>'">
         <?php echo $item['product']['icon']; ?>
     </div>
     <div class="item-details">
@@ -41,3 +41,4 @@
     </div>
     <button class="item-remove" onclick="removeFromCart(<?php echo $item['product']['id']; ?>)">×</button>
 </div>
+

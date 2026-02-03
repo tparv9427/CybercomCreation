@@ -40,13 +40,13 @@ class CartService
      * 
      * @param int $productId
      * @param int $quantity
-     * @return bool
+     * @return array ['success' => bool, 'max_stock_reached' => bool, 'current_quantity' => int, 'max_stock' => int]
      */
     public function add($productId, $quantity = 1)
     {
         $product = $this->productRepo->find($productId);
         if (!$product) {
-            return false;
+            return ['success' => false, 'max_stock_reached' => false, 'current_quantity' => 0, 'max_stock' => 0];
         }
 
         $currentStock = isset($product['stock']) ? (int) $product['stock'] : 999;
@@ -56,17 +56,26 @@ class CartService
             $cart[$productId] = 0;
         }
 
-        $newQuantity = $cart[$productId] + $quantity;
+        $oldQuantity = $cart[$productId];
+        $newQuantity = $oldQuantity + $quantity;
+        $maxStockReached = false;
 
         // Enforce max stock
         if ($newQuantity > $currentStock) {
             $newQuantity = $currentStock;
+            $maxStockReached = true;
         }
 
         $cart[$productId] = $newQuantity;
         $this->cartRepo->save($cart);
 
-        return true;
+        return [
+            'success' => true,
+            'max_stock_reached' => $maxStockReached || ($newQuantity >= $currentStock),
+            'current_quantity' => $newQuantity,
+            'max_stock' => $currentStock,
+            'was_capped' => $maxStockReached
+        ];
     }
 
     /**

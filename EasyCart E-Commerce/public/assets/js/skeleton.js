@@ -256,3 +256,4 @@ async function simulateLoading(showFunc, hideFunc, duration = 1000) {
     await delay(duration);
     hideFunc();
 }
+

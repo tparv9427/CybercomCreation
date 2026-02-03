@@ -21,3 +21,5 @@
     <!-- Reviews Tab -->
     <?php include __DIR__ . '/reviews_section.php'; ?>
 </div>
+
+

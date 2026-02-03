@@ -1,5 +1,5 @@
 <div class="cart-item" style="opacity: 0.9;" id="saved-item-<?php echo $item['product']['id']; ?>">
-    <div class="item-image" onclick="window.location.href='product.php?id=<?php echo $item['product']['id']; ?>'">
+    <div class="item-image" onclick="window.location.href='/product/<?php echo $item['product']['id']; ?>'">
         <?php echo $item['product']['icon']; ?>
     </div>
     <div class="item-details">
@@ -14,3 +14,4 @@
     </div>
     <div class="item-total"></div>
 </div>
+
