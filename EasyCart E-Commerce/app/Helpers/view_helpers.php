@@ -45,7 +45,7 @@ function csrf_field(): string
  */
 function csrf_token(): string
 {
-    return CSRF::getToken();
+    return CSRF::generateToken();
 }
 
 /**

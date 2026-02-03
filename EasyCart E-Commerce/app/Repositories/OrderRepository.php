@@ -176,4 +176,35 @@ class OrderRepository
 
         return $order;
     }
+    /**
+     * Add address to order
+     */
+    public function addAddress($orderId, $type, $data)
+    {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO sales_order_address 
+            (order_id, address_type, first_name, last_name, email, phone, address_line_one, city, state, postal_code, country)
+            VALUES 
+            (:order_id, :type, :first_name, :last_name, :email, :phone, :address_line_one, :city, :state, :postal_code, :country)
+        ");
+
+        // Simple name split for now if full name provided
+        $parts = explode(' ', $data['name'] ?? '', 2);
+        $firstName = $parts[0] ?? '';
+        $lastName = $parts[1] ?? '';
+
+        return $stmt->execute([
+            ':order_id' => $orderId,
+            ':type' => $type,
+            ':first_name' => $firstName,
+            ':last_name' => $lastName,
+            ':email' => $data['email'] ?? '',
+            ':phone' => $data['phone'] ?? '',
+            ':address_line_one' => $data['address'] ?? '',
+            ':city' => $data['city'] ?? '',
+            ':state' => '', // Not in form yet
+            ':postal_code' => $data['zip'] ?? '',
+            ':country' => 'India' // Default
+        ]);
+    }
 }

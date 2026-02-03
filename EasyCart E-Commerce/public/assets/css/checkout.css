@@ -1,57 +1,60 @@
 .checkout-layout {
     display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 1.5rem;
-    max-width: 1200px;
+    grid-template-columns: 1fr 320px;
+    /* Reduced sidebar width */
+    gap: 1rem;
+    /* Reduced from 1.5rem */
+    max-width: 1100px;
+    /* Tighter container */
     margin: 0 auto;
 }
 
 .checkout-form {
     background: var(--card-bg);
-    padding: 1.5rem;
-    border-radius: 12px;
+    padding: 1rem;
+    /* Reduced from 1.5rem */
+    border-radius: 8px;
     box-shadow: var(--shadow);
 }
 
 .form-section {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
     border-bottom: 1px solid var(--border);
 }
 
-.form-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
 .form-section h3 {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
     color: var(--primary);
     font-weight: 600;
 }
 
 .form-group {
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.85rem;
 }
 
 /* Floating Label Styles */
 .form-group.floating-label {
     position: relative;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .form-group.floating-label input,
 .form-group.floating-label select {
     width: 100%;
-    padding: 16px 12px 8px;
-    font-size: 1rem;
+    padding: 12px 10px 6px;
+    /* Reduced from 16px 12px 8px */
+    font-size: 0.9rem;
+    /* Reduced from 1rem */
     border: 1.5px solid var(--border);
     border-radius: 4px;
     background: var(--card-bg);
     color: var(--primary);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
+    height: 42px;
+    /* Explicit height control */
 }
 
 /* Override browser autofill styles */
@@ -88,10 +91,12 @@
 
 .form-group.floating-label label {
     position: absolute;
-    left: 12px;
+    left: 10px;
+    /* Reduced from 12px */
     top: 50%;
     transform: translateY(-50%);
-    font-size: 1rem;
+    font-size: 0.85rem;
+    /* Reduced from 1rem */
     color: var(--secondary);
     pointer-events: none;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -107,7 +112,8 @@
 .form-group.floating-label input[data-has-value]+label {
     top: 0;
     transform: translateY(-50%);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    /* Reduced from 0.75rem */
     color: var(--primary);
     font-weight: 500;
 }
@@ -437,4 +443,189 @@
     .payment-options {
         grid-template-columns: 1fr;
     }
+}
+
+/* Address Cards */
+.address-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    /* Reduced from 12px */
+    margin-bottom: 1rem;
+    /* Reduced from 1.5rem */
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.address-card .card-header {
+    background: var(--bg-secondary);
+    padding: 0.75rem 1rem;
+    /* Reduced from 1rem 1.5rem */
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+}
+
+.address-card .card-header h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    /* Reduced from 1.1rem */
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.address-card .card-body {
+    padding: 1rem;
+    /* Reduced from 1.5rem */
+}
+
+/* Compact Form Layout */
+.compact-row {
+    margin-bottom: 0.75rem;
+    /* Reduced from 1rem */
+}
+
+/* Shipping Toggle */
+.shipping-toggle {
+    margin-bottom: 1rem;
+    /* Reduced from 1.5rem */
+    padding: 0 0.25rem;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 28px;
+    /* Reduced from 35px */
+    cursor: pointer;
+    font-size: 0.85rem;
+    /* Reduced from 0.95rem */
+    user-select: none;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 16px;
+    /* Reduced from 20px */
+    width: 16px;
+    /* Reduced from 20px */
+    background-color: white;
+    border: 1.5px solid var(--border);
+    /* Thinner border */
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.checkbox-container:hover input~.checkmark {
+    border-color: var(--primary);
+}
+
+.checkbox-container input:checked~.checkmark {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.checkbox-container input:checked~.checkmark:after {
+    display: block;
+}
+
+.checkbox-container .checkmark:after {
+    left: 5px;
+    /* Adjusted */
+    top: 2px;
+    width: 4px;
+    /* Reduced */
+    height: 8px;
+    /* Reduced */
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Update General Form Spacing */
+.form-section {
+    margin-bottom: 1rem;
+    /* Reduced */
+    padding-bottom: 1rem;
+}
+
+.form-section h3 {
+    font-size: 0.95rem;
+    /* Reduced */
+    margin-bottom: 0.75rem;
+}
+
+.form-group {
+    margin-bottom: 0.85rem;
+    /* Reduced from 1.25rem */
+}
+
+/* Floating Label Compact */
+.form-group.floating-label {
+    margin-bottom: 1rem;
+    /* Reduced from 1.5rem */
+}
+
+.form-group.floating-label input,
+.form-group.floating-label select {
+    padding: 12px 10px 6px;
+    /* Reduced padding */
+    font-size: 0.9rem;
+    /* Reduced font */
+}
+
+.form-group.floating-label label {
+    font-size: 0.85rem;
+    /* Reduced font */
+    left: 10px;
+}
+
+/* Adjust label float position */
+.form-group.floating-label input:focus+label,
+.form-group.floating-label input:not(:placeholder-shown)+label,
+.form-group.floating-label input:valid+label,
+.form-group.floating-label input[value]:not([value=""])+label,
+.form-group.floating-label input[data-has-value]+label {
+    font-size: 0.7rem;
+    /* Reduced */
+    top: 2px;
+}
+
+/* Non-floating Inputs */
+.form-group:not(.floating-label) label {
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.form-group:not(.floating-label) input,
+.form-group:not(.floating-label) select {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+}
+
+.form-row {
+    gap: 0.75rem;
+    /* Reduced gap */
 }

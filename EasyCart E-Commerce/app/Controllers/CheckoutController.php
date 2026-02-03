@@ -22,6 +22,7 @@ class CheckoutController
     private $productRepo;
     private $categoryRepo;
     private $orderRepo;
+    private $couponService;
 
     public function __construct()
     {
@@ -31,6 +32,7 @@ class CheckoutController
         $this->productRepo = new ProductRepository();
         $this->categoryRepo = new CategoryRepository();
         $this->orderRepo = new OrderRepository();
+        $this->couponService = new \EasyCart\Services\CouponService();
     }
 
     /**
@@ -132,8 +134,9 @@ class CheckoutController
 
         // Get or set payment method
         $payment_method = $_SESSION['payment_method'] ?? 'card';
+        $coupon = $_SESSION['applied_coupon'] ?? null;
 
-        $pricing = $this->pricingService->calculateAll($cart, $shipping_method, $payment_method);
+        $pricing = $this->pricingService->calculateAll($cart, $shipping_method, $payment_method, $coupon);
         $subtotal = $pricing['subtotal'];
         $shipping = $pricing['shipping'];
         $payment_fee = $pricing['payment_fee'];
@@ -236,7 +239,11 @@ class CheckoutController
             $_SESSION['shipping_method'] = $shipping_method;
         }
 
-        $pricing = $this->pricingService->calculateAll($cart, $shipping_method);
+        $coupon = $_SESSION['applied_coupon'] ?? null;
+        $pricing = $this->pricingService->calculateAll($cart, $shipping_method, 'card', $coupon); // Defaulting payment to card or should be from session? index uses session.
+        // The process method didn't get payment method from POST/Session in original. Assuming card/session.
+        // Actually original process() call: $pricing = $this->pricingService->calculateAll($cart, $shipping_method);
+        // And calculateAll default was 'card'. So preserving that behavior.
 
         // Prepare order items
         $orderItems = [];
@@ -264,6 +271,7 @@ class CheckoutController
             'subtotal' => $pricing['subtotal'],
             'shipping_cost' => $pricing['shipping'],
             'tax' => $pricing['tax'],
+            'discount' => $pricing['discount'] ?? 0, // Add discount field
             'total' => $pricing['total'],
             'status' => 'Processing'
         ];
@@ -275,6 +283,38 @@ class CheckoutController
             // Handle error
             die("Order processing failed.");
         }
+
+        // Save Billing Address
+        $this->orderRepo->addAddress($dbOrderId, 'billing', [
+            'name' => $_POST['billing_name'] ?? '',
+            'email' => $user['email'] ?? '',
+            'phone' => $_POST['billing_phone'] ?? '',
+            'address' => $_POST['billing_address'] ?? '',
+            'city' => $_POST['billing_city'] ?? '',
+            'zip' => $_POST['billing_zip'] ?? ''
+        ]);
+
+        // Save Shipping Address
+        // Check if "same as billing" is checked
+        $sameAsBilling = isset($_POST['same_as_billing']);
+
+        $shippingData = $sameAsBilling ? [
+            'name' => $_POST['billing_name'] ?? '',
+            'email' => $user['email'] ?? '',
+            'phone' => $_POST['billing_phone'] ?? '',
+            'address' => $_POST['billing_address'] ?? '',
+            'city' => $_POST['billing_city'] ?? '',
+            'zip' => $_POST['billing_zip'] ?? ''
+        ] : [
+            'name' => $_POST['shipping_name'] ?? '',
+            'email' => $user['email'] ?? '', // Shipping email usually same as user?
+            'phone' => $_POST['shipping_phone'] ?? '',
+            'address' => $_POST['shipping_address'] ?? '',
+            'city' => $_POST['shipping_city'] ?? '',
+            'zip' => $_POST['shipping_zip'] ?? ''
+        ];
+
+        $this->orderRepo->addAddress($dbOrderId, 'shipping', $shippingData);
 
         $_SESSION['last_order_id'] = $order_number; // Use number for display/success page lookup if needed
 
@@ -308,6 +348,69 @@ class CheckoutController
 
         // Otherwise just redirect to cart
         header('Location: /cart');
+        exit;
+    }
+
+    /**
+     * Apply/Remove Coupon (AJAX)
+     */
+    public function coupon()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit;
+        }
+
+        $action = $_POST['action'] ?? 'apply';
+
+        if ($action === 'remove') {
+            unset($_SESSION['applied_coupon']);
+
+            // Recalculate totals
+            $cart = $this->cartService->get();
+            $shippingMethod = $_SESSION['shipping_method'] ?? 'standard';
+            $paymentMethod = $_SESSION['payment_method'] ?? 'card';
+            $pricing = $this->pricingService->calculateAll($cart, $shippingMethod, $paymentMethod);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Coupon removed',
+                'new_total' => \EasyCart\Helpers\FormatHelper::price($pricing['total'])
+            ]);
+            exit;
+        }
+
+        $code = $_POST['code'] ?? '';
+        if (empty($code)) {
+            echo json_encode(['success' => false, 'message' => 'Please enter a coupon code']);
+            exit;
+        }
+
+        $coupon = $this->couponService->validateCoupon($code);
+
+        if ($coupon) {
+            $_SESSION['applied_coupon'] = $coupon;
+
+            // Recalculate with discount
+            $cart = $this->cartService->get();
+            $shippingMethod = $_SESSION['shipping_method'] ?? 'standard';
+            $paymentMethod = $_SESSION['payment_method'] ?? 'card';
+
+            $pricing = $this->pricingService->calculateAll($cart, $shippingMethod, $paymentMethod, $coupon);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Coupon applied successfully!',
+                'discount_percent' => $coupon['percent'],
+                'discount_amount' => \EasyCart\Helpers\FormatHelper::price($pricing['discount']),
+                'new_total' => \EasyCart\Helpers\FormatHelper::price($pricing['total'])
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid coupon code']);
+        }
         exit;
     }
 }

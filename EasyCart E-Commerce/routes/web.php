@@ -63,6 +63,7 @@ $router->get('/logout', ['\EasyCart\Controllers\AuthController', 'logout'], 'log
 // Checkout
 $router->get('/checkout', ['\EasyCart\Controllers\CheckoutController', 'index'], 'checkout', ['authRequired']);
 $router->post('/checkout', ['\EasyCart\Controllers\CheckoutController', 'process'], 'checkout.process', ['csrfProtection', 'authRequired']);
+$router->post('/checkout/coupon', ['\EasyCart\Controllers\CheckoutController', 'coupon'], 'checkout.coupon', ['csrfProtection']);
 $router->post('/checkout/pricing', ['\EasyCart\Controllers\CheckoutController', 'pricing'], 'checkout.pricing', ['csrfProtection']);
 
 // Orders

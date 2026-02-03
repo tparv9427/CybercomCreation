@@ -153,9 +153,24 @@ class ProductRepository
             ];
         }
 
-        // Mock 'bought_past_month'
-        if (!isset($product['bought_past_month'])) {
-            $product['bought_past_month'] = '50+';
+        // Ensure 'slug' is set (used for SKU display in view)
+        if (!isset($product['slug']) || empty($product['slug'])) {
+            // Generate a slug from name if missing, or use ID
+            $name = $product['name'] ?? 'product-' . $product['id'];
+            $product['slug'] = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
+            if (empty($product['slug'])) {
+                $product['slug'] = 'sku-' . $product['id'];
+            }
+        }
+
+        // Mock 'reviews_count' if missing
+        if (!isset($product['reviews_count'])) {
+            $product['reviews_count'] = 125;
+        }
+
+        // Ensure 'stock' is set
+        if (!isset($product['stock'])) {
+            $product['stock'] = 10; // Default to in-stock if unknown, or 0 safely
         }
 
         return $product;

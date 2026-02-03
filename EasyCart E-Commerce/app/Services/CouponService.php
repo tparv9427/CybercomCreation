@@ -16,7 +16,7 @@ class CouponService
     {
         $pdo = \EasyCart\Core\Database::getInstance()->getConnection();
 
-        $code = strtoupper(trim($code));
+        $code = trim($code);
         $stmt = $pdo->prepare("SELECT discount_percent FROM coupons WHERE code = :code");
         $stmt->execute([':code' => $code]);
         $row = $stmt->fetch();

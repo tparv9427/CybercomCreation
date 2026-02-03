@@ -19,31 +19,77 @@
         <div class="checkout-form">
             <form method="POST" id="checkoutForm">
                 <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
-                <div class="form-section">
-                    <h3>Shipping Information</h3>
-                    <div class="form-row">
-                        <div class="form-group floating-label">
-                            <input type="text" name="name" required value="<?php echo $_SESSION['user_name'] ?? ''; ?>"
-                                id="name">
-                            <label for="name">Full Name *</label>
+                <!-- Billing Address Section -->
+                <div class="address-card">
+                    <div class="card-header">
+                        <h3>Billing Address</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row compact-row">
+                            <div class="form-group floating-label">
+                                <input type="text" name="billing_name" required value="<?php echo $_SESSION['user_name'] ?? ''; ?>" id="billing_name" autocomplete="name">
+                                <label for="billing_name">Full Name *</label>
+                            </div>
+                            <div class="form-group floating-label">
+                                <input type="tel" name="billing_phone" required maxlength="10" id="billing_phone" autocomplete="tel">
+                                <label for="billing_phone">Phone Number *</label>
+                            </div>
                         </div>
-                        <div class="form-group floating-label">
-                            <input type="tel" name="phone" required maxlength="10" id="phone">
-                            <label for="phone">Phone Number *</label>
+                        <div class="form-group floating-label compact-row">
+                            <input type="text" name="billing_address" required id="billing_address" autocomplete="street-address">
+                            <label for="billing_address">Address Line *</label>
+                        </div>
+                        <div class="form-row compact-row">
+                            <div class="form-group floating-label">
+                                <input type="text" name="billing_city" required id="billing_city" autocomplete="address-level2">
+                                <label for="billing_city">City *</label>
+                            </div>
+                            <div class="form-group floating-label">
+                                <input type="text" name="billing_zip" required maxlength="6" id="billing_zip" autocomplete="postal-code">
+                                <label for="billing_zip">Zip Code *</label>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group floating-label">
-                        <input type="text" name="address" required id="address">
-                        <label for="address">Address *</label>
+                </div>
+
+                <!-- Shipping Address Toggle -->
+                <div class="shipping-toggle">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="same_as_billing" name="same_as_billing" checked onchange="toggleShippingAddress()">
+                        <span class="checkmark"></span>
+                        <span class="toggle-text">Shipping address same as billing address</span>
+                    </label>
+                </div>
+
+                <!-- Shipping Address Section (Hidden by default) -->
+                <div class="address-card" id="shipping-address-section" style="display: none;">
+                    <div class="card-header">
+                        <h3>Shipping Address</h3>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group floating-label">
-                            <input type="text" name="city" required id="city">
-                            <label for="city">City *</label>
+                    <div class="card-body">
+                        <div class="form-row compact-row">
+                            <div class="form-group floating-label">
+                                <input type="text" name="shipping_name" id="shipping_name" autocomplete="name">
+                                <label for="shipping_name">Full Name *</label>
+                            </div>
+                            <div class="form-group floating-label">
+                                <input type="tel" name="shipping_phone" maxlength="10" id="shipping_phone" autocomplete="tel">
+                                <label for="shipping_phone">Phone Number *</label>
+                            </div>
                         </div>
-                        <div class="form-group floating-label">
-                            <input type="text" name="zip" required maxlength="6" id="zip">
-                            <label for="zip">Zip Code *</label>
+                        <div class="form-group floating-label compact-row">
+                            <input type="text" name="shipping_address" id="shipping_address" autocomplete="street-address">
+                            <label for="shipping_address">Address Line *</label>
+                        </div>
+                        <div class="form-row compact-row">
+                            <div class="form-group floating-label">
+                                <input type="text" name="shipping_city" id="shipping_city" autocomplete="address-level2">
+                                <label for="shipping_city">City *</label>
+                            </div>
+                            <div class="form-group floating-label">
+                                <input type="text" name="shipping_zip" maxlength="6" id="shipping_zip" autocomplete="postal-code">
+                                <label for="shipping_zip">Zip Code *</label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -219,13 +265,13 @@
             <h3>Order Summary</h3>
             <div class="summary-items">
                 <?php foreach ($cart_items as $item): ?>
-                    <div class="summary-item">
-                        <div class="summary-item-info">
-                            <span><?php echo $item['product']['name']; ?></span>
-                            <span class="item-qty">× <?php echo $item['quantity']; ?></span>
+                        <div class="summary-item">
+                            <div class="summary-item-info">
+                                <span><?php echo $item['product']['name']; ?></span>
+                                <span class="item-qty">× <?php echo $item['quantity']; ?></span>
+                            </div>
+                            <span class="summary-item-price"><?php echo formatPrice($item['total']); ?></span>
                         </div>
-                        <span class="summary-item-price"><?php echo formatPrice($item['total']); ?></span>
-                    </div>
                 <?php endforeach; ?>
             </div>
             <div class="summary-totals">
@@ -234,12 +280,12 @@
                     <span id="subtotal"><?php echo formatPrice($pricing['subtotal']); ?></span>
                 </div>
                 
-                <?php 
+                <?php
                 // Check for applied coupon in session
                 $coupon_data = $_SESSION['applied_coupon'] ?? null;
                 $final_total = $pricing['total'];
                 $discount_amount = 0;
-                
+
                 if ($coupon_data) {
                     // Recalculate discount based on current subtotal
                     $discount_amount = ($pricing['subtotal'] * $coupon_data['percent']) / 100;
@@ -248,15 +294,15 @@
                 ?>
 
                 <?php if ($coupon_data): ?>
-                <div id="discount-row-container">
-                    <div class="summary-row" style="color: #4caf50; margin-bottom: 0.5rem;">
-                        <span>Discount (<?php echo $coupon_data['percent']; ?>%):</span>
-                        <span>-<?php echo formatPrice($discount_amount); ?></span>
+                    <div id="discount-row-container">
+                        <div class="summary-row" style="color: #4caf50; margin-bottom: 0.5rem;">
+                            <span>Discount (<?php echo $coupon_data['percent']; ?>%):</span>
+                            <span>-<?php echo formatPrice($discount_amount); ?></span>
+                        </div>
+                        <button type="button" onclick="removeCoupon()" style="width: 100%; padding: 0.5rem; background: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; margin-bottom: 1rem; transition: all 0.2s;">
+                            Remove Coupon
+                        </button>
                     </div>
-                    <button type="button" onclick="removeCoupon()" style="width: 100%; padding: 0.5rem; background: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; margin-bottom: 1rem; transition: all 0.2s;">
-                        Remove Coupon
-                    </button>
-                </div>
                 <?php endif; ?>
 
                 <div class="summary-row">
@@ -310,7 +356,7 @@
                 function removeCoupon() {
                     const btn = document.querySelector('.coupon-section button');
                     
-                    fetch('ajax_coupon.php', {
+                    fetch('/checkout/coupon', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
@@ -367,7 +413,7 @@
                     btn.disabled = true;
                     btn.textContent = 'Applying...';
                     
-                    fetch('ajax_coupon.php', {
+                    fetch('/checkout/coupon', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
@@ -676,5 +722,30 @@
     document.getElementById('cardCVV')?.addEventListener('input', function (e) {
         e.target.value = e.target.value.replace(/\D/g, '');
     });
+
+    // Toggle Shipping Address
+    function toggleShippingAddress() {
+        const checkbox = document.getElementById('same_as_billing');
+        const shippingSection = document.getElementById('shipping-address-section');
+        const shippingInputs = shippingSection.querySelectorAll('input');
+
+        if (checkbox.checked) {
+            shippingSection.style.display = 'none';
+            // Remove required attribute from shipping fields
+            shippingInputs.forEach(input => {
+                input.removeAttribute('required');
+                input.value = ''; // Optional: clear values
+            });
+        } else {
+            shippingSection.style.display = 'block';
+            // Add required attribute to shipping fields
+            shippingInputs.forEach(input => {
+                input.setAttribute('required', 'required');
+            });
+        }
+    }
+
+    // Initialize state on page load
+    document.addEventListener('DOMContentLoaded', toggleShippingAddress);
 </script>
 
