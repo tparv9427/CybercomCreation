@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "user_id": 1,
+        "description": "Amazon Prime",
+        "category": "Subscription",
+        "amount": -14.99,
+        "date": "2025-10-24",
+        "type": "debit"
+    },
+    {
+        "id": 2,
+        "user_id": 1,
+        "description": "Salary Credit",
+        "category": "Income",
+        "amount": 3500.00,
+        "date": "2025-10-22",
+        "type": "credit"
+    },
+    {
+        "id": 3,
+        "user_id": 1,
+        "description": "Electric Corp",
+        "category": "Bills",
+        "amount": -85.00,
+        "date": "2025-10-20",
+        "type": "debit"
+    },
+    {
+        "id": 4,
+        "user_id": 1,
+        "description": "Starbucks",
+        "category": "Food",
+        "amount": -5.25,
+        "date": "2025-10-18",
+        "type": "debit"
+    }
+]

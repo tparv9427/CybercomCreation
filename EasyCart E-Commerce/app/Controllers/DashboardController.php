@@ -3,18 +3,17 @@
 namespace EasyCart\Controllers;
 
 use EasyCart\Services\AuthService;
-use EasyCart\Repositories\OrderRepository;
+use EasyCart\Services\DashboardService;
 use EasyCart\Repositories\CategoryRepository;
-use EasyCart\Core\View;
 
 class DashboardController
 {
-    private $orderRepo;
+    private $dashboardService;
     private $categoryRepo;
 
     public function __construct()
     {
-        $this->orderRepo = new OrderRepository();
+        $this->dashboardService = new DashboardService();
         $this->categoryRepo = new CategoryRepository();
     }
 
@@ -29,8 +28,9 @@ class DashboardController
         }
 
         $userId = $_SESSION['user_id'];
-        $stats = $this->orderRepo->getDashboardStats($userId);
+        $data = $this->dashboardService->getDashboardData($userId);
 
+        $stats = $data['stats'];
         $categories = $this->categoryRepo->getAll();
         $page_title = 'User Dashboard';
 
@@ -47,18 +47,13 @@ class DashboardController
         header('Content-Type: application/json');
 
         if (!AuthService::check()) {
-            echo json_encode(['error' => 'Unauthorized']);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
         }
 
         $userId = $_SESSION['user_id'];
-        $data = $this->orderRepo->getChartData($userId);
+        $chartData = $this->dashboardService->getChartTimeline($userId);
 
-        echo json_encode([
-            'success' => true,
-            'labels' => array_column($data, 'order_date'),
-            'values' => array_map(function ($v) {
-                return (float) $v; }, array_column($data, 'daily_total'))
-        ]);
+        echo json_encode(array_merge(['success' => true], $chartData));
     }
 }

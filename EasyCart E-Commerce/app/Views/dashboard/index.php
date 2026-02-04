@@ -97,7 +97,7 @@ $totalSpent = $stats['total_spent'] ?? 0;
                         labels: data.labels,
                         datasets: [{
                             label: 'Daily Spending',
-                            data: data.values,
+                            data: data.revenue,
                             borderColor: '#2563eb',
                             borderWidth: 3,
                             backgroundColor: gradient,
@@ -122,17 +122,21 @@ $totalSpent = $stats['total_spent'] ?? 0;
                                 bodyFont: { size: 14 },
                                 callbacks: {
                                     label: function (context) {
-                                        return ' Spent: ₹' + context.parsed.y.toLocaleString();
+                                        return ' Spent: <?php echo CURRENCY; ?>' + context.parsed.y.toLocaleString();
                                     }
                                 }
                             }
+                        },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeOutQuart'
                         },
                         scales: {
                             y: {
                                 beginAtZero: true,
                                 grid: { color: 'rgba(0,0,0,0.05)' },
                                 ticks: {
-                                    callback: value => '₹' + value.toLocaleString()
+                                    callback: value => '<?php echo CURRENCY; ?>' + value.toLocaleString()
                                 }
                             },
                             x: {

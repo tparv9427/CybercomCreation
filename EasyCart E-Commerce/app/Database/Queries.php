@@ -380,11 +380,11 @@ class Queries
     const DASHBOARD_CHART_DATA = "
         SELECT 
             DATE(created_at) as order_date,
-            SUM(total) as daily_total
+            SUM(total) as daily_total,
+            COUNT(order_id) as order_count
         FROM sales_order
         WHERE user_id = :user_id AND status != 'cancelled'
         GROUP BY DATE(created_at)
         ORDER BY order_date ASC
-        LIMIT 30
     ";
 }
