@@ -45,24 +45,29 @@ set DB_NAME=easycart
 set DB_USER=postgres
 set PGPASSWORD=root
 
+:: PostgreSQL Bin Path (Auto-detected as version 18)
+set PG_PATH=C:\Program Files\PostgreSQL\18\bin
+
 set BACKUP_FILE=backups\%DB_NAME%_!TIMESTAMP!_backup.sql
 
 :: Execute pg_dump
 :: -F p is plain text (sql)
 :: includes everything by default
-pg_dump -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -f "!BACKUP_FILE!"
+echo Executing: "%PG_PATH%\pg_dump.exe" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -f "!BACKUP_FILE!"
+"%PG_PATH%\pg_dump.exe" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -f "!BACKUP_FILE!" 2> backup_error.txt
 
 if !ERRORLEVEL! EQU 0 (
     echo.
     echo +------------------------------------------+
     echo ^| Backup created: !BACKUP_FILE! ^|
     echo +------------------------------------------+
+    del backup_error.txt
 ) else (
     echo.
-    echo [!] ERROR: Database backup failed. 
-    echo Please ensure PostgreSQL (pg_dump) is in your PATH.
+    echo [!] ERROR: Database backup failed. Check backup_error.txt for details.
+    type backup_error.txt
 )
 
 echo.
 echo Process Finished.
-pause
+cmd /k
