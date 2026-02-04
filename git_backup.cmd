@@ -32,8 +32,7 @@ echo.
 echo [4/4] Creating Database Backup...
 
 :: Get timestamp for filename (format: DDMMYY_HHMM)
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /format:list') do set datetime=%%I
-set TIMESTAMP=!datetime:~6,2!!datetime:~4,2!!datetime:~2,2!_!datetime:~8,2!!datetime:~10,2!
+for /f %%I in ('powershell -Command "Get-Date -Format 'ddMMyy_HHmm'"') do set TIMESTAMP=%%I
 
 :: Ensure backup directory exists
 if not exist "backups" mkdir "backups"
