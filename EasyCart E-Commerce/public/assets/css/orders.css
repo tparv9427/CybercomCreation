@@ -80,8 +80,6 @@
     overflow: visible;
 }
 
-
-
 .order-item {
     display: grid;
     grid-template-columns: 80px 1fr auto;
@@ -148,4 +146,68 @@
     font-size: 1.3rem;
     font-weight: 700;
     color: var(--primary);
+}
+
+/* Enhancements for summary breakup and badges */
+.order-summary-breakup {
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    background: var(--soft-bg);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    display: none;
+    /* Only show on hover or detailed view if needed, but let's show it by default for better info */
+}
+
+.order-card:hover .order-summary-breakup {
+    display: block;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    color: var(--secondary);
+}
+
+.summary-row:last-child {
+    margin-bottom: 0;
+}
+
+.payment-shipping-info {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.info-badge {
+    padding: 0.4rem 0.8rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--secondary);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 5rem 2rem;
+    background: var(--card-bg);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    font-size: 1.2rem;
+    color: var(--secondary);
+    margin-bottom: 2rem;
 }

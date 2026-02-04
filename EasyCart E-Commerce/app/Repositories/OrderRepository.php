@@ -207,4 +207,24 @@ class OrderRepository
             ':country' => 'India' // Default
         ]);
     }
+
+    /**
+     * Add payment and shipping method info to order
+     */
+    public function addPaymentInfo($orderId, $shippingMethod, $paymentMethod)
+    {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO sales_order_payment (order_id, shipping_method, payment_method)
+            VALUES (:order_id, :shipping, :payment)
+            ON CONFLICT (order_id) DO UPDATE SET
+                shipping_method = EXCLUDED.shipping_method,
+                payment_method = EXCLUDED.payment_method
+        ");
+
+        return $stmt->execute([
+            ':order_id' => $orderId,
+            ':shipping' => $shippingMethod,
+            ':payment' => $paymentMethod
+        ]);
+    }
 }

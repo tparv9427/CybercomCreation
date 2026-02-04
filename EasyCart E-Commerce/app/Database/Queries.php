@@ -17,11 +17,14 @@ class Queries
         SELECT 
             p.*,
             (SELECT attribute_value FROM catalog_product_attribute 
-             WHERE product_entity_id = p.entity_id AND attribute_code = 'brand') as brand_name
+             WHERE product_entity_id = p.entity_id AND attribute_code = 'brand'
+             LIMIT 1) as brand_name
         FROM catalog_product_entity p
     ";
 
     const PRODUCT_GET_ALL = self::PRODUCT_BASE_SELECT . " ORDER BY p.entity_id";
+    const PRODUCT_GET_ALL_PAGINATED = self::PRODUCT_BASE_SELECT . " ORDER BY p.entity_id LIMIT :limit OFFSET :offset";
+    const PRODUCT_COUNT_ALL = "SELECT COUNT(*) FROM catalog_product_entity";
 
     const PRODUCT_FIND_BY_ID = self::PRODUCT_BASE_SELECT . " WHERE p.entity_id = :id";
 
@@ -41,10 +44,47 @@ class Queries
         ORDER BY cp.position ASC, p.entity_id ASC
     ";
 
+    const PRODUCT_FIND_BY_CATEGORY_PAGINATED = "
+        SELECT DISTINCT
+            p.*,
+            cp.position as category_position,
+            (SELECT attribute_value FROM catalog_product_attribute 
+             WHERE product_entity_id = p.entity_id AND attribute_code = 'brand') as brand_name
+        FROM catalog_product_entity p
+        JOIN catalog_category_product cp ON p.entity_id = cp.product_entity_id
+        WHERE cp.category_entity_id = :id
+        ORDER BY cp.position ASC, p.entity_id ASC
+        LIMIT :limit OFFSET :offset
+    ";
+
+    const PRODUCT_COUNT_BY_CATEGORY = "
+        SELECT COUNT(DISTINCT p.entity_id)
+        FROM catalog_product_entity p
+        JOIN catalog_category_product cp ON p.entity_id = cp.product_entity_id
+        WHERE cp.category_entity_id = :id
+    ";
+
     const PRODUCT_FIND_BY_BRAND = "
         SELECT DISTINCT
             p.*,
             pa.attribute_value as brand_name
+        FROM catalog_product_entity p
+        JOIN catalog_product_attribute pa ON p.entity_id = pa.product_entity_id
+        WHERE pa.attribute_code = 'brand' AND pa.attribute_value = :brand_name
+    ";
+
+    const PRODUCT_FIND_BY_BRAND_PAGINATED = "
+        SELECT DISTINCT
+            p.*,
+            pa.attribute_value as brand_name
+        FROM catalog_product_entity p
+        JOIN catalog_product_attribute pa ON p.entity_id = pa.product_entity_id
+        WHERE pa.attribute_code = 'brand' AND pa.attribute_value = :brand_name
+        LIMIT :limit OFFSET :offset
+    ";
+
+    const PRODUCT_COUNT_BY_BRAND = "
+        SELECT COUNT(DISTINCT p.entity_id)
         FROM catalog_product_entity p
         JOIN catalog_product_attribute pa ON p.entity_id = pa.product_entity_id
         WHERE pa.attribute_code = 'brand' AND pa.attribute_value = :brand_name
@@ -55,6 +95,22 @@ class Queries
             p.*,
             (SELECT attribute_value FROM catalog_product_attribute 
              WHERE product_entity_id = p.entity_id AND attribute_code = 'brand') as brand_name
+        FROM catalog_product_entity p 
+        WHERE p.name ILIKE :q OR p.description ILIKE :q
+    ";
+
+    const PRODUCT_SEARCH_PAGINATED = "
+        SELECT DISTINCT
+            p.*,
+            (SELECT attribute_value FROM catalog_product_attribute 
+             WHERE product_entity_id = p.entity_id AND attribute_code = 'brand') as brand_name
+        FROM catalog_product_entity p 
+        WHERE p.name ILIKE :q OR p.description ILIKE :q
+        LIMIT :limit OFFSET :offset
+    ";
+
+    const PRODUCT_COUNT_SEARCH = "
+        SELECT COUNT(DISTINCT p.entity_id)
         FROM catalog_product_entity p 
         WHERE p.name ILIKE :q OR p.description ILIKE :q
     ";
@@ -216,9 +272,11 @@ class Queries
     ";
 
     const ORDER_FIND_BY_USER = "
-        SELECT * FROM sales_order 
-        WHERE user_id = :user_id 
-        ORDER BY created_at DESC
+        SELECT o.*, op.shipping_method, op.payment_method 
+        FROM sales_order o
+        LEFT JOIN sales_order_payment op ON o.order_id = op.order_id
+        WHERE o.user_id = :user_id 
+        ORDER BY o.created_at DESC
     ";
 
     const ORDER_GET_PRODUCTS = "
@@ -253,4 +311,18 @@ class Queries
         WHERE attribute_code = 'brand' AND attribute_value = :name
         LIMIT 1
     ";
+
+    // ============================================================================
+    // WISHLIST QUERIES
+    // ============================================================================
+
+    const WISHLIST_GET_BY_USER = "SELECT product_entity_id FROM catalog_wishlist WHERE user_id = :user_id";
+
+    const WISHLIST_ADD = "
+        INSERT INTO catalog_wishlist (user_id, product_entity_id)
+        VALUES (:user_id, :product_id)
+        ON CONFLICT (user_id, product_entity_id) DO NOTHING
+    ";
+
+    const WISHLIST_REMOVE = "DELETE FROM catalog_wishlist WHERE user_id = :user_id AND product_entity_id = :product_id";
 }

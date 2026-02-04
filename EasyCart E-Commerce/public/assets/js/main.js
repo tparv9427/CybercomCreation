@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let currentSlide = 0;
     const slideCount = slides.length;
-    const slideInterval = 2000; // 7 seconds per slide
+    const slideInterval = 5000; // 5 seconds per slide
 
     // Create dots container
     const dotsContainer = document.createElement('div');
@@ -199,29 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// ============================================
-// PRODUCT COUNT ON LISTING PAGE
-// ============================================
-function updateProductCount() {
-    const resultsCount = document.querySelector('.results-count');
-    if (!resultsCount) return;
-
-    const gridView = document.getElementById('gridView');
-    const rowView = document.getElementById('rowView');
-
-    let visibleProducts = 0;
-
-    if (gridView && gridView.style.display !== 'none') {
-        visibleProducts = gridView.querySelectorAll('.product-card:not([style*="display: none"])').length;
-    } else if (rowView && rowView.classList.contains('active')) {
-        visibleProducts = rowView.querySelectorAll('.product-row-item:not([style*="display: none"])').length;
-    }
-
-    resultsCount.textContent = `Showing ${visibleProducts} product${visibleProducts !== 1 ? 's' : ''}`;
-}
-
-// Call on page load
-document.addEventListener('DOMContentLoaded', updateProductCount);
+// Product count update removed to prevent flashing (server-side rendering used instead)
 
 // ============================================
 // FORM VALIDATIONS
@@ -700,7 +678,7 @@ function updateQuantity(productId, quantity, disableInput = true) {
                 const decreaseBtn = document.getElementById(`btn-decrease-${productId}`);
                 if (decreaseBtn) {
                     if (quantity == 1) {
-                        decreaseBtn.textContent = '🗑';
+                        decreaseBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>';
                         decreaseBtn.classList.add('delete-btn-sm');
                         decreaseBtn.setAttribute('onclick', `removeFromCart(${productId})`);
                     } else {
@@ -708,6 +686,13 @@ function updateQuantity(productId, quantity, disableInput = true) {
                         decreaseBtn.classList.remove('delete-btn-sm');
                         decreaseBtn.setAttribute('onclick', `decreaseCartQuantity(${productId})`);
                     }
+                }
+
+                // Update increase button state (Disable if max stock reached)
+                const increaseBtn = document.getElementById(`btn-increase-${productId}`);
+                if (increaseBtn) {
+                    const maxStock = data.max_stock || parseInt(quantityInput?.max) || 999;
+                    increaseBtn.disabled = (quantity >= maxStock);
                 }
 
                 // Update item total

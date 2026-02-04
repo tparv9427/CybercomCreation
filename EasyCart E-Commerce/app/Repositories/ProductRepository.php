@@ -20,11 +20,24 @@ class ProductRepository
         $this->pdo = Database::getInstance()->getConnection();
     }
 
-    public function getAll()
+    public function getAll($limit = null, $offset = 0)
     {
-        $stmt = $this->pdo->query(Queries::PRODUCT_GET_ALL);
+        if ($limit !== null) {
+            $stmt = $this->pdo->prepare(Queries::PRODUCT_GET_ALL_PAGINATED);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+        } else {
+            $stmt = $this->pdo->query(Queries::PRODUCT_GET_ALL);
+        }
         $products = $stmt->fetchAll();
         return $this->processProducts($products);
+    }
+
+    public function countAll()
+    {
+        $stmt = $this->pdo->query(Queries::PRODUCT_COUNT_ALL);
+        return (int) $stmt->fetchColumn();
     }
 
     public function find($id)
@@ -51,18 +64,48 @@ class ProductRepository
         return $this->processProducts($stmt->fetchAll());
     }
 
-    public function findByCategory($categoryId)
+    public function findByCategory($categoryId, $limit = null, $offset = 0)
     {
-        $stmt = $this->pdo->prepare(Queries::PRODUCT_FIND_BY_CATEGORY);
-        $stmt->execute([':id' => $categoryId]);
+        if ($limit !== null) {
+            $stmt = $this->pdo->prepare(Queries::PRODUCT_FIND_BY_CATEGORY_PAGINATED);
+            $stmt->bindValue(':id', $categoryId);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        } else {
+            $stmt = $this->pdo->prepare(Queries::PRODUCT_FIND_BY_CATEGORY);
+            $stmt->bindValue(':id', $categoryId);
+        }
+        $stmt->execute();
         return $this->processProducts($stmt->fetchAll());
     }
 
-    public function findByBrand($brandName)
+    public function countByCategory($categoryId)
     {
-        $stmt = $this->pdo->prepare(Queries::PRODUCT_FIND_BY_BRAND);
-        $stmt->execute([':brand_name' => $brandName]);
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_COUNT_BY_CATEGORY);
+        $stmt->execute([':id' => $categoryId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function findByBrand($brandName, $limit = null, $offset = 0)
+    {
+        if ($limit !== null) {
+            $stmt = $this->pdo->prepare(Queries::PRODUCT_FIND_BY_BRAND_PAGINATED);
+            $stmt->bindValue(':brand_name', $brandName);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        } else {
+            $stmt = $this->pdo->prepare(Queries::PRODUCT_FIND_BY_BRAND);
+            $stmt->bindValue(':brand_name', $brandName);
+        }
+        $stmt->execute();
         return $this->processProducts($stmt->fetchAll());
+    }
+
+    public function countByBrand($brandName)
+    {
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_COUNT_BY_BRAND);
+        $stmt->execute([':brand_name' => $brandName]);
+        return (int) $stmt->fetchColumn();
     }
 
     // Helper to ensure data types match expected JSON format if needed
@@ -259,13 +302,31 @@ class ProductRepository
         return $this->processProducts($stmt->fetchAll());
     }
 
-    public function search($query)
+    public function search($query, $limit = null, $offset = 0)
     {
         if (empty($query))
             return [];
 
-        $stmt = $this->pdo->prepare(Queries::PRODUCT_SEARCH);
-        $stmt->execute([':q' => "%$query%"]);
+        if ($limit !== null) {
+            $stmt = $this->pdo->prepare(Queries::PRODUCT_SEARCH_PAGINATED);
+            $stmt->bindValue(':q', "%$query%");
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        } else {
+            $stmt = $this->pdo->prepare(Queries::PRODUCT_SEARCH);
+            $stmt->bindValue(':q', "%$query%");
+        }
+        $stmt->execute();
         return $this->processProducts($stmt->fetchAll());
+    }
+
+    public function countSearch($query)
+    {
+        if (empty($query))
+            return 0;
+
+        $stmt = $this->pdo->prepare(Queries::PRODUCT_COUNT_SEARCH);
+        $stmt->execute([':q' => "%$query%"]);
+        return (int) $stmt->fetchColumn();
     }
 }

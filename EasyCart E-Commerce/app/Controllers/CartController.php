@@ -274,12 +274,13 @@ class CartController
     private function generateSavedItemHtml($item)
     {
         $item['formatted_price'] = \EasyCart\Helpers\FormatHelper::price($item['product']['price']);
-        return \EasyCart\Core\View::render('components/saved_item', $item);
+        return \EasyCart\Core\View::render('components/saved_item', ['item' => $item]);
     }
 
     private function generateCartItemHtml($item)
     {
-        $item['category_name'] = $this->categoryRepo->find($item['product']['category_id'])['name'];
+        $category = $this->categoryRepo->find($item['product']['category_id']);
+        $item['category_name'] = $category ? $category['name'] : 'Others';
         $item['formatted_price'] = \EasyCart\Helpers\FormatHelper::price($item['product']['price']);
         $item['formatted_total'] = \EasyCart\Helpers\FormatHelper::price($item['total']);
 
@@ -288,7 +289,7 @@ class CartController
             $item['shipping_type'] = ($item['product']['price'] >= 300) ? 'Freight Shipping' : 'Express Shipping';
         }
 
-        return \EasyCart\Core\View::render('components/cart_item', $item);
+        return \EasyCart\Core\View::render('components/cart_item', ['item' => $item]);
     }
     /**
      * Get cart count (AJAX)

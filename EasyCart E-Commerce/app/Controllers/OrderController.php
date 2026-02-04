@@ -45,14 +45,20 @@ class OrderController
                 'id' => $o['order_number'], // Display order number as ID
                 'date' => date('F j, Y', strtotime($o['created_at'])),
                 'total' => $o['total'],
+                'subtotal' => $o['subtotal'],
+                'shipping_cost' => $o['shipping_cost'],
+                'tax' => $o['tax'],
+                'discount' => $o['discount'],
                 'status' => $o['status'],
+                'shipping_method' => $o['shipping_method'] ?? 'Standard',
+                'payment_method' => $o['payment_method'] ?? 'COD',
                 'items' => array_map(function ($item) {
                     return [
                         'name' => $item['product_name'],
-                        'price' => $item['price'],
+                        'price' => $item['product_price'],
                         'quantity' => $item['quantity'],
                         'image' => $item['product_image'] ?? null,
-                        'total' => $item['price'] * $item['quantity']
+                        'total' => $item['row_total']
                     ];
                 }, $o['items'])
             ];

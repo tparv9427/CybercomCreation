@@ -9,7 +9,7 @@
 define('SITE_NAME', 'EasyCart');
 define('CURRENCY', '$');
 define('EASYCART_VERSION', '4.0-psr4-mvc');
-define('DEBUG', false);
+define('DEBUG', true);
 
 // Paths
 define('APP_ROOT', dirname(__DIR__));

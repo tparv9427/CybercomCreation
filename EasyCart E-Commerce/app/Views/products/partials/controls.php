@@ -1,9 +1,15 @@
 <!-- Top Control Bar -->
 <div class="plp-header">
     <div class="results-count">
-        Showing
-        <?php echo $product_count; ?> product
-        <?php echo $product_count != 1 ? 's' : ''; ?>
+        <?php
+        $start = $offset + 1;
+        $end = min($offset + $limit, $product_count);
+        if ($product_count > 0) {
+            echo "Showing $start-$end of $product_count products";
+        } else {
+            echo "Showing 0 products";
+        }
+        ?>
     </div>
 
     <div class="plp-controls">
@@ -37,4 +43,3 @@
         </div>
     </div>
 </div>
-

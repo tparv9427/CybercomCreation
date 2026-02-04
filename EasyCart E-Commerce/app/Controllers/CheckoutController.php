@@ -316,6 +316,10 @@ class CheckoutController
 
         $this->orderRepo->addAddress($dbOrderId, 'shipping', $shippingData);
 
+        // Save Payment and Shipping Method
+        $payment_method = $_SESSION['payment_method'] ?? 'card';
+        $this->orderRepo->addPaymentInfo($dbOrderId, $shipping_method, $payment_method);
+
         $_SESSION['last_order_id'] = $order_number; // Use number for display/success page lookup if needed
 
         // Clear cart ONLY if it's a regular order

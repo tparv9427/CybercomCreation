@@ -13,21 +13,20 @@ class View
      */
     public static function render($viewPath, $data = [])
     {
-        // Extract data to variables
-        extract($data);
+        if (is_array($data)) {
+            extract($data, EXTR_OVERWRITE);
+        }
 
         // Sanitize path (simple check)
         $viewPath = trim($viewPath, '/');
         // Allow omitting .php extension
-        if (!str_endsWith($viewPath, '.php')) {
+        if (!str_ends_with($viewPath, '.php')) {
             $viewPath .= '.php';
         }
 
         $fullPath = __DIR__ . '/../Views/' . $viewPath;
 
         if (!file_exists($fullPath)) {
-            // Fallback for absolute paths or different structure if needed, 
-            // but strict structure is better.
             return "<!-- View not found: $viewPath -->";
         }
 

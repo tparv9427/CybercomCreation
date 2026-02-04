@@ -46,8 +46,14 @@ class ProductController
             $filtered_products = $this->productRepo->findByCategory($category_id);
             $page_title = $this->categoryRepo->find($category_id)['name'] . ' Products';
         } elseif ($brand_id) {
-            $filtered_products = $this->productRepo->findByBrand($brand_id);
-            $page_title = $this->brandRepo->find($brand_id)['name'] . ' Products';
+            $brand = $this->brandRepo->find($brand_id);
+            if ($brand) {
+                $filtered_products = $this->productRepo->findByBrand($brand['name']);
+                $page_title = $brand['name'] . ' Products';
+            } else {
+                $filtered_products = [];
+                $page_title = 'Brand Not Found';
+            }
         } elseif ($show_new) {
             $filtered_products = $this->productRepo->getNew();
             $page_title = 'New Arrivals';
@@ -95,6 +101,8 @@ class ProductController
 
         $categories = $this->categoryRepo->getAll();
         $brands = $this->brandRepo->getAll(); // Fetch all brands for sidebar
+
+        $product_count = $total_products;
 
         // Helper functions
         $getCategory = [\EasyCart\Helpers\ViewHelper::class, 'getCategory'];
@@ -179,7 +187,7 @@ class ProductController
         }
 
         $page_title = $brand['name'] . ' Products';
-        $filtered_products = $this->productRepo->findByBrand($brand_id);
+        $filtered_products = $this->productRepo->findByBrand($brand['name']);
 
         // Pagination
         $total_products = count($filtered_products);
