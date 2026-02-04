@@ -31,9 +31,9 @@ git push
 echo.
 echo [4/4] Creating Database Backup...
 
-:: Get timestamp for filename (format: YYYYMMDD_HHMMSS)
+:: Get timestamp for filename (format: DDMMYY_HHMM)
 for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /format:list') do set datetime=%%I
-set TIMESTAMP=!datetime:~0,4!!datetime:~4,2!!datetime:~6,2!_!datetime:~8,2!!datetime:~10,2!!datetime:~12,2!
+set TIMESTAMP=!datetime:~6,2!!datetime:~4,2!!datetime:~2,2!_!datetime:~8,2!!datetime:~10,2!
 
 :: Ensure backup directory exists
 if not exist "backups" mkdir "backups"
@@ -52,16 +52,22 @@ set BACKUP_FILE=backups\%DB_NAME%_!TIMESTAMP!_backup.sql
 
 :: Execute pg_dump
 :: -F p is plain text (sql)
-:: includes everything by default
+:: -v (verbose) for debugging
 echo Executing: "%PG_PATH%\pg_dump.exe" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -f "!BACKUP_FILE!"
-"%PG_PATH%\pg_dump.exe" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -f "!BACKUP_FILE!" 2> backup_error.txt
+"%PG_PATH%\pg_dump.exe" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -v -f "!BACKUP_FILE!" 2> backup_error.txt
 
 if !ERRORLEVEL! EQU 0 (
     echo.
     echo +------------------------------------------+
     echo ^| Backup created: !BACKUP_FILE! ^|
     echo +------------------------------------------+
-    del backup_error.txt
+    :: Check if file size is greater than 0
+    for %%A in ("!BACKUP_FILE!") do if %%~zA==0 (
+        echo [!] WARNING: Backup file is 0 bytes! Check backup_error.txt.
+        type backup_error.txt
+    ) else (
+        del backup_error.txt
+    )
 ) else (
     echo.
     echo [!] ERROR: Database backup failed. Check backup_error.txt for details.
