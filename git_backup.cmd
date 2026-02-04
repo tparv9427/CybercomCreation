@@ -14,22 +14,9 @@ set /p GIT_PATH="1. Enter path for git add (e.g., . or specific file): "
 set /p COMMIT_MESSAGE="2. Enter commit message: "
 echo ------------------------------------------
 
-:: 2. Execute Git Commands
+:: 2. Database Backup
 echo.
-echo [1/4] Adding files: git add "%GIT_PATH%"
-git add "%GIT_PATH%"
-
-echo.
-echo [2/4] Committing: git commit -m "%COMMIT_MESSAGE%"
-git commit -m "%COMMIT_MESSAGE%"
-
-echo.
-echo [3/4] Pushing: git push
-git push
-
-:: 3. Database Backup
-echo.
-echo [4/4] Creating Database Backup...
+echo [1/4] Creating Database Backup...
 
 :: Get timestamp for filename (format: DDMMYY_HHMM)
 for /f %%I in ('powershell -Command "Get-Date -Format 'ddMMyy_HHmm'"') do set TIMESTAMP=%%I
@@ -50,7 +37,6 @@ set PG_PATH=C:\Program Files\PostgreSQL\18\bin
 set BACKUP_FILE=backups\%DB_NAME%_!TIMESTAMP!_backup.sql
 
 :: Execute pg_dump
-:: -F p is plain text (sql)
 :: -v (verbose) for debugging
 echo Executing: "%PG_PATH%\pg_dump.exe" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -f "!BACKUP_FILE!"
 "%PG_PATH%\pg_dump.exe" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -v -f "!BACKUP_FILE!" 2> backup_error.txt
@@ -72,6 +58,19 @@ if !ERRORLEVEL! EQU 0 (
     echo [!] ERROR: Database backup failed. Check backup_error.txt for details.
     type backup_error.txt
 )
+
+:: 3. Execute Git Commands
+echo.
+echo [2/4] Adding files: git add "%GIT_PATH%"
+git add "%GIT_PATH%"
+
+echo.
+echo [3/4] Committing: git commit -m "%COMMIT_MESSAGE%"
+git commit -m "%COMMIT_MESSAGE%"
+
+echo.
+echo [4/4] Pushing: git push
+git push
 
 echo.
 echo Process Finished.
