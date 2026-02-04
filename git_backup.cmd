@@ -5,6 +5,9 @@ setlocal enabledelayedexpansion
 :: Git and Database Backup Script
 :: ==========================================
 
+:: Set working directory to script location
+cd /d "%~dp0"
+
 :: 1. Get Inputs
 echo ------------------------------------------
 set /p GIT_PATH="1. Enter path for git add (e.g., . or specific file): "
@@ -35,14 +38,14 @@ set TIMESTAMP=!datetime:~0,4!!datetime:~4,2!!datetime:~6,2!_!datetime:~8,2!!date
 :: Ensure backup directory exists
 if not exist "backups" mkdir "backups"
 
-set BACKUP_FILE=backups\easycart_full_backup_!TIMESTAMP!.sql
-
 :: Database Configuration (from config/database.php)
 set DB_HOST=127.0.0.1
 set DB_PORT=5432
 set DB_NAME=easycart
 set DB_USER=postgres
 set PGPASSWORD=root
+
+set BACKUP_FILE=backups\%DB_NAME%_!TIMESTAMP!_backup.sql
 
 :: Execute pg_dump
 :: -F p is plain text (sql)
