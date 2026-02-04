@@ -272,11 +272,25 @@ class Queries
     ";
 
     const ORDER_FIND_BY_USER = "
-        SELECT o.*, op.shipping_method, op.payment_method 
+        SELECT 
+            o.*, 
+            op.shipping_method, 
+            op.payment_method,
+            oa.first_name,
+            oa.last_name,
+            oa.address_line_one,
+            oa.city,
+            oa.state,
+            oa.postal_code
         FROM sales_order o
         LEFT JOIN sales_order_payment op ON o.order_id = op.order_id
-        WHERE o.user_id = :user_id 
+        LEFT JOIN sales_order_address oa ON o.order_id = oa.order_id AND oa.address_type = 'shipping'
+        WHERE o.user_id = :user_id AND o.is_archived = :is_archived
         ORDER BY o.created_at DESC
+    ";
+
+    const ORDER_ARCHIVE_UPDATE = "
+        UPDATE sales_order SET is_archived = :status WHERE order_id = :order_id
     ";
 
     const ORDER_GET_PRODUCTS = "
@@ -290,8 +304,33 @@ class Queries
     ";
 
     const ORDER_FIND_BY_ID = "
-        SELECT * FROM sales_order 
-        WHERE order_id = :order_id
+        SELECT 
+            o.*, 
+            op.shipping_method, 
+            op.payment_method,
+            oa.first_name as ship_first, oa.last_name as ship_last,
+            oa.email as ship_email, oa.phone as ship_phone,
+            oa.address_line_one as ship_address, oa.city as ship_city,
+            oa.state as ship_state, oa.postal_code as ship_zip, oa.country as ship_country
+        FROM sales_order o
+        LEFT JOIN sales_order_payment op ON o.order_id = op.order_id
+        LEFT JOIN sales_order_address oa ON o.order_id = oa.order_id AND oa.address_type = 'shipping'
+        WHERE o.order_id = :order_id
+    ";
+
+    const ORDER_FIND_BY_NUMBER = "
+        SELECT 
+            o.*, 
+            op.shipping_method, 
+            op.payment_method,
+            oa.first_name as ship_first, oa.last_name as ship_last,
+            oa.email as ship_email, oa.phone as ship_phone,
+            oa.address_line_one as ship_address, oa.city as ship_city,
+            oa.state as ship_state, oa.postal_code as ship_zip, oa.country as ship_country
+        FROM sales_order o
+        LEFT JOIN sales_order_payment op ON o.order_id = op.order_id
+        LEFT JOIN sales_order_address oa ON o.order_id = oa.order_id AND oa.address_type = 'shipping'
+        WHERE o.order_number = :order_number
     ";
 
     // ============================================================================
@@ -325,4 +364,27 @@ class Queries
     ";
 
     const WISHLIST_REMOVE = "DELETE FROM catalog_wishlist WHERE user_id = :user_id AND product_entity_id = :product_id";
+
+    // ============================================================================
+    // DASHBOARD QUERIES
+    // ============================================================================
+
+    const DASHBOARD_STATS = "
+        SELECT 
+            COUNT(order_id) as total_orders,
+            COALESCE(SUM(total), 0) as total_spent
+        FROM sales_order
+        WHERE user_id = :user_id AND status != 'cancelled'
+    ";
+
+    const DASHBOARD_CHART_DATA = "
+        SELECT 
+            DATE(created_at) as order_date,
+            SUM(total) as daily_total
+        FROM sales_order
+        WHERE user_id = :user_id AND status != 'cancelled'
+        GROUP BY DATE(created_at)
+        ORDER BY order_date ASC
+        LIMIT 30
+    ";
 }

@@ -251,10 +251,11 @@ class CheckoutController
             $product = $this->productRepo->find($product_id);
             if ($product) {
                 $orderItems[] = [
-                    'product_id' => $product['id'],
+                    'id' => $product['id'],
                     'name' => $product['name'],
                     'price' => $product['price'],
-                    'image' => $product['image'], // Assuming product has an image field
+                    'sku' => $product['sku'] ?? '',
+                    'image' => $product['image'] ?? '',
                     'quantity' => $quantity,
                     'total' => $product['price'] * $quantity
                 ];

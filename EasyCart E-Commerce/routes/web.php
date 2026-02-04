@@ -69,6 +69,13 @@ $router->post('/checkout/pricing', ['\EasyCart\Controllers\CheckoutController', 
 // Orders
 $router->get('/orders', ['\EasyCart\Controllers\OrderController', 'index'], 'orders', ['authRequired']);
 $router->get('/order/success', ['\EasyCart\Controllers\OrderController', 'success'], 'order.success', ['authRequired']);
+$router->get('/order/{id}', ['\EasyCart\Controllers\OrderController', 'show'], 'order.show', ['authRequired']);
+$router->get('/order/invoice/{id}', ['\EasyCart\Controllers\OrderController', 'invoice'], 'order.invoice', ['authRequired']);
+$router->get('/order/archive/{id}', ['\EasyCart\Controllers\OrderController', 'archive'], 'order.archive', ['authRequired']);
+
+// Dashboard
+$router->get('/dashboard', ['\EasyCart\Controllers\DashboardController', 'index'], 'dashboard', ['authRequired']);
+$router->get('/api/dashboard/chart', ['\EasyCart\Controllers\DashboardController', 'chartData'], 'dashboard.chart', ['authRequired']);
 
 // ============================================================================
 // AJAX Routes (for backward compatibility during transition)

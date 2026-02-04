@@ -1,15 +1,11 @@
 <?php
+require_once 'app/Core/Database.php';
 
-require_once __DIR__ . '/../vendor/autoload.php';
-
-use EasyCart\Core\Database;
-
-$pdo = Database::getInstance()->getConnection();
-
-$stmt = $pdo->query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name");
-$tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-echo "Tables found in database:\n";
-foreach ($tables as $table) {
-    echo "- " . $table . "\n";
+try {
+    $db = EasyCart\Core\Database::getInstance()->getConnection();
+    $tables = $db->query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'")->fetchAll(PDO::FETCH_COLUMN);
+    echo "Tables in Public Schema:\n";
+    print_r($tables);
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
 }

@@ -130,10 +130,13 @@ class OrderRepository
         }
     }
 
-    public function findByUserId($userId)
+    public function findByUserId($userId, $isArchived = false)
     {
         $stmt = $this->pdo->prepare(Queries::ORDER_FIND_BY_USER);
-        $stmt->execute([':user_id' => $userId]);
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':is_archived' => $isArchived ? 1 : 0
+        ]);
         $orders = $stmt->fetchAll();
 
         foreach ($orders as &$order) {
@@ -170,7 +173,25 @@ class OrderRepository
 
             // Get order items
             $itemStmt = $this->pdo->prepare(Queries::ORDER_GET_PRODUCTS);
-            $itemStmt->execute([':order_id' => $orderId]);
+            $itemStmt->execute([':order_id' => $order['order_id']]);
+            $order['items'] = $itemStmt->fetchAll();
+        }
+
+        return $order;
+    }
+
+    public function findByOrderNumber($orderNumber)
+    {
+        $stmt = $this->pdo->prepare(Queries::ORDER_FIND_BY_NUMBER);
+        $stmt->execute([':order_number' => $orderNumber]);
+        $order = $stmt->fetch();
+
+        if ($order) {
+            $order['id'] = $order['order_id'];
+
+            // Get order items
+            $itemStmt = $this->pdo->prepare(Queries::ORDER_GET_PRODUCTS);
+            $itemStmt->execute([':order_id' => $order['order_id']]);
             $order['items'] = $itemStmt->fetchAll();
         }
 
@@ -225,6 +246,38 @@ class OrderRepository
             ':order_id' => $orderId,
             ':shipping' => $shippingMethod,
             ':payment' => $paymentMethod
+        ]);
+    }
+
+    /**
+     * Get user dashboard statistics
+     */
+    public function getDashboardStats($userId)
+    {
+        $stmt = $this->pdo->prepare(Queries::DASHBOARD_STATS);
+        $stmt->execute([':user_id' => $userId]);
+        return $stmt->fetch();
+    }
+
+    /**
+     * Get chart data for user
+     */
+    public function getChartData($userId)
+    {
+        $stmt = $this->pdo->prepare(Queries::DASHBOARD_CHART_DATA);
+        $stmt->execute([':user_id' => $userId]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Archive or unarchive an order
+     */
+    public function archive($orderId, $status = true)
+    {
+        $stmt = $this->pdo->prepare(Queries::ORDER_ARCHIVE_UPDATE);
+        return $stmt->execute([
+            ':order_id' => $orderId,
+            ':status' => $status ? 1 : 0
         ]);
     }
 }

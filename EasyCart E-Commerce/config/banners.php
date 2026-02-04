@@ -13,18 +13,18 @@ return [
         'title' => 'Elegant Living, Redefined',
         'subtitle' => 'Discover our curated collection of premium products',
         'button_text' => 'Explore Collection',
-        'button_link' => 'products.php'
+        'button_link' => '/products'
     ],
     [
         'title' => 'Top Brands Collection',
         'subtitle' => 'Explore exclusive products from leading brands',
         'button_text' => 'Shop TechPro',
-        'button_link' => 'brand.php?id=1'
+        'button_link' => '/brand/1'
     ],
     [
         'title' => 'Exclusive Member Benefits',
         'subtitle' => 'Join today and enjoy special privileges',
         'button_text' => 'Learn More',
-        'button_link' => 'signup.php'
+        'button_link' => '/signup'
     ]
 ];
