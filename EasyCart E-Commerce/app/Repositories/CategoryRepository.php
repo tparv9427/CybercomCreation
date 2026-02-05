@@ -48,6 +48,19 @@ class CategoryRepository
         return $category ?: null;
     }
 
+    public function findByName($name)
+    {
+        $stmt = $this->pdo->prepare(Queries::CATEGORY_FIND_BY_NAME);
+        $stmt->execute([':name' => $name]);
+        $category = $stmt->fetch();
+
+        if ($category) {
+            $category['id'] = $category['entity_id'];
+        }
+
+        return $category ?: null;
+    }
+
     /**
      * Get products in a category
      */

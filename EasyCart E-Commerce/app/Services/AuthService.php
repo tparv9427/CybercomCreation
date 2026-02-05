@@ -75,17 +75,27 @@ class AuthService
      */
     public function register($email, $password, $name)
     {
-        $userId = $this->userRepo->create($email, $password, $name);
+        $user = $this->userRepo->create([
+            'email' => $email,
+            'password' => $password,
+            'name' => $name
+        ]);
 
-        if ($userId) {
+        if ($user && isset($user['id'])) {
+            $userId = $user['id'];
+
             // Auto-login
             $_SESSION['user_id'] = $userId;
+            $_SESSION['user_name'] = $user['name'];
+            $_SESSION['user_email'] = $user['email'];
 
             // Merge guest data
             $this->mergeGuestData($userId);
+
+            return $userId;
         }
 
-        return $userId;
+        return false;
     }
 
     /**

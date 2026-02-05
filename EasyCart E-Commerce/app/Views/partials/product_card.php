@@ -37,7 +37,12 @@
 
         <!-- Revealed on hover -->
         <div class="product-details-hover">
-            <div class="product-category"><?php echo $getCategory($product['category_id'])['name']; ?></div>
+            <div class="product-category">
+                <?php
+                $cat = $getCategory($product['category_id']);
+                echo $cat ? $cat['name'] : 'Uncategorized';
+                ?>
+            </div>
             <div class="product-rating">
                 <span class="stars">
                     <?php

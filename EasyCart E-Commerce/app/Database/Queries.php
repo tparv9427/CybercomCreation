@@ -176,6 +176,11 @@ class Queries
         WHERE entity_id = :id
     ";
 
+    const CATEGORY_FIND_BY_NAME = "
+        SELECT * FROM catalog_category_entity 
+        WHERE name = :name LIMIT 1
+    ";
+
     const CATEGORY_GET_PRODUCTS = "
         SELECT DISTINCT
             p.*,
@@ -386,5 +391,48 @@ class Queries
         WHERE user_id = :user_id AND status != 'cancelled'
         GROUP BY DATE(created_at)
         ORDER BY order_date ASC
+    ";
+
+    // ============================================================================
+    // IMPORT / EXPORT QUERIES
+    // ============================================================================
+
+    const PRODUCT_BULK_EXIST_CHECK = "
+        SELECT sku FROM catalog_product_entity WHERE sku = ANY(:skus)
+    ";
+
+    const PRODUCT_INSERT_RETURNING_ID = "
+        INSERT INTO catalog_product_entity (sku, name, price, stock, description, is_active, is_featured, is_new, created_at, updated_at)
+        VALUES (:sku, :name, :price, :stock, :description, :is_active, FALSE, FALSE, NOW(), NOW())
+        ON CONFLICT ON CONSTRAINT catalog_product_entity_sku_unique DO NOTHING
+        RETURNING entity_id
+    ";
+
+    const PRODUCT_ATTRIBUTE_INSERT = "
+        INSERT INTO catalog_product_attribute (product_entity_id, attribute_code, attribute_value, created_at)
+        VALUES (:entity_id, :code, :value, NOW())
+        ON CONFLICT ON CONSTRAINT catalog_product_attribute_composite_unique
+        DO UPDATE SET attribute_value = EXCLUDED.attribute_value
+    ";
+
+    const PRODUCT_IMAGE_INSERT = "
+        INSERT INTO catalog_product_image (product_entity_id, image_path, is_primary, created_at)
+        VALUES (:entity_id, :image_path, :is_primary, NOW())
+    ";
+
+    const CATEGORY_PRODUCT_INSERT = "
+        INSERT INTO catalog_category_product (category_entity_id, product_entity_id, created_at)
+        VALUES (:category_id, :product_id, NOW())
+        ON CONFLICT ON CONSTRAINT catalog_category_product_category_entity_id_product_entity_id_u DO NOTHING
+    ";
+
+    const PRODUCT_EXPORT_SELECT = "
+        SELECT 
+            p.sku, p.name, p.price, p.stock, p.description, p.is_active,
+            (SELECT attribute_value FROM catalog_product_attribute WHERE product_entity_id = p.entity_id AND attribute_code = 'brand') as brand,
+            (SELECT attribute_value FROM catalog_product_attribute WHERE product_entity_id = p.entity_id AND attribute_code = 'color') as color,
+            (SELECT image_path FROM catalog_product_image WHERE product_entity_id = p.entity_id AND is_primary = true LIMIT 1) as image_url
+        FROM catalog_product_entity p
+        ORDER BY p.entity_id ASC
     ";
 }
