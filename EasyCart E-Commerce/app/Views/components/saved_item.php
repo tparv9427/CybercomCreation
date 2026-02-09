@@ -10,7 +10,8 @@ $productIcon = $item['product']['icon'] ?? '';
 $price = $item['formatted_price'] ?? '$0.00';
 ?>
 <div class="cart-item" style="opacity: 0.9;" id="saved-item-<?php echo $productId; ?>">
-    <div class="item-image" onclick="window.location.href='/product/<?php echo $productId; ?>'">
+    <div class="item-image"
+        onclick="window.location.href='<?php echo \EasyCart\Helpers\ViewHelper::productUrl($item['product']); ?>'">
         <?php echo $productIcon; ?>
     </div>
     <div class="item-details">

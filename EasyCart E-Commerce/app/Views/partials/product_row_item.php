@@ -3,7 +3,8 @@
  * Reusable Product Row Item Component - Amazon Style
  */
 ?>
-<div class="product-row-item" onclick="window.location.href='/product/<?php echo $product['id']; ?>'">
+<div class="product-row-item"
+    onclick="window.location.href='<?php echo \EasyCart\Helpers\ViewHelper::productUrl($product); ?>'">
     <!-- Left: Image -->
     <div class="product-row-image-container">
         <div class="product-row-image">
@@ -65,7 +66,7 @@
         <button class="btn-amazon-primary" onclick="addToCart(<?php echo $product['id']; ?>, event)">Add to
             cart</button>
         <div class="more-buying-choices">
-            <a href="/product/<?php echo $product['id']; ?>">More Buying Choices</a>
+            <a href="<?php echo \EasyCart\Helpers\ViewHelper::productUrl($product); ?>">More Buying Choices</a>
         </div>
         <button class="save-btn" onclick="saveForLater(<?php echo $product['id']; ?>, event)" title="Save for Later"
             style="width: fit-content; background: white; border: 1px solid #ddd; border-radius: 4px; color: #555; cursor: pointer; transition: all 0.2s; padding: 2px;">
@@ -73,4 +74,3 @@
         </button>
     </div>
 </div>
-

@@ -50,6 +50,11 @@ class AuthService
             return false;
         }
 
+        // Check if user is deactivated
+        if (isset($user['is_active']) && $user['is_active'] === false) {
+            return false;
+        }
+
         if (!password_verify($password, $user['password'])) {
             return false;
         }

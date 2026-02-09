@@ -115,7 +115,7 @@ class ProductController
     }
 
     /**
-     * Product detail page
+     * Product detail page (redirects to slug URL if accessed by ID)
      */
     public function show($id)
     {
@@ -127,6 +127,50 @@ class ProductController
             exit;
         }
 
+        // Redirect to slug-based URL for SEO
+        if (!empty($product['url_key'])) {
+            header('Location: /product/' . $product['url_key'], true, 301);
+            exit;
+        }
+
+        // Generate slug from name if no url_key yet
+        $slug = str_replace(' ', '-', $product['name']);
+        $slug = preg_replace('/[^a-zA-Z0-9-]+/', '-', $slug);
+        $slug = trim($slug, '-');
+        header('Location: /product/' . $slug, true, 301);
+        exit;
+
+        // Fallback to show page if no url_key
+        $this->renderProductDetail($product);
+    }
+
+    /**
+     * Product detail page by URL slug
+     * Looks up by url_key first, then falls back to name-based slug matching
+     */
+    public function showBySlug($slug)
+    {
+        // First try finding by url_key
+        $product = $this->productRepo->findByUrlKey($slug);
+
+        // If not found, try finding by name-based slug
+        if (!$product) {
+            $product = $this->productRepo->findByNameSlug($slug);
+        }
+
+        if (!$product) {
+            header('Location: /products');
+            exit;
+        }
+
+        $this->renderProductDetail($product);
+    }
+
+    /**
+     * Render product detail page
+     */
+    private function renderProductDetail($product)
+    {
         $page_title = $product['name'];
         $categories = $this->categoryRepo->getAll();
 

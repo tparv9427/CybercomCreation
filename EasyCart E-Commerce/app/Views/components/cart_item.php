@@ -15,7 +15,8 @@ $quantity = $item['quantity'] ?? 1;
 $stock = $item['product']['stock'] ?? 999;
 ?>
 <div class="cart-item" data-product-id="<?php echo $productId; ?>">
-    <div class="item-image" onclick="window.location.href='/product/<?php echo $productId; ?>'">
+    <div class="item-image"
+        onclick="window.location.href='<?php echo \EasyCart\Helpers\ViewHelper::productUrl($item['product']); ?>'">
         <?php echo $productIcon; ?>
     </div>
     <div class="item-details">

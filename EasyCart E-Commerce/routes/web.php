@@ -22,6 +22,10 @@ $router->get('/product/{id:\d+}', ['\EasyCart\Controllers\ProductController', 's
 $router->get('/search', ['\EasyCart\Controllers\ProductController', 'search'], 'search');
 $router->get('/brand/{id}', ['\EasyCart\Controllers\ProductController', 'brand'], 'brand');
 
+// NEW MVC Routes (URL-key based product routing)
+// This handles slug-based URLs like /product/Ultra-Tablet-Series
+$router->get('/product/{slug}', ['\EasyCart\Controllers\ProductController', 'showBySlug'], 'product.slug');
+
 // Cart (GET requests)
 $router->get('/cart', ['\EasyCart\Controllers\CartController', 'index'], 'cart');
 $router->get('/cart/count', ['\EasyCart\Controllers\CartController', 'count'], 'cart.count');

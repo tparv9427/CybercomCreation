@@ -72,6 +72,7 @@ class CartController
 
     /**
      * Add to cart (AJAX)
+     * Implements email-first check: if guest provides email and user exists, require password
      */
     public function add()
     {
@@ -79,6 +80,24 @@ class CartController
 
         $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
         $quantity = isset($_POST['quantity']) ? (int) $_POST['quantity'] : 1;
+        $email = isset($_POST['email']) ? trim($_POST['email']) : null;
+
+        // Email-first check for guest users
+        if ($email && !\EasyCart\Services\AuthService::check()) {
+            $userRepo = new \EasyCart\Repositories\UserRepository();
+            $existingUser = $userRepo->findByEmail($email);
+
+            if ($existingUser) {
+                // User exists - require password before adding to cart
+                echo json_encode([
+                    'success' => false,
+                    'requires_password' => true,
+                    'message' => 'An account with this email exists. Please enter your password to continue.',
+                    'email' => $email
+                ]);
+                return;
+            }
+        }
 
         $result = $this->cartService->add($product_id, $quantity);
 

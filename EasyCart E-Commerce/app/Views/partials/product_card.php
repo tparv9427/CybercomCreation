@@ -13,7 +13,8 @@
  */
 ?>
 <div class="product-card">
-    <div class="product-image" onclick="window.location.href='/product/<?php echo $product['id']; ?>'">
+    <div class="product-image"
+        onclick="window.location.href='<?php echo \EasyCart\Helpers\ViewHelper::productUrl($product); ?>'">
         <?php echo $product['icon']; ?>
         <?php if ($product['discount_percent'] > 0): ?>
             <span class="product-badge">-<?php echo $product['discount_percent']; ?>%</span>
@@ -25,7 +26,8 @@
             <?php echo isInWishlist($product['id']) ? '❤️' : '🤍'; ?>
         </button>
     </div>
-    <div class="product-info" onclick="window.location.href='/product/<?php echo $product['id']; ?>'">
+    <div class="product-info"
+        onclick="window.location.href='<?php echo \EasyCart\Helpers\ViewHelper::productUrl($product); ?>'">
         <!-- Always visible -->
         <div class="product-name"><?php echo $product['name']; ?></div>
         <div class="product-price">

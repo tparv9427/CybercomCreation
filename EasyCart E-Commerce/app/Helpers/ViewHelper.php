@@ -107,6 +107,31 @@ class ViewHelper
         return $url;
     }
 
+    /**
+     * Generate product URL using slug (url_key) or fallback to ID
+     * Format: /product/Ultra-Tablet-Series
+     * @param array $product Product data array
+     * @return string URL like /product/Ultra-Tablet-Series
+     */
+    public static function productUrl(array $product): string
+    {
+        // Use url_key if available
+        if (!empty($product['url_key'])) {
+            return '/product/' . $product['url_key'];
+        }
+
+        // Generate slug from name if no url_key (preserve case, replace spaces with hyphens)
+        if (!empty($product['name'])) {
+            $slug = str_replace(' ', '-', $product['name']);
+            $slug = preg_replace('/[^a-zA-Z0-9-]+/', '-', $slug);
+            $slug = trim($slug, '-');
+            return '/product/' . $slug;
+        }
+
+        // Fallback to ID-based URL
+        return '/product/' . ($product['id'] ?? $product['entity_id'] ?? 0);
+    }
+
     // ========================================================================
     // Utility Methods
     // ========================================================================

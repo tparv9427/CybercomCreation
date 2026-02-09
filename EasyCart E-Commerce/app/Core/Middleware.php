@@ -39,11 +39,24 @@ class Middleware
 
     /**
      * Require authentication
+     * Also checks if user is still active in database
      */
     public static function authRequired(): void
     {
         if (!AuthService::check()) {
             header('Location: /login');
+            exit;
+        }
+
+        // Check if user is still active in database
+        $userRepo = new \EasyCart\Repositories\UserRepository();
+        $user = $userRepo->find($_SESSION['user_id']);
+
+        if (!$user || (isset($user['is_active']) && $user['is_active'] === false)) {
+            // Auto-logout deactivated user
+            $_SESSION['user_id'] = null;
+            unset($_SESSION['cart_id']);
+            header('Location: /login?deactivated=1');
             exit;
         }
     }

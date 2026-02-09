@@ -48,6 +48,62 @@ class ProductRepository
         return $product ? $this->processProduct($product) : null;
     }
 
+    /**
+     * Find product by URL key (slug)
+     * @param string $urlKey
+     * @return array|null
+     */
+    public function findByUrlKey($urlKey)
+    {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT p.*, 
+                       c.entity_id as category_id,
+                       (SELECT attribute_value FROM catalog_product_attribute 
+                        WHERE product_entity_id = p.entity_id AND attribute_code = 'brand' LIMIT 1) as brand
+                FROM catalog_product_entity p
+                LEFT JOIN catalog_category_product cp ON p.entity_id = cp.product_entity_id
+                LEFT JOIN catalog_category_entity c ON cp.category_entity_id = c.entity_id
+                WHERE p.url_key = :url_key
+                LIMIT 1
+            ");
+            $stmt->execute([':url_key' => $urlKey]);
+            $product = $stmt->fetch();
+            return $product ? $this->processProduct($product) : null;
+        } catch (\PDOException $e) {
+            // Column url_key may not exist yet - return null to fall back to name-based lookup
+            return null;
+        }
+    }
+
+    /**
+     * Find product by name-based slug (matches slug against name with spaces replaced by hyphens)
+     * Used as fallback when url_key column doesn't exist yet
+     * @param string $slug e.g. "Ultra-Tablet-Series"
+     * @return array|null
+     */
+    public function findByNameSlug($slug)
+    {
+        // Convert slug back to search pattern: "Ultra-Tablet-Series" -> "Ultra Tablet Series"
+        $namePattern = str_replace('-', ' ', $slug);
+
+        $stmt = $this->pdo->prepare("
+            SELECT p.*, 
+                   c.entity_id as category_id,
+                   (SELECT attribute_value FROM catalog_product_attribute 
+                    WHERE product_entity_id = p.entity_id AND attribute_code = 'brand' LIMIT 1) as brand
+            FROM catalog_product_entity p
+            LEFT JOIN catalog_category_product cp ON p.entity_id = cp.product_entity_id
+            LEFT JOIN catalog_category_entity c ON cp.category_entity_id = c.entity_id
+            WHERE LOWER(REPLACE(p.name, ' ', '-')) = LOWER(:slug)
+               OR LOWER(p.name) = LOWER(:name_pattern)
+            LIMIT 1
+        ");
+        $stmt->execute([':slug' => $slug, ':name_pattern' => $namePattern]);
+        $product = $stmt->fetch();
+        return $product ? $this->processProduct($product) : null;
+    }
+
     public function getFeatured($limit = 20)
     {
         $stmt = $this->pdo->prepare(Queries::PRODUCT_GET_FEATURED);
