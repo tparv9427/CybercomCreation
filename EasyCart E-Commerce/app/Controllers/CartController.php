@@ -42,7 +42,7 @@ class CartController
             $product = $this->productRepo->find($product_id);
             if ($product) {
                 // Enforce stock limit on display
-                $adjusted_quantity = min($quantity, $product['stock']);
+                $adjusted_quantity = min($quantity, $product['stock'], CartService::MAX_QUANTITY_PER_ITEM);
 
                 // Determine shipping type for this product
                 $shipping_type = ($product['price'] >= 300) ? 'Freight Shipping' : 'Express Shipping';
@@ -87,7 +87,9 @@ class CartController
             $shipping_category = $this->pricingService->determineShippingCategory($cart);
 
             $message = 'Product added to cart';
-            if ($result['max_stock_reached']) {
+            if ($result['limit_reached'] ?? false) {
+                $message = "Only " . CartService::MAX_QUANTITY_PER_ITEM . " quantity allowed per cart.";
+            } elseif ($result['max_stock_reached']) {
                 $message = "Maximum stock reached! Only {$result['max_stock']} available.";
             }
 
@@ -96,7 +98,7 @@ class CartController
                 'cart_count' => $this->cartService->getCount(),
                 'shipping_category' => $shipping_category,
                 'message' => $message,
-                'max_stock_reached' => $result['max_stock_reached'],
+                'max_stock_reached' => $result['max_stock_reached'] || ($result['limit_reached'] ?? false),
                 'current_quantity' => $result['current_quantity'],
                 'max_stock' => $result['max_stock']
             ]);
@@ -115,8 +117,8 @@ class CartController
         $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
         $quantity = isset($_POST['quantity']) ? (int) $_POST['quantity'] : 1;
 
-        $actual_quantity = $this->cartService->update($product_id, $quantity);
-        // If update returned 0 (removed) or false, handle gracefully, but we assume int return now.
+        $result = $this->cartService->update($product_id, $quantity);
+        $actual_quantity = $result['actual_quantity'];
 
         $cart = $this->cartService->get();
         $shipping_category = $this->pricingService->determineShippingCategory($cart);
@@ -124,15 +126,26 @@ class CartController
 
         $product = $this->productRepo->find($product_id);
         $item_total = $product ? $product['price'] * $actual_quantity : 0;
-        $max_stock = $product ? (int) $product['stock'] : 0;
+
+        $max_stock = $result['max_stock'] ?? (min((int) ($product['stock'] ?? 0), CartService::MAX_QUANTITY_PER_ITEM));
 
         $estimated_totals = $this->pricingService->calculateEstimatedTotalRange($cart);
+
+        $message = null;
+        if ($quantity > $actual_quantity) {
+            if ($result['limit_reached'] ?? false) {
+                $message = "Only " . CartService::MAX_QUANTITY_PER_ITEM . " quantity allowed per cart.";
+            } else {
+                $message = "Maximum stock reached! Only {$actual_quantity} available.";
+            }
+        }
 
         echo json_encode([
             'success' => true,
             'cart_count' => $this->cartService->getCount(),
             'actual_quantity' => $actual_quantity,
             'max_stock' => $max_stock,
+            'message' => $message,
             'shipping_category' => $shipping_category,
             'item_total' => \EasyCart\Helpers\FormatHelper::price($item_total),
             'subtotal' => \EasyCart\Helpers\FormatHelper::price($pricing['subtotal']),
@@ -179,9 +192,7 @@ class CartController
         ]);
     }
 
-    /**
-     * Save for later (AJAX)
-     */
+
     /**
      * Save for later (AJAX)
      */

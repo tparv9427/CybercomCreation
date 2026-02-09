@@ -1,0 +1,625 @@
+"EasyCart Database Schema Report"
+
+
+"TABLE: brands"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`id`,integer,NO,,YES,
+`id`,integer,NO,`nextval('brands_id_seq'::regclass)`,YES,
+`name`,"character varying",NO,,,
+`name`,"character varying",NO,,,
+
+Dependencies:,None
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: cache"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`key`,"character varying",NO,,YES,
+`value`,text,NO,,,
+`expiration`,integer,NO,,,
+
+Dependencies:,None
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: cache_locks"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`key`,"character varying",NO,,YES,
+`owner`,"character varying",NO,,,
+`expiration`,integer,NO,,,
+
+Dependencies:,None
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: cart_items"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`id`,integer,NO,`nextval('cart_items_id_seq'::regclass)`,YES,
+`cart_id`,integer,YES,,,
+`product_id`,integer,YES,,,
+`quantity`,integer,YES,`1`,,
+`created_at`,"timestamp without time zone",YES,`CURRENT_TIMESTAMP`,,
+
+Dependencies:,None
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: catalog_category_attribute"
+Description:,"Flexible category attributes"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`attribute_id`,bigint,NO,`nextval('catalog_category_attribute_attribute_id_seq'::regclass)`,YES,
+`attribute_id`,bigint,NO,,YES,
+`category_entity_id`,bigint,NO,,,"🔗 catalog_category_entity(entity_id)"
+`category_entity_id`,bigint,NO,,,"🔗 catalog_category_entity(entity_id)"
+`attribute_code`,"character varying",NO,,,
+`attribute_code`,"character varying",NO,,,
+`attribute_value`,text,NO,,,
+`attribute_value`,text,NO,,,
+`created_at`,"timestamp without time zone",NO,`CURRENT_TIMESTAMP`,,
+`created_at`,"timestamp without time zone",YES,,,
+
+Dependencies:,catalog_category_entity
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: catalog_category_entity"
+Description:,"Core category information"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`entity_id`,bigint,NO,`nextval('catalog_category_entity_entity_id_seq'::regclass)`,YES,
+`entity_id`,bigint,NO,,YES,
+`name`,"character varying",NO,,,
+`name`,"character varying",NO,,,
+`slug`,"character varying",NO,,,
+`slug`,"character varying",NO,,,
+`parent_id`,bigint,YES,,,"🔗 catalog_category_entity(entity_id)"
+`parent_id`,bigint,YES,,,"🔗 catalog_category_entity(entity_id)"
+`position`,integer,NO,,,
+`position`,integer,YES,,,
+`is_active`,boolean,NO,`true`,,
+`is_active`,boolean,YES,`true`,,
+`created_at`,"timestamp without time zone",YES,,,
+`created_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+
+Dependencies:,catalog_category_entity
+Dependents:,"catalog_category_entity, catalog_category_attribute, catalog_category_product"
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: catalog_category_product"
+Description:,"Many-to-many relationship between categories and products"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`category_entity_id`,bigint,NO,,,"🔗 catalog_category_entity(entity_id)"
+`relation_id`,bigint,NO,`nextval('catalog_category_product_relation_id_seq'::regclass)`,YES,
+`category_entity_id`,bigint,NO,,,"🔗 catalog_category_entity(entity_id)"
+`product_entity_id`,bigint,NO,,,"🔗 catalog_product_entity(entity_id)"
+`position`,integer,YES,,,
+`product_entity_id`,bigint,NO,,,"🔗 catalog_product_entity(entity_id)"
+`position`,integer,NO,,,
+`created_at`,"timestamp without time zone",YES,,,
+`created_at`,"timestamp without time zone",NO,`CURRENT_TIMESTAMP`,,
+
+Dependencies:,"catalog_category_entity, catalog_product_entity"
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: catalog_product_attribute"
+Description:,"Flexible product attributes (color, size, brand, etc.)"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`attribute_id`,bigint,NO,,YES,
+`attribute_id`,bigint,NO,`nextval('catalog_product_attribute_attribute_id_seq'::regclass)`,YES,
+`product_entity_id`,bigint,NO,,,"🔗 catalog_product_entity(entity_id)"
+`product_entity_id`,bigint,NO,,,"🔗 catalog_product_entity(entity_id)"
+`attribute_code`,"character varying",NO,,,
+`attribute_code`,"character varying",NO,,,
+`attribute_value`,text,NO,,,
+`attribute_value`,text,NO,,,
+`created_at`,"timestamp without time zone",YES,,,
+`created_at`,"timestamp without time zone",NO,`CURRENT_TIMESTAMP`,,
+
+Dependencies:,catalog_product_entity
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: catalog_product_entity"
+Description:,"Core product information (EAV entity)"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`entity_id`,bigint,NO,`nextval('catalog_product_entity_entity_id_seq'::regclass)`,YES,
+`entity_id`,bigint,NO,,YES,
+`sku`,"character varying",NO,,,
+`sku`,"character varying",NO,,,
+`name`,"character varying",NO,,,
+`name`,"character varying",NO,,,
+`price`,numeric,NO,,,
+`price`,numeric,NO,,,
+`stock`,integer,YES,,,
+`original_price`,numeric,YES,,,
+`is_active`,boolean,YES,`true`,,
+`stock`,integer,NO,,,
+`description`,text,YES,,,
+`created_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+`is_featured`,boolean,NO,`false`,,
+`is_new`,boolean,NO,`false`,,
+`rating`,numeric,NO,`'0'::numeric`,,
+`reviews_count`,integer,NO,,,
+`created_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+`is_active`,boolean,NO,`true`,,
+
+Dependencies:,None
+Dependents:,"product_reviews, catalog_product_attribute, catalog_product_image, catalog_category_product, sales_cart_product, sales_order_product, catalog_wishlist"
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: catalog_product_image"
+Description:,"Product images - avoids comma-separated values"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`image_id`,bigint,NO,,YES,
+`image_id`,bigint,NO,`nextval('catalog_product_image_image_id_seq'::regclass)`,YES,
+`product_entity_id`,bigint,NO,,,"🔗 catalog_product_entity(entity_id)"
+`product_entity_id`,bigint,NO,,,"🔗 catalog_product_entity(entity_id)"
+`image_path`,"character varying",NO,,,
+`image_path`,"character varying",NO,,,
+`image_position`,integer,YES,,,
+`image_position`,integer,NO,,,
+`is_primary`,boolean,YES,`false`,,
+`is_primary`,boolean,NO,`false`,,
+`created_at`,"timestamp without time zone",YES,,,
+`created_at`,"timestamp without time zone",NO,`CURRENT_TIMESTAMP`,,
+
+Dependencies:,catalog_product_entity
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: catalog_wishlist"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`wishlist_id`,bigint,NO,`nextval('catalog_wishlist_wishlist_id_seq'::regclass)`,YES,
+`wishlist_id`,bigint,NO,,YES,
+`user_id`,bigint,NO,,,"🔗 users(id)"
+`user_id`,bigint,NO,,,"🔗 users(id)"
+`product_entity_id`,bigint,NO,,,"🔗 catalog_product_entity(entity_id)"
+`product_entity_id`,bigint,NO,,,"🔗 catalog_product_entity(entity_id)"
+`created_at`,"timestamp without time zone",YES,,,
+`created_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+
+Dependencies:,"users, catalog_product_entity"
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: coupons"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`id`,integer,NO,`nextval('coupons_id_seq'::regclass)`,YES,
+`code`,"character varying",NO,,,
+`discount_percent`,integer,NO,,,
+`created_at`,"timestamp without time zone",YES,`CURRENT_TIMESTAMP`,,
+
+Dependencies:,None
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: failed_jobs"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`id`,bigint,NO,`nextval('failed_jobs_id_seq'::regclass)`,YES,
+`uuid`,"character varying",NO,,,
+`connection`,text,NO,,,
+`queue`,text,NO,,,
+`payload`,text,NO,,,
+`exception`,text,NO,,,
+`failed_at`,"timestamp without time zone",NO,`CURRENT_TIMESTAMP`,,
+
+Dependencies:,None
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: job_batches"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`id`,"character varying",NO,,YES,
+`name`,"character varying",NO,,,
+`total_jobs`,integer,NO,,,
+`pending_jobs`,integer,NO,,,
+`failed_jobs`,integer,NO,,,
+`failed_job_ids`,text,NO,,,
+`options`,text,YES,,,
+`cancelled_at`,integer,YES,,,
+`created_at`,integer,NO,,,
+`finished_at`,integer,YES,,,
+
+Dependencies:,None
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: jobs"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`id`,bigint,NO,`nextval('jobs_id_seq'::regclass)`,YES,
+`queue`,"character varying",NO,,,
+`payload`,text,NO,,,
+`attempts`,smallint,NO,,,
+`reserved_at`,integer,YES,,,
+`available_at`,integer,NO,,,
+`created_at`,integer,NO,,,
+
+Dependencies:,None
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: migrations"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`id`,integer,NO,`nextval('migrations_id_seq'::regclass)`,YES,
+`migration`,"character varying",NO,,,
+`batch`,integer,NO,,,
+
+Dependencies:,None
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: password_reset_tokens"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`email`,"character varying",NO,,YES,
+`token`,"character varying",NO,,,
+`created_at`,"timestamp without time zone",YES,,,
+
+Dependencies:,None
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: product_reviews"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`review_id`,integer,NO,`nextval('product_reviews_review_id_seq'::regclass)`,YES,
+`review_id`,integer,NO,,YES,
+`product_entity_id`,integer,NO,,,"🔗 catalog_product_entity(entity_id)"
+`product_entity_id`,bigint,NO,,,"🔗 catalog_product_entity(entity_id)"
+`user_id`,integer,NO,,,"🔗 users(id)"
+`user_id`,bigint,NO,,,"🔗 users(id)"
+`rating`,integer,NO,,,
+`rating`,integer,YES,,,
+`comment`,text,YES,,,
+`comment`,text,YES,,,
+`is_approved`,boolean,YES,`true`,,
+`is_approved`,boolean,YES,`true`,,
+`created_at`,"timestamp without time zone",YES,`CURRENT_TIMESTAMP`,,
+`created_at`,"timestamp without time zone",YES,,,
+
+Dependencies:,"catalog_product_entity, users"
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: sales_cart"
+Description:,"Shopping cart header - cart_id stored in session"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`cart_id`,bigint,NO,,YES,
+`cart_id`,bigint,NO,`nextval('sales_cart_cart_id_seq'::regclass)`,YES,
+`user_id`,bigint,YES,,,"🔗 users(id)"
+`user_id`,bigint,YES,,,"🔗 users(id)"
+`session_id`,"character varying",YES,,,
+`session_id`,"character varying",YES,,,
+`status`,"character varying",YES,"`'active'::character varying`",,
+`is_active`,boolean,NO,`true`,,
+`created_at`,"timestamp without time zone",YES,,,
+`created_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+
+Dependencies:,users
+Dependents:,"sales_cart_product, sales_cart_address, sales_cart_payment, sales_order"
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: sales_cart_address"
+Description:,"Cart shipping and billing addresses"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`address_id`,bigint,NO,`nextval('sales_cart_address_address_id_seq'::regclass)`,YES,
+`cart_id`,bigint,NO,,,"🔗 sales_cart(cart_id)"
+`address_type`,"character varying",NO,,,
+`first_name`,"character varying",NO,,,
+`last_name`,"character varying",NO,,,
+`email`,"character varying",NO,,,
+`phone`,"character varying",YES,,,
+`address_line_one`,"character varying",NO,,,
+`address_line_two`,"character varying",YES,,,
+`city`,"character varying",NO,,,
+`state`,"character varying",NO,,,
+`postal_code`,"character varying",NO,,,
+`country`,"character varying",NO,,,
+`created_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+
+Dependencies:,sales_cart
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: sales_cart_payment"
+Description:,"Cart payment and shipping method selection"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`payment_id`,bigint,NO,`nextval('sales_cart_payment_payment_id_seq'::regclass)`,YES,
+`cart_id`,bigint,NO,,,"🔗 sales_cart(cart_id)"
+`shipping_method`,"character varying",YES,,,
+`payment_method`,"character varying",YES,,,
+`created_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+
+Dependencies:,sales_cart
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: sales_cart_product"
+Description:,"Cart line items"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`item_id`,bigint,NO,,YES,
+`item_id`,bigint,NO,`nextval('sales_cart_product_item_id_seq'::regclass)`,YES,
+`cart_id`,bigint,NO,,,"🔗 sales_cart(cart_id)"
+`cart_id`,bigint,NO,,,"🔗 sales_cart(cart_id)"
+`product_entity_id`,bigint,NO,,,"🔗 catalog_product_entity(entity_id)"
+`product_entity_id`,bigint,NO,,,"🔗 catalog_product_entity(entity_id)"
+`quantity`,integer,NO,,,
+`quantity`,integer,NO,`1`,,
+`price_snapshot`,numeric,YES,,,
+`created_at`,"timestamp without time zone",YES,,,
+`created_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+
+Dependencies:,"sales_cart, catalog_product_entity"
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: sales_order"
+Description:,"Order header - created from inactive cart"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`order_id`,bigint,NO,,YES,
+`order_id`,bigint,NO,`nextval('sales_order_order_id_seq'::regclass)`,YES,
+`order_number`,"character varying",NO,,,
+`order_number`,"character varying",NO,,,
+`user_id`,bigint,YES,,,"🔗 users(id)"
+`user_id`,bigint,YES,,,"🔗 users(id)"
+`original_cart_id`,bigint,YES,,,"🔗 sales_cart(cart_id)"
+`original_cart_id`,bigint,YES,,,"🔗 sales_cart(cart_id)"
+`subtotal`,numeric,YES,,,
+`subtotal`,numeric,NO,,,
+`tax`,numeric,YES,,,
+`shipping_cost`,numeric,NO,`'0'::numeric`,,
+`tax`,numeric,NO,`'0'::numeric`,,
+`discount`,numeric,YES,,,
+`total`,numeric,YES,,,
+`discount`,numeric,NO,`'0'::numeric`,,
+`status`,"character varying",YES,,,
+`total`,numeric,NO,,,
+`created_at`,"timestamp without time zone",YES,,,
+`status`,"character varying",NO,"`'processing'::character varying`",,
+`created_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+`is_archived`,boolean,YES,`false`,,
+
+Dependencies:,"users, sales_cart"
+Dependents:,"sales_order_product, sales_order_address, sales_order_payment"
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: sales_order_address"
+Description:,"Order addresses (snapshot from cart)"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`address_id`,bigint,NO,,YES,
+`address_id`,bigint,NO,`nextval('sales_order_address_address_id_seq'::regclass)`,YES,
+`order_id`,bigint,NO,,,"🔗 sales_order(order_id)"
+`order_id`,bigint,NO,,,"🔗 sales_order(order_id)"
+`address_type`,"character varying",YES,,,
+`address_type`,"character varying",NO,,,
+`first_name`,"character varying",YES,,,
+`first_name`,"character varying",NO,,,
+`last_name`,"character varying",NO,,,
+`last_name`,"character varying",YES,,,
+`email`,"character varying",NO,,,
+`email`,"character varying",YES,,,
+`phone`,"character varying",YES,,,
+`phone`,"character varying",YES,,,
+`address_line_one`,text,YES,,,
+`address_line_one`,"character varying",NO,,,
+`city`,"character varying",YES,,,
+`address_line_two`,"character varying",YES,,,
+`city`,"character varying",NO,,,
+`state`,"character varying",YES,,,
+`state`,"character varying",NO,,,
+`postal_code`,"character varying",YES,,,
+`country`,"character varying",YES,,,
+`postal_code`,"character varying",NO,,,
+`created_at`,"timestamp without time zone",YES,,,
+`country`,"character varying",NO,,,
+`created_at`,"timestamp without time zone",NO,`CURRENT_TIMESTAMP`,,
+
+Dependencies:,sales_order
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: sales_order_payment"
+Description:,"Order payment info (snapshot from cart)"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`payment_id`,bigint,NO,,YES,
+`payment_id`,bigint,NO,`nextval('sales_order_payment_payment_id_seq'::regclass)`,YES,
+`order_id`,bigint,NO,,,"🔗 sales_order(order_id)"
+`order_id`,bigint,NO,,,"🔗 sales_order(order_id)"
+`shipping_method`,"character varying",YES,,,
+`shipping_method`,"character varying",NO,,,
+`payment_method`,"character varying",NO,,,
+`payment_method`,"character varying",YES,,,
+`created_at`,"timestamp without time zone",YES,,,
+`created_at`,"timestamp without time zone",NO,`CURRENT_TIMESTAMP`,,
+
+Dependencies:,sales_order
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: sales_order_product"
+Description:,"Order line items with product snapshots"
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`item_id`,bigint,NO,,YES,
+`item_id`,bigint,NO,`nextval('sales_order_product_item_id_seq'::regclass)`,YES,
+`order_id`,bigint,NO,,,"🔗 sales_order(order_id)"
+`order_id`,bigint,NO,,,"🔗 sales_order(order_id)"
+`product_entity_id`,bigint,YES,,,"🔗 catalog_product_entity(entity_id)"
+`product_entity_id`,bigint,YES,,,"🔗 catalog_product_entity(entity_id)"
+`product_name`,"character varying",YES,,,
+`product_name`,"character varying",NO,,,
+`product_sku`,"character varying",YES,,,
+`product_sku`,"character varying",NO,,,
+`product_price`,numeric,YES,,,
+`product_price`,numeric,NO,,,
+`quantity`,integer,NO,,,
+`quantity`,integer,YES,,,
+`row_total`,numeric,YES,,,
+`row_total`,numeric,NO,,,
+`created_at`,"timestamp without time zone",NO,`CURRENT_TIMESTAMP`,,
+
+Dependencies:,"sales_order, catalog_product_entity"
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: saved_items"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`id`,integer,NO,`nextval('saved_items_id_seq'::regclass)`,YES,
+`user_id`,integer,YES,,,"🔗 users(id)"
+`product_id`,integer,YES,,,
+`created_at`,"timestamp without time zone",YES,`CURRENT_TIMESTAMP`,,
+
+Dependencies:,users
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: sessions"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`id`,"character varying",NO,,YES,
+`user_id`,bigint,YES,,,
+`ip_address`,"character varying",YES,,,
+`user_agent`,text,YES,,,
+`payload`,text,NO,,,
+`last_activity`,integer,NO,,,
+
+Dependencies:,None
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: user_addresses"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`id`,integer,NO,`nextval('user_addresses_id_seq'::regclass)`,YES,
+`user_id`,integer,NO,,,"🔗 users(id)"
+`first_name`,"character varying",NO,,,
+`last_name`,"character varying",NO,,,
+`phone`,"character varying",YES,,,
+`address_line_one`,"character varying",NO,,,
+`address_line_two`,"character varying",YES,,,
+`city`,"character varying",NO,,,
+`state`,"character varying",NO,,,
+`postal_code`,"character varying",NO,,,
+`country`,"character varying",NO,"`'India'::character varying`",,
+`is_default`,boolean,YES,`false`,,
+`created_at`,"timestamp without time zone",YES,`CURRENT_TIMESTAMP`,,
+`updated_at`,"timestamp without time zone",YES,`CURRENT_TIMESTAMP`,,
+
+Dependencies:,users
+Dependents:,None
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+"TABLE: users"
+Description:,"No description available."
+
+Column,"Data Type",Nullable,Default,PK,FK
+:---,:---,:---,:---,,:---
+`id`,bigint,NO,,YES,
+`id`,bigint,NO,`nextval('users_id_seq'::regclass)`,YES,
+`name`,"character varying",NO,,,
+`name`,"character varying",NO,,,
+`email`,"character varying",NO,,,
+`email`,"character varying",NO,,,
+`email_verified_at`,"timestamp without time zone",YES,,,
+`password`,"character varying",NO,,,
+`phone`,"character varying",YES,,,
+`password`,"character varying",NO,,,
+`created_at`,"timestamp without time zone",YES,,,
+`remember_token`,"character varying",YES,,,
+`created_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+`updated_at`,"timestamp without time zone",YES,,,
+`phone`,"character varying",YES,,,
+
+Dependencies:,None
+Dependents:,"saved_items, product_reviews, sales_cart, sales_order, catalog_wishlist, user_addresses"
+Recommendations:,"Standardize ID naming, ensure updated_at triggers exist."
+
+
+"FINAL DATABASE RATING"
+"Overall Rating:",7.5/10
+
+Suggestions:
+1.,"Type Standardization: Ensure all Primary and Foreign keys use the same data type (e.g., all BIGINT)."
+2.,"Soft Deletes: Implement deleted_at for core entities like Users and Products."
+3.,"Audit Trails: Consistent created_at and updated_at across all active tables."
+4.,"JSONB usage: For flexible attributes, consider PostgreSQL JSONB for better performance."

@@ -78,14 +78,6 @@ $router->get('/dashboard', ['\EasyCart\Controllers\DashboardController', 'index'
 $router->get('/api/dashboard/chart', ['\EasyCart\Controllers\DashboardController', 'chartData'], 'dashboard.chart', ['authRequired']);
 
 // ============================================================================
-// Admin Routes
-// ============================================================================
-
-$router->get('/admin/import-export', ['\EasyCart\Controllers\Admin\ImportExportController', 'index'], 'admin.import_export', ['authRequired']);
-$router->post('/admin/import', ['\EasyCart\Controllers\Admin\ImportExportController', 'import'], 'admin.import', ['authRequired']);
-$router->get('/admin/export', ['\EasyCart\Controllers\Admin\ImportExportController', 'export'], 'admin.export', ['authRequired']);
-
-// ============================================================================
 // AJAX Routes (for backward compatibility during transition)
 // ============================================================================
 

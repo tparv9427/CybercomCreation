@@ -633,7 +633,7 @@ function updateQuantity(productId, quantity, disableInput = true) {
                     if (data.actual_quantity !== undefined && parseInt(data.actual_quantity) !== parseInt(quantity)) {
                         quantityInput.value = data.actual_quantity;
                         quantity = data.actual_quantity; // Update local variable for downstream logic
-                        showNotification(`Quantity adjusted to available stock (${data.actual_quantity})`, 'info');
+                        showNotification(data.message || `Quantity adjusted to available stock (${data.actual_quantity})`, 'info');
                     } else {
                         quantityInput.value = quantity;
                     }
@@ -754,11 +754,17 @@ function increaseCartQuantity(productId) {
     if (quantityInput) {
         const currentQty = parseInt(quantityInput.value) || 1;
         const maxQty = parseInt(quantityInput.max) || 999;
+        const stock = parseInt(quantityInput.dataset.stock) || 999;
+        const limit = parseInt(quantityInput.dataset.limit) || 5;
 
         if (currentQty < maxQty) {
             updateQuantity(productId, currentQty + 1);
         } else {
-            showNotification(`Sorry, only ${maxQty} items available in stock!`, 'error');
+            let message = `Sorry, only ${maxQty} items available in stock!`;
+            if (maxQty === limit && limit < stock) {
+                message = `Only ${limit} quantity allowed per cart.`;
+            }
+            showNotification(message, 'error');
             // Shake animation for feedback
             quantityInput.parentElement.classList.add('shake');
             setTimeout(() => quantityInput.parentElement.classList.remove('shake'), 500);
@@ -766,30 +772,25 @@ function increaseCartQuantity(productId) {
     }
 }
 
-// Validate manual input with Debounce
-let debounceTimer;
+// Validate manual input with Dynamic Debounce (1s for value, 3s for empty)
+let quantityDebouncers = {};
 function validateCartQuantity(productId, input) {
-    clearTimeout(debounceTimer);
-    const max = parseInt(input.max) || 999;
-    let value = parseInt(input.value);
-
-    // Immediate check for max stock (prevent typing huge numbers)
-    if (!isNaN(value) && value > max) {
-        input.value = max;
-        value = max;
-        showNotification(`Sorry, only ${max} items available in stock!`, 'error');
-
-        // Shake animation
-        const container = input.parentElement;
-        container.classList.add('shake');
-        setTimeout(() => container.classList.remove('shake'), 500);
+    if (quantityDebouncers[productId]) {
+        clearTimeout(quantityDebouncers[productId]);
     }
 
-    debounceTimer = setTimeout(() => {
-        let currentValue = parseInt(input.value);
+    const val = input.value.trim();
+    const delay = val === '' ? 3000 : 1000;
 
-        // Final validation (check for empty/min value)
-        if (input.value === '' || isNaN(currentValue) || currentValue < 1) {
+    quantityDebouncers[productId] = setTimeout(() => {
+        const value = input.value.trim();
+        let currentValue = parseInt(value);
+        const max = parseInt(input.max) || 999;
+        const stock = parseInt(input.dataset.stock) || 999;
+        const limit = parseInt(input.dataset.limit) || 5;
+
+        // If empty or invalid, snap back
+        if (value === '' || isNaN(currentValue) || currentValue < 1) {
             const previousValue = input.getAttribute('data-old-value') || 1;
             input.value = previousValue;
             showNotification('Please enter a valid quantity', 'error');
@@ -801,9 +802,25 @@ function validateCartQuantity(productId, input) {
             return;
         }
 
-        // Always update with the (possibly corrected) value
+        if (currentValue > max) {
+            input.value = max;
+            currentValue = max;
+
+            let message = `Sorry, only ${max} items available in stock!`;
+            if (max === limit && limit < stock) {
+                message = `Only ${limit} quantity allowed per cart.`;
+            }
+            showNotification(message, 'error');
+
+            // Shake animation
+            const container = input.parentElement;
+            container.classList.add('shake');
+            setTimeout(() => container.classList.remove('shake'), 500);
+        }
+
+        // Process the update
         updateQuantity(productId, currentValue, false);
-    }, 300); // 300ms debounce
+    }, delay);
 }
 
 // Generic Max Stock Validator

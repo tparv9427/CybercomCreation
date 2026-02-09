@@ -187,7 +187,7 @@ class CartRepository
                     INSERT INTO sales_cart_product (cart_id, product_entity_id, quantity) 
                     VALUES (:cart_id, :product_id, :quantity)
                     ON CONFLICT (cart_id, product_entity_id) 
-                    DO UPDATE SET quantity = sales_cart_product.quantity + EXCLUDED.quantity,
+                    DO UPDATE SET quantity = LEAST(sales_cart_product.quantity + EXCLUDED.quantity, " . \EasyCart\Services\CartService::MAX_QUANTITY_PER_ITEM . "),
                                   updated_at = CURRENT_TIMESTAMP
                 ");
 

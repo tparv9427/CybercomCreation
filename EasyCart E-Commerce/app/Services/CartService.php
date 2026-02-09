@@ -18,6 +18,8 @@ class CartService
     private $productRepo;
     private $saveRepo;
 
+    public const MAX_QUANTITY_PER_ITEM = 6;
+
     public function __construct()
     {
         $this->cartRepo = new CartRepository();
@@ -40,7 +42,7 @@ class CartService
      * 
      * @param int $productId
      * @param int $quantity
-     * @return array ['success' => bool, 'max_stock_reached' => bool, 'current_quantity' => int, 'max_stock' => int]
+     * @return array ['success' => bool, 'max_stock_reached' => bool, 'current_quantity' => int, 'max_stock' => int, 'limit_reached' => bool]
      */
     public function add($productId, $quantity = 1)
     {
@@ -50,6 +52,8 @@ class CartService
         }
 
         $currentStock = isset($product['stock']) ? (int) $product['stock'] : 999;
+        $maxAllowed = min($currentStock, self::MAX_QUANTITY_PER_ITEM);
+
         $cart = $this->cartRepo->get();
 
         if (!isset($cart[$productId])) {
@@ -58,12 +62,18 @@ class CartService
 
         $oldQuantity = $cart[$productId];
         $newQuantity = $oldQuantity + $quantity;
-        $maxStockReached = false;
 
-        // Enforce max stock
-        if ($newQuantity > $currentStock) {
-            $newQuantity = $currentStock;
-            $maxStockReached = true;
+        $limitReached = false;
+        $stockReached = false;
+
+        // Enforce max allowed (min of stock or 7)
+        if ($newQuantity > $maxAllowed) {
+            $newQuantity = $maxAllowed;
+            if ($maxAllowed === self::MAX_QUANTITY_PER_ITEM) {
+                $limitReached = true;
+            } else {
+                $stockReached = true;
+            }
         }
 
         $cart[$productId] = $newQuantity;
@@ -71,10 +81,11 @@ class CartService
 
         return [
             'success' => true,
-            'max_stock_reached' => $maxStockReached || ($newQuantity >= $currentStock),
+            'max_stock_reached' => $stockReached,
+            'limit_reached' => $limitReached,
             'current_quantity' => $newQuantity,
-            'max_stock' => $currentStock,
-            'was_capped' => $maxStockReached
+            'max_stock' => $maxAllowed,
+            'was_capped' => $limitReached || $stockReached
         ];
     }
 
@@ -83,32 +94,47 @@ class CartService
      * 
      * @param int $productId
      * @param int $quantity
-     * @return int The actual updated quantity
+     * @return array ['success' => bool, 'actual_quantity' => int, 'limit_reached' => bool, 'max_stock_reached' => bool, 'max_stock' => int]
      */
     public function update($productId, $quantity)
     {
         if ($quantity <= 0) {
             $this->remove($productId);
-            return 0;
+            return ['success' => true, 'actual_quantity' => 0, 'limit_reached' => false, 'max_stock_reached' => false, 'max_stock' => 0];
         }
 
         $product = $this->productRepo->find($productId);
         if (!$product) {
-            return 0;
+            return ['success' => false, 'actual_quantity' => 0, 'limit_reached' => false, 'max_stock_reached' => false, 'max_stock' => 0];
         }
 
         $currentStock = isset($product['stock']) ? (int) $product['stock'] : 999;
+        $maxAllowed = min($currentStock, self::MAX_QUANTITY_PER_ITEM);
+
+        $limitReached = false;
+        $stockReached = false;
 
         // Enforce max stock
-        if ($quantity > $currentStock) {
-            $quantity = $currentStock;
+        if ($quantity > $maxAllowed) {
+            $quantity = $maxAllowed;
+            if ($maxAllowed === self::MAX_QUANTITY_PER_ITEM) {
+                $limitReached = true;
+            } else {
+                $stockReached = true;
+            }
         }
 
         $cart = $this->cartRepo->get();
         $cart[$productId] = $quantity;
         $this->cartRepo->save($cart);
 
-        return $quantity;
+        return [
+            'success' => true,
+            'actual_quantity' => $quantity,
+            'limit_reached' => $limitReached,
+            'max_stock_reached' => $stockReached,
+            'max_stock' => $maxAllowed
+        ];
     }
 
     /**

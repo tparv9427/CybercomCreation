@@ -135,3 +135,77 @@
         height: 300px;
     }
 }
+/* Admin Dashboard Styles */
+.dashboard-header {
+    margin-bottom: 40px;
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    color: var(--text-color);
+    margin-bottom: 10px;
+}
+
+.dashboard-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.admin-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-top: 30px;
+}
+
+.admin-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.admin-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border-color: #FF4B2B;
+}
+
+.admin-card.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.admin-card .card-icon {
+    font-size: 3rem;
+    color: #FF4B2B;
+}
+
+.admin-card .card-content h3 {
+    font-size: 1.5rem;
+    margin: 0 0 10px 0;
+    color: var(--text-color);
+}
+
+.admin-card .card-content p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.admin-card.disabled .card-icon {
+    color: #999;
+}
+
+.admin-card.disabled .card-content h3 {
+    color: #999;
+}

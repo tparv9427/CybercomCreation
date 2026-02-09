@@ -1,0 +1,3121 @@
+﻿[
+    {
+        "name": "product_reviews",
+        "columns": [
+            {
+                "column_name": "review_id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "nextval('product_reviews_review_id_seq'::regclass)"
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "user_id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "rating",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "comment",
+                "data_type": "text",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "is_approved",
+                "data_type": "boolean",
+                "is_nullable": "YES",
+                "column_default": "true"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": "CURRENT_TIMESTAMP"
+            },
+            {
+                "column_name": "review_id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "user_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "rating",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "comment",
+                "data_type": "text",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "is_approved",
+                "data_type": "boolean",
+                "is_nullable": "YES",
+                "column_default": "true"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "product_reviews_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "review_id",
+                "foreign_table_name": "product_reviews",
+                "foreign_column_name": "review_id"
+            },
+            {
+                "constraint_name": "product_reviews_product_entity_id_user_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "product_reviews",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "product_reviews_product_entity_id_user_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "product_reviews",
+                "foreign_column_name": "user_id"
+            },
+            {
+                "constraint_name": "product_reviews_product_entity_id_user_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "user_id",
+                "foreign_table_name": "product_reviews",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "product_reviews_product_entity_id_user_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "user_id",
+                "foreign_table_name": "product_reviews",
+                "foreign_column_name": "user_id"
+            },
+            {
+                "constraint_name": "product_reviews_product_entity_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "product_reviews_user_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "user_id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "product_reviews_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "review_id",
+                "foreign_table_name": "product_reviews",
+                "foreign_column_name": "review_id"
+            },
+            {
+                "constraint_name": "product_reviews_product_entity_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "product_reviews_user_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "user_id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "user_addresses",
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "nextval('user_addresses_id_seq'::regclass)"
+            },
+            {
+                "column_name": "user_id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "first_name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "last_name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "phone",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "address_line_one",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "address_line_two",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "city",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "state",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "postal_code",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "country",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": "'India'::character varying"
+            },
+            {
+                "column_name": "is_default",
+                "data_type": "boolean",
+                "is_nullable": "YES",
+                "column_default": "false"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": "CURRENT_TIMESTAMP"
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "user_addresses_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "user_addresses",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "user_addresses_user_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "user_id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "catalog_product_entity",
+        "columns": [
+            {
+                "column_name": "entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "sku",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "price",
+                "data_type": "numeric",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "stock",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": "0"
+            },
+            {
+                "column_name": "is_active",
+                "data_type": "boolean",
+                "is_nullable": "YES",
+                "column_default": "true"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('catalog_product_entity_entity_id_seq'::regclass)"
+            },
+            {
+                "column_name": "sku",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "price",
+                "data_type": "numeric",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "original_price",
+                "data_type": "numeric",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "stock",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "0"
+            },
+            {
+                "column_name": "description",
+                "data_type": "text",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "is_featured",
+                "data_type": "boolean",
+                "is_nullable": "NO",
+                "column_default": "false"
+            },
+            {
+                "column_name": "is_new",
+                "data_type": "boolean",
+                "is_nullable": "NO",
+                "column_default": "false"
+            },
+            {
+                "column_name": "rating",
+                "data_type": "numeric",
+                "is_nullable": "NO",
+                "column_default": "'0'::numeric"
+            },
+            {
+                "column_name": "reviews_count",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "0"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "is_active",
+                "data_type": "boolean",
+                "is_nullable": "NO",
+                "column_default": "true"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "catalog_product_entity_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_product_entity_sku_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "sku",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "sku"
+            },
+            {
+                "constraint_name": "catalog_product_entity_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_product_entity_sku_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "sku",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "sku"
+            }
+        ],
+        "description": "Core product information (EAV entity)"
+    },
+    {
+        "name": "users",
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "email",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "password",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "phone",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('users_id_seq'::regclass)"
+            },
+            {
+                "column_name": "name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "email",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "email_verified_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "password",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "remember_token",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "phone",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "users_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "users_email_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "email",
+                "foreign_table_name": "users",
+                "foreign_column_name": "email"
+            },
+            {
+                "constraint_name": "users_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "users_email_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "email",
+                "foreign_table_name": "users",
+                "foreign_column_name": "email"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "sessions",
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "user_id",
+                "data_type": "bigint",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "ip_address",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "user_agent",
+                "data_type": "text",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "payload",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "last_activity",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "sessions_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "sessions",
+                "foreign_column_name": "id"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "migrations",
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "nextval('migrations_id_seq'::regclass)"
+            },
+            {
+                "column_name": "migration",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "batch",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "migrations_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "migrations",
+                "foreign_column_name": "id"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "password_reset_tokens",
+        "columns": [
+            {
+                "column_name": "email",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "token",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "password_reset_tokens_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "email",
+                "foreign_table_name": "password_reset_tokens",
+                "foreign_column_name": "email"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "cache",
+        "columns": [
+            {
+                "column_name": "key",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "value",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "expiration",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "cache_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "key",
+                "foreign_table_name": "cache",
+                "foreign_column_name": "key"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "cache_locks",
+        "columns": [
+            {
+                "column_name": "key",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "owner",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "expiration",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "cache_locks_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "key",
+                "foreign_table_name": "cache_locks",
+                "foreign_column_name": "key"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "jobs",
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('jobs_id_seq'::regclass)"
+            },
+            {
+                "column_name": "queue",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "payload",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "attempts",
+                "data_type": "smallint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "reserved_at",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "available_at",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "jobs_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "jobs",
+                "foreign_column_name": "id"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "job_batches",
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "total_jobs",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "pending_jobs",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "failed_jobs",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "failed_job_ids",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "options",
+                "data_type": "text",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "cancelled_at",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "finished_at",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "job_batches_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "job_batches",
+                "foreign_column_name": "id"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "failed_jobs",
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('failed_jobs_id_seq'::regclass)"
+            },
+            {
+                "column_name": "uuid",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "connection",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "queue",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "payload",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "exception",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "failed_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "NO",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "failed_jobs_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "failed_jobs",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "failed_jobs_uuid_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "uuid",
+                "foreign_table_name": "failed_jobs",
+                "foreign_column_name": "uuid"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "catalog_category_entity",
+        "columns": [
+            {
+                "column_name": "entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('catalog_category_entity_entity_id_seq'::regclass)"
+            },
+            {
+                "column_name": "name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "slug",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "parent_id",
+                "data_type": "bigint",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "position",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "0"
+            },
+            {
+                "column_name": "is_active",
+                "data_type": "boolean",
+                "is_nullable": "NO",
+                "column_default": "true"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "slug",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "parent_id",
+                "data_type": "bigint",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "position",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": "0"
+            },
+            {
+                "column_name": "is_active",
+                "data_type": "boolean",
+                "is_nullable": "YES",
+                "column_default": "true"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "catalog_category_entity_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "entity_id",
+                "foreign_table_name": "catalog_category_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_entity_slug_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "slug",
+                "foreign_table_name": "catalog_category_entity",
+                "foreign_column_name": "slug"
+            },
+            {
+                "constraint_name": "catalog_category_entity_parent_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "parent_id",
+                "foreign_table_name": "catalog_category_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_entity_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "entity_id",
+                "foreign_table_name": "catalog_category_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_entity_parent_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "parent_id",
+                "foreign_table_name": "catalog_category_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_entity_slug_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "slug",
+                "foreign_table_name": "catalog_category_entity",
+                "foreign_column_name": "slug"
+            }
+        ],
+        "description": "Core category information"
+    },
+    {
+        "name": "catalog_category_attribute",
+        "columns": [
+            {
+                "column_name": "attribute_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('catalog_category_attribute_attribute_id_seq'::regclass)"
+            },
+            {
+                "column_name": "category_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "attribute_code",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "attribute_value",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "NO",
+                "column_default": "CURRENT_TIMESTAMP"
+            },
+            {
+                "column_name": "attribute_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "category_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "attribute_code",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "attribute_value",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "catalog_category_attribute_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "attribute_id",
+                "foreign_table_name": "catalog_category_attribute",
+                "foreign_column_name": "attribute_id"
+            },
+            {
+                "constraint_name": "catalog_category_attribute_category_entity_id_attribute_cod_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "category_entity_id",
+                "foreign_table_name": "catalog_category_attribute",
+                "foreign_column_name": "attribute_code"
+            },
+            {
+                "constraint_name": "catalog_category_attribute_category_entity_id_attribute_cod_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "category_entity_id",
+                "foreign_table_name": "catalog_category_attribute",
+                "foreign_column_name": "category_entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_attribute_category_entity_id_attribute_cod_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "attribute_code",
+                "foreign_table_name": "catalog_category_attribute",
+                "foreign_column_name": "attribute_code"
+            },
+            {
+                "constraint_name": "catalog_category_attribute_category_entity_id_attribute_cod_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "attribute_code",
+                "foreign_table_name": "catalog_category_attribute",
+                "foreign_column_name": "category_entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_attribute_category_entity_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "category_entity_id",
+                "foreign_table_name": "catalog_category_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_attribute_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "attribute_id",
+                "foreign_table_name": "catalog_category_attribute",
+                "foreign_column_name": "attribute_id"
+            },
+            {
+                "constraint_name": "catalog_category_attribute_category_entity_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "category_entity_id",
+                "foreign_table_name": "catalog_category_entity",
+                "foreign_column_name": "entity_id"
+            }
+        ],
+        "description": "Flexible category attributes"
+    },
+    {
+        "name": "catalog_product_image",
+        "columns": [
+            {
+                "column_name": "image_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "image_path",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "image_position",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": "0"
+            },
+            {
+                "column_name": "is_primary",
+                "data_type": "boolean",
+                "is_nullable": "YES",
+                "column_default": "false"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "image_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('catalog_product_image_image_id_seq'::regclass)"
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "image_path",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "image_position",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "0"
+            },
+            {
+                "column_name": "is_primary",
+                "data_type": "boolean",
+                "is_nullable": "NO",
+                "column_default": "false"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "NO",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "catalog_product_image_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "image_id",
+                "foreign_table_name": "catalog_product_image",
+                "foreign_column_name": "image_id"
+            },
+            {
+                "constraint_name": "catalog_product_image_product_entity_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_product_image_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "image_id",
+                "foreign_table_name": "catalog_product_image",
+                "foreign_column_name": "image_id"
+            },
+            {
+                "constraint_name": "catalog_product_image_product_entity_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            }
+        ],
+        "description": "Product images - avoids comma-separated values"
+    },
+    {
+        "name": "catalog_product_attribute",
+        "columns": [
+            {
+                "column_name": "attribute_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "attribute_code",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "attribute_value",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "attribute_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('catalog_product_attribute_attribute_id_seq'::regclass)"
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "attribute_code",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "attribute_value",
+                "data_type": "text",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "NO",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "catalog_product_attribute_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "attribute_id",
+                "foreign_table_name": "catalog_product_attribute",
+                "foreign_column_name": "attribute_id"
+            },
+            {
+                "constraint_name": "catalog_product_attribute_product_entity_id_attribute_code_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_attribute",
+                "foreign_column_name": "attribute_code"
+            },
+            {
+                "constraint_name": "catalog_product_attribute_product_entity_id_attribute_code_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_attribute",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_product_attribute_product_entity_id_attribute_code_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "attribute_code",
+                "foreign_table_name": "catalog_product_attribute",
+                "foreign_column_name": "attribute_code"
+            },
+            {
+                "constraint_name": "catalog_product_attribute_product_entity_id_attribute_code_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "attribute_code",
+                "foreign_table_name": "catalog_product_attribute",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_product_attribute_composite_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_attribute",
+                "foreign_column_name": "attribute_code"
+            },
+            {
+                "constraint_name": "catalog_product_attribute_composite_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_attribute",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_product_attribute_composite_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "attribute_code",
+                "foreign_table_name": "catalog_product_attribute",
+                "foreign_column_name": "attribute_code"
+            },
+            {
+                "constraint_name": "catalog_product_attribute_composite_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "attribute_code",
+                "foreign_table_name": "catalog_product_attribute",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_product_attribute_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "attribute_id",
+                "foreign_table_name": "catalog_product_attribute",
+                "foreign_column_name": "attribute_id"
+            },
+            {
+                "constraint_name": "catalog_product_attribute_product_entity_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_product_attribute_product_entity_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            }
+        ],
+        "description": "Flexible product attributes (color, size, brand, etc.)"
+    },
+    {
+        "name": "sales_order",
+        "columns": [
+            {
+                "column_name": "order_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "order_number",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "user_id",
+                "data_type": "bigint",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "original_cart_id",
+                "data_type": "bigint",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "subtotal",
+                "data_type": "numeric",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "tax",
+                "data_type": "numeric",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "discount",
+                "data_type": "numeric",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "total",
+                "data_type": "numeric",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "status",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "order_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('sales_order_order_id_seq'::regclass)"
+            },
+            {
+                "column_name": "order_number",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "user_id",
+                "data_type": "bigint",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "original_cart_id",
+                "data_type": "bigint",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "subtotal",
+                "data_type": "numeric",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "shipping_cost",
+                "data_type": "numeric",
+                "is_nullable": "NO",
+                "column_default": "'0'::numeric"
+            },
+            {
+                "column_name": "tax",
+                "data_type": "numeric",
+                "is_nullable": "NO",
+                "column_default": "'0'::numeric"
+            },
+            {
+                "column_name": "discount",
+                "data_type": "numeric",
+                "is_nullable": "NO",
+                "column_default": "'0'::numeric"
+            },
+            {
+                "column_name": "total",
+                "data_type": "numeric",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "status",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": "'processing'::character varying"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "is_archived",
+                "data_type": "boolean",
+                "is_nullable": "YES",
+                "column_default": "false"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "sales_order_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "order_id",
+                "foreign_table_name": "sales_order",
+                "foreign_column_name": "order_id"
+            },
+            {
+                "constraint_name": "sales_order_user_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "user_id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "sales_order_original_cart_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "original_cart_id",
+                "foreign_table_name": "sales_cart",
+                "foreign_column_name": "cart_id"
+            },
+            {
+                "constraint_name": "sales_order_order_number_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "order_number",
+                "foreign_table_name": "sales_order",
+                "foreign_column_name": "order_number"
+            },
+            {
+                "constraint_name": "sales_order_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "order_id",
+                "foreign_table_name": "sales_order",
+                "foreign_column_name": "order_id"
+            },
+            {
+                "constraint_name": "sales_order_order_number_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "order_number",
+                "foreign_table_name": "sales_order",
+                "foreign_column_name": "order_number"
+            },
+            {
+                "constraint_name": "sales_order_user_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "user_id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            }
+        ],
+        "description": "Order header - created from inactive cart"
+    },
+    {
+        "name": "sales_cart",
+        "columns": [
+            {
+                "column_name": "cart_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "user_id",
+                "data_type": "bigint",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "session_id",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "status",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": "'active'::character varying"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "cart_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('sales_cart_cart_id_seq'::regclass)"
+            },
+            {
+                "column_name": "user_id",
+                "data_type": "bigint",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "session_id",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "is_active",
+                "data_type": "boolean",
+                "is_nullable": "NO",
+                "column_default": "true"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "sales_cart_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "cart_id",
+                "foreign_table_name": "sales_cart",
+                "foreign_column_name": "cart_id"
+            },
+            {
+                "constraint_name": "sales_cart_user_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "user_id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "sales_cart_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "cart_id",
+                "foreign_table_name": "sales_cart",
+                "foreign_column_name": "cart_id"
+            },
+            {
+                "constraint_name": "sales_cart_user_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "user_id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            }
+        ],
+        "description": "Shopping cart header - cart_id stored in session"
+    },
+    {
+        "name": "sales_cart_address",
+        "columns": [
+            {
+                "column_name": "address_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('sales_cart_address_address_id_seq'::regclass)"
+            },
+            {
+                "column_name": "cart_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "address_type",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "first_name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "last_name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "email",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "phone",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "address_line_one",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "address_line_two",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "city",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "state",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "postal_code",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "country",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "sales_cart_address_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "address_id",
+                "foreign_table_name": "sales_cart_address",
+                "foreign_column_name": "address_id"
+            },
+            {
+                "constraint_name": "sales_cart_address_cart_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "cart_id",
+                "foreign_table_name": "sales_cart",
+                "foreign_column_name": "cart_id"
+            }
+        ],
+        "description": "Cart shipping and billing addresses"
+    },
+    {
+        "name": "sales_cart_payment",
+        "columns": [
+            {
+                "column_name": "payment_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('sales_cart_payment_payment_id_seq'::regclass)"
+            },
+            {
+                "column_name": "cart_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "shipping_method",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "payment_method",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "sales_cart_payment_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "payment_id",
+                "foreign_table_name": "sales_cart_payment",
+                "foreign_column_name": "payment_id"
+            },
+            {
+                "constraint_name": "sales_cart_payment_cart_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "cart_id",
+                "foreign_table_name": "sales_cart",
+                "foreign_column_name": "cart_id"
+            },
+            {
+                "constraint_name": "sales_cart_payment_cart_id_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "cart_id",
+                "foreign_table_name": "sales_cart_payment",
+                "foreign_column_name": "cart_id"
+            }
+        ],
+        "description": "Cart payment and shipping method selection"
+    },
+    {
+        "name": "catalog_category_product",
+        "columns": [
+            {
+                "column_name": "category_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "position",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": "0"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "relation_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('catalog_category_product_relation_id_seq'::regclass)"
+            },
+            {
+                "column_name": "category_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "position",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "0"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "NO",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "catalog_category_product_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "relation_id",
+                "foreign_table_name": "catalog_category_product",
+                "foreign_column_name": "relation_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_category_entity_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "category_entity_id",
+                "foreign_table_name": "catalog_category_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_product_entity_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_category_entity_id_product_entity_id_u",
+                "constraint_type": "UNIQUE",
+                "column_name": "category_entity_id",
+                "foreign_table_name": "catalog_category_product",
+                "foreign_column_name": "category_entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_category_entity_id_product_entity_id_u",
+                "constraint_type": "UNIQUE",
+                "column_name": "category_entity_id",
+                "foreign_table_name": "catalog_category_product",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_category_entity_id_product_entity_id_u",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_category_product",
+                "foreign_column_name": "category_entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_category_entity_id_product_entity_id_u",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_category_product",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "category_entity_id",
+                "foreign_table_name": "catalog_category_product",
+                "foreign_column_name": "category_entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "category_entity_id",
+                "foreign_table_name": "catalog_category_product",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_category_product",
+                "foreign_column_name": "category_entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_category_product",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_category_entity_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "category_entity_id",
+                "foreign_table_name": "catalog_category_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_category_product_product_entity_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            }
+        ],
+        "description": "Many-to-many relationship between categories and products"
+    },
+    {
+        "name": "sales_cart_product",
+        "columns": [
+            {
+                "column_name": "item_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "cart_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "quantity",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "price_snapshot",
+                "data_type": "numeric",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "item_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('sales_cart_product_item_id_seq'::regclass)"
+            },
+            {
+                "column_name": "cart_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "quantity",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "1"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "sales_cart_product_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "item_id",
+                "foreign_table_name": "sales_cart_product",
+                "foreign_column_name": "item_id"
+            },
+            {
+                "constraint_name": "sales_cart_product_cart_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "cart_id",
+                "foreign_table_name": "sales_cart",
+                "foreign_column_name": "cart_id"
+            },
+            {
+                "constraint_name": "sales_cart_product_product_entity_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "sales_cart_product_cart_id_product_entity_id_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "cart_id",
+                "foreign_table_name": "sales_cart_product",
+                "foreign_column_name": "cart_id"
+            },
+            {
+                "constraint_name": "sales_cart_product_cart_id_product_entity_id_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "cart_id",
+                "foreign_table_name": "sales_cart_product",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "sales_cart_product_cart_id_product_entity_id_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "sales_cart_product",
+                "foreign_column_name": "cart_id"
+            },
+            {
+                "constraint_name": "sales_cart_product_cart_id_product_entity_id_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "sales_cart_product",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "sales_cart_product_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "item_id",
+                "foreign_table_name": "sales_cart_product",
+                "foreign_column_name": "item_id"
+            },
+            {
+                "constraint_name": "sales_cart_product_cart_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "cart_id",
+                "foreign_table_name": "sales_cart",
+                "foreign_column_name": "cart_id"
+            },
+            {
+                "constraint_name": "sales_cart_product_product_entity_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            }
+        ],
+        "description": "Cart line items"
+    },
+    {
+        "name": "sales_order_product",
+        "columns": [
+            {
+                "column_name": "item_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "order_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "product_name",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "product_sku",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "product_price",
+                "data_type": "numeric",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "quantity",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "row_total",
+                "data_type": "numeric",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "item_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('sales_order_product_item_id_seq'::regclass)"
+            },
+            {
+                "column_name": "order_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "product_name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_sku",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_price",
+                "data_type": "numeric",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "quantity",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "row_total",
+                "data_type": "numeric",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "NO",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "sales_order_product_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "item_id",
+                "foreign_table_name": "sales_order_product",
+                "foreign_column_name": "item_id"
+            },
+            {
+                "constraint_name": "sales_order_product_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "item_id",
+                "foreign_table_name": "sales_order_product",
+                "foreign_column_name": "item_id"
+            },
+            {
+                "constraint_name": "sales_order_product_order_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "order_id",
+                "foreign_table_name": "sales_order",
+                "foreign_column_name": "order_id"
+            },
+            {
+                "constraint_name": "sales_order_product_product_entity_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "sales_order_product_order_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "order_id",
+                "foreign_table_name": "sales_order",
+                "foreign_column_name": "order_id"
+            }
+        ],
+        "description": "Order line items with product snapshots"
+    },
+    {
+        "name": "sales_order_address",
+        "columns": [
+            {
+                "column_name": "address_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "order_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "address_type",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "first_name",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "last_name",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "email",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "phone",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "address_line_one",
+                "data_type": "text",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "city",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "state",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "postal_code",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "country",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "address_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('sales_order_address_address_id_seq'::regclass)"
+            },
+            {
+                "column_name": "order_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "address_type",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "first_name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "last_name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "email",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "phone",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "address_line_one",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "address_line_two",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "city",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "state",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "postal_code",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "country",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "NO",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "sales_order_address_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "address_id",
+                "foreign_table_name": "sales_order_address",
+                "foreign_column_name": "address_id"
+            },
+            {
+                "constraint_name": "sales_order_address_order_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "order_id",
+                "foreign_table_name": "sales_order",
+                "foreign_column_name": "order_id"
+            },
+            {
+                "constraint_name": "sales_order_address_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "address_id",
+                "foreign_table_name": "sales_order_address",
+                "foreign_column_name": "address_id"
+            },
+            {
+                "constraint_name": "sales_order_address_order_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "order_id",
+                "foreign_table_name": "sales_order",
+                "foreign_column_name": "order_id"
+            }
+        ],
+        "description": "Order addresses (snapshot from cart)"
+    },
+    {
+        "name": "sales_order_payment",
+        "columns": [
+            {
+                "column_name": "payment_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "order_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "shipping_method",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "payment_method",
+                "data_type": "character varying",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "payment_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('sales_order_payment_payment_id_seq'::regclass)"
+            },
+            {
+                "column_name": "order_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "shipping_method",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "payment_method",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "NO",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "sales_order_payment_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "payment_id",
+                "foreign_table_name": "sales_order_payment",
+                "foreign_column_name": "payment_id"
+            },
+            {
+                "constraint_name": "sales_order_payment_order_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "order_id",
+                "foreign_table_name": "sales_order",
+                "foreign_column_name": "order_id"
+            },
+            {
+                "constraint_name": "sales_order_payment_order_id_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "order_id",
+                "foreign_table_name": "sales_order_payment",
+                "foreign_column_name": "order_id"
+            },
+            {
+                "constraint_name": "sales_order_payment_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "payment_id",
+                "foreign_table_name": "sales_order_payment",
+                "foreign_column_name": "payment_id"
+            },
+            {
+                "constraint_name": "sales_order_payment_order_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "order_id",
+                "foreign_table_name": "sales_order_payment",
+                "foreign_column_name": "order_id"
+            },
+            {
+                "constraint_name": "sales_order_payment_order_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "order_id",
+                "foreign_table_name": "sales_order",
+                "foreign_column_name": "order_id"
+            }
+        ],
+        "description": "Order payment info (snapshot from cart)"
+    },
+    {
+        "name": "catalog_wishlist",
+        "columns": [
+            {
+                "column_name": "wishlist_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": "nextval('catalog_wishlist_wishlist_id_seq'::regclass)"
+            },
+            {
+                "column_name": "user_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "updated_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "wishlist_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "user_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "product_entity_id",
+                "data_type": "bigint",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "catalog_wishlist_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "wishlist_id",
+                "foreign_table_name": "catalog_wishlist",
+                "foreign_column_name": "wishlist_id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_user_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "user_id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_product_entity_id_foreign",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_user_id_product_entity_id_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "user_id",
+                "foreign_table_name": "catalog_wishlist",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_user_id_product_entity_id_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "user_id",
+                "foreign_table_name": "catalog_wishlist",
+                "foreign_column_name": "user_id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_user_id_product_entity_id_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_wishlist",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_user_id_product_entity_id_unique",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_wishlist",
+                "foreign_column_name": "user_id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "wishlist_id",
+                "foreign_table_name": "catalog_wishlist",
+                "foreign_column_name": "wishlist_id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_user_id_product_entity_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "user_id",
+                "foreign_table_name": "catalog_wishlist",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_user_id_product_entity_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "user_id",
+                "foreign_table_name": "catalog_wishlist",
+                "foreign_column_name": "user_id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_user_id_product_entity_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_wishlist",
+                "foreign_column_name": "product_entity_id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_user_id_product_entity_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_wishlist",
+                "foreign_column_name": "user_id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_user_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "user_id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "catalog_wishlist_product_entity_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "product_entity_id",
+                "foreign_table_name": "catalog_product_entity",
+                "foreign_column_name": "entity_id"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "brands",
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "nextval('brands_id_seq'::regclass)"
+            },
+            {
+                "column_name": "name",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "brands_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "brands",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "brands_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "brands",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "brands_name_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "name",
+                "foreign_table_name": "brands",
+                "foreign_column_name": "name"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "coupons",
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "nextval('coupons_id_seq'::regclass)"
+            },
+            {
+                "column_name": "code",
+                "data_type": "character varying",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "discount_percent",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "coupons_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "coupons",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "coupons_code_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "code",
+                "foreign_table_name": "coupons",
+                "foreign_column_name": "code"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "cart_items",
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "nextval('cart_items_id_seq'::regclass)"
+            },
+            {
+                "column_name": "cart_id",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "product_id",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "quantity",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": "1"
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "cart_items_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "cart_items",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "cart_items_cart_id_product_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "cart_id",
+                "foreign_table_name": "cart_items",
+                "foreign_column_name": "cart_id"
+            },
+            {
+                "constraint_name": "cart_items_cart_id_product_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "cart_id",
+                "foreign_table_name": "cart_items",
+                "foreign_column_name": "product_id"
+            },
+            {
+                "constraint_name": "cart_items_cart_id_product_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_id",
+                "foreign_table_name": "cart_items",
+                "foreign_column_name": "cart_id"
+            },
+            {
+                "constraint_name": "cart_items_cart_id_product_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_id",
+                "foreign_table_name": "cart_items",
+                "foreign_column_name": "product_id"
+            }
+        ],
+        "description": ""
+    },
+    {
+        "name": "saved_items",
+        "columns": [
+            {
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": "nextval('saved_items_id_seq'::regclass)"
+            },
+            {
+                "column_name": "user_id",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "product_id",
+                "data_type": "integer",
+                "is_nullable": "YES",
+                "column_default": null
+            },
+            {
+                "column_name": "created_at",
+                "data_type": "timestamp without time zone",
+                "is_nullable": "YES",
+                "column_default": "CURRENT_TIMESTAMP"
+            }
+        ],
+        "constraints": [
+            {
+                "constraint_name": "saved_items_pkey",
+                "constraint_type": "PRIMARY KEY",
+                "column_name": "id",
+                "foreign_table_name": "saved_items",
+                "foreign_column_name": "id"
+            },
+            {
+                "constraint_name": "saved_items_user_id_product_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "user_id",
+                "foreign_table_name": "saved_items",
+                "foreign_column_name": "product_id"
+            },
+            {
+                "constraint_name": "saved_items_user_id_product_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "user_id",
+                "foreign_table_name": "saved_items",
+                "foreign_column_name": "user_id"
+            },
+            {
+                "constraint_name": "saved_items_user_id_product_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_id",
+                "foreign_table_name": "saved_items",
+                "foreign_column_name": "product_id"
+            },
+            {
+                "constraint_name": "saved_items_user_id_product_id_key",
+                "constraint_type": "UNIQUE",
+                "column_name": "product_id",
+                "foreign_table_name": "saved_items",
+                "foreign_column_name": "user_id"
+            },
+            {
+                "constraint_name": "saved_items_user_id_fkey",
+                "constraint_type": "FOREIGN KEY",
+                "column_name": "user_id",
+                "foreign_table_name": "users",
+                "foreign_column_name": "id"
+            }
+        ],
+        "description": ""
+    }
+]

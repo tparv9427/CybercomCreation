@@ -1,0 +1,4 @@
+sku,name,price,stock,description,is_active,brand,color,image_url
+TEST-001,Test Product 1,19.99,100,A test product description,1,TestBrand,Blue,test-image-1.jpg
+TEST-002,Test Product 2,29.99,50,Another test product,1,TestBrand,Red,test-image-2.jpg
+TEST-003,Test Product 3,39.99,0,Out of stock product,0,OtherBrand,Green,

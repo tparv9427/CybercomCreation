@@ -51,11 +51,16 @@ $stock = $item['product']['stock'] ?? 999;
                 <button class="quantity-btn" id="btn-decrease-<?php echo $productId; ?>"
                     onclick="decreaseCartQuantity(<?php echo $productId; ?>)">−</button>
             <?php endif; ?>
+            <?php
+            $limit = \EasyCart\Services\CartService::MAX_QUANTITY_PER_ITEM;
+            $maxAllowed = min($stock, $limit);
+            ?>
             <input type="number" class="quantity-input" id="qty-<?php echo $productId; ?>"
                 value="<?php echo $quantity; ?>" data-old-value="<?php echo $quantity; ?>" min="1"
-                max="<?php echo $stock; ?>" oninput="validateCartQuantity(<?php echo $productId; ?>, this)">
+                max="<?php echo $maxAllowed; ?>" data-stock="<?php echo $stock; ?>" data-limit="<?php echo $limit; ?>"
+                oninput="validateCartQuantity(<?php echo $productId; ?>, this)">
             <button class="quantity-btn" id="btn-increase-<?php echo $productId; ?>"
-                onclick="increaseCartQuantity(<?php echo $productId; ?>)" <?php echo ($quantity >= $stock) ? 'disabled' : ''; ?>>+</button>
+                onclick="increaseCartQuantity(<?php echo $productId; ?>)" <?php echo ($quantity >= $maxAllowed) ? 'disabled' : ''; ?>>+</button>
         </div>
         <div class="item-total" style="margin-top: 0.5rem; text-align: center; font-size: 0.95rem;">
             <?php echo $itemTotal; ?>

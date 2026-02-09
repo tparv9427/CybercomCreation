@@ -150,7 +150,10 @@
             <div class="quantity-wrapper">
                 <label for="qty-select">Quantity:</label>
                 <select id="qty-select" class="qty-dropdown">
-                    <?php for ($i = 1; $i <= min(10, max(1, $product['stock'])); $i++): ?>
+                    <?php
+                    $maxQty = min(\EasyCart\Services\CartService::MAX_QUANTITY_PER_ITEM, (int) ($product['stock'] ?? 0));
+                    for ($i = 1; $i <= $maxQty; $i++):
+                        ?>
                         <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
                     <?php endfor; ?>
                 </select>

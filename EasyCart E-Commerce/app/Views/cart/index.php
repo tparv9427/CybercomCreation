@@ -27,7 +27,7 @@
             <div class="cart-items">
                 <?php foreach ($cart_items as $item): ?>
                     <?php
-                    $item['category_name'] = $getCategory($item['product']['category_id'])['name'];
+                    $item['category_name'] = $getCategory($item['product']['category_id'])['name'] ?? "Not Defiened";
                     $item['formatted_price'] = formatPrice($item['product']['price']);
                     $item['formatted_total'] = formatPrice($item['total']);
                     include __DIR__ . '/../components/cart_item.php';
@@ -89,4 +89,3 @@
         </div>
     <?php endif; ?>
 </div>
-

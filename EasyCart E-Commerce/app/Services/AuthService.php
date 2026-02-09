@@ -88,6 +88,7 @@ class AuthService
             $_SESSION['user_id'] = $userId;
             $_SESSION['user_name'] = $user['name'];
             $_SESSION['user_email'] = $user['email'];
+            $_SESSION['user_role'] = $user['role'] ?? 'customer';
 
             // Merge guest data
             $this->mergeGuestData($userId);
