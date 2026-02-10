@@ -3,18 +3,13 @@
 namespace EasyCart\View;
 
 /**
- * View_Product_Index
- * 
- * Renders the product listing page.
+ * View_Product_Index — Product Listing Page
  */
 class View_Product_Index extends View_Abstract
 {
-    public function toHtml(): string
+    public function __construct(array $data = [])
     {
-        $header = (new View_Layout_Header())->setDataArray($this->data)->toHtml();
-        $content = $this->renderTemplate('products/index.php');
-        $footer = (new View_Layout_Footer())->setDataArray($this->data)->toHtml();
-
-        return $header . $content . $footer;
+        parent::__construct($data);
+        $this->template = __DIR__ . '/Templates/products/index.php';
     }
 }

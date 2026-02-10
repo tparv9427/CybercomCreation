@@ -1,0 +1,6 @@
+add cancellation button on all category and brands
+
+when select specific brand then shows all category in page and user can able to select any one among this all 
+if user select laptop then show only laptop and if select another category like mobile then show mobile also . and with this options add small cancelation button too so user can remove selected category 
+
+fix scrolling problem in brands and add filter section(price and review) section in brand page

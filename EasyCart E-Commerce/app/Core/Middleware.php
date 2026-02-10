@@ -39,24 +39,11 @@ class Middleware
 
     /**
      * Require authentication
-     * Also checks if user is still active in database
      */
     public static function authRequired(): void
     {
         if (!AuthService::check()) {
             header('Location: /login');
-            exit;
-        }
-
-        // Check if user is still active in database
-        $userRepo = new \EasyCart\Repositories\UserRepository();
-        $user = $userRepo->find($_SESSION['user_id']);
-
-        if (!$user || (isset($user['is_active']) && $user['is_active'] === false)) {
-            // Auto-logout deactivated user
-            $_SESSION['user_id'] = null;
-            unset($_SESSION['cart_id']);
-            header('Location: /login?deactivated=1');
             exit;
         }
     }
@@ -68,6 +55,48 @@ class Middleware
     {
         if (AuthService::check()) {
             header('Location: /');
+            exit;
+        }
+    }
+
+    /**
+     * Check if current user is still active (not deactivated)
+     * Auto-logout and block if deactivated.
+     * Add this to routes that require active user status.
+     */
+    public static function checkActiveUser(): void
+    {
+        if (!AuthService::check()) {
+            return; // Not logged in, skip
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        if (!$userId) {
+            return;
+        }
+
+        // Check user activation status from DB
+        $resource = new \EasyCart\Resource\Resource_User();
+        $user = $resource->load($userId);
+
+        if (!$user || !($user['is_active'] ?? true)) {
+            // User is deactivated — auto-logout
+            $authService = new AuthService();
+            $authService->logout();
+
+            // Respond based on request type
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+                header('Content-Type: application/json');
+                http_response_code(403);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Your account has been deactivated. You have been logged out.',
+                    'redirect' => '/login'
+                ]);
+            } else {
+                $_SESSION['login_error'] = 'Your account has been deactivated. Please contact support.';
+                header('Location: /login');
+            }
             exit;
         }
     }

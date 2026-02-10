@@ -2,15 +2,15 @@
 
 namespace EasyCart\Services;
 
-use EasyCart\Repositories\OrderRepository;
+use EasyCart\Resource\Resource_Order;
 
 class DashboardService
 {
-    private $orderRepo;
+    private $orderResource;
 
     public function __construct()
     {
-        $this->orderRepo = new OrderRepository();
+        $this->orderResource = new Resource_Order();
     }
 
     /**
@@ -19,7 +19,7 @@ class DashboardService
     public function getDashboardData($userId)
     {
         return [
-            'stats' => $this->orderRepo->getDashboardStats($userId),
+            'stats' => $this->orderResource->getDashboardStats($userId),
             'chart' => $this->getChartTimeline($userId)
         ];
     }
@@ -29,7 +29,7 @@ class DashboardService
      */
     public function getChartTimeline($userId)
     {
-        $dbData = $this->orderRepo->getChartData($userId);
+        $dbData = $this->orderResource->getChartData($userId);
 
         // Map DB results by date for fast lookup
         $revenueMap = [];

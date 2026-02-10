@@ -2,7 +2,7 @@
 
 namespace EasyCart\Services;
 
-use EasyCart\Repositories\ProductRepository;
+use EasyCart\Resource\Resource_Product;
 
 /**
  * PricingService
@@ -11,11 +11,11 @@ use EasyCart\Repositories\ProductRepository;
  */
 class PricingService
 {
-    private $productRepo;
+    private $productResource;
 
     public function __construct()
     {
-        $this->productRepo = new ProductRepository();
+        $this->productResource = new Resource_Product();
     }
 
     /**
@@ -29,7 +29,7 @@ class PricingService
         $subtotal = 0;
 
         foreach ($cart as $productId => $quantity) {
-            $product = $this->productRepo->find($productId);
+            $product = $this->productResource->load($productId);
             if ($product) {
                 $subtotal += $product['price'] * $quantity;
             }
@@ -155,7 +155,7 @@ class PricingService
     {
         // Check if any product is freight category (price >= 300)
         foreach ($cart as $productId => $quantity) {
-            $product = $this->productRepo->find($productId);
+            $product = $this->productResource->load($productId);
             if ($product && $product['price'] >= 300) {
                 return 'freight';
             }

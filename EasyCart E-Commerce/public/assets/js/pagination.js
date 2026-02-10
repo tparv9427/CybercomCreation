@@ -108,6 +108,7 @@ function initPaginationLinks() {
     });
 
     // Re-run the event listener setup
-    document.dispatchEvent(new Event('DOMContentLoaded'));
+    // Re-run the event listener setup for newly added links ONLY if they are inside the grid
+    // The header dropdowns are permanent and should NOT be re-initialized.
 }
 

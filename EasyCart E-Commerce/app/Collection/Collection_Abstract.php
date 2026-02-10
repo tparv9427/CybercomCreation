@@ -2,179 +2,125 @@
 
 namespace EasyCart\Collection;
 
-use EasyCart\Core\Database;
 use EasyCart\Database\QueryBuilder;
 
 /**
- * Collection_Abstract
+ * Collection_Abstract — Base Collection Class
  * 
- * Base class for all Collection classes.
- * Collections handle complex queries, joins, and filtering.
+ * Handles joins, filters, complex queries, and multi-record retrieval.
+ * Each Collection subclass defines its specific query patterns.
  */
 abstract class Collection_Abstract
 {
-    /**
-     * Associated Resource class name
-     * @var string
-     */
-    protected $resourceClass = '';
+    /** @var string Main table name */
+    protected $table = '';
+
+    /** @var string Table alias */
+    protected $alias = '';
+
+    /** @var string Primary key */
+    protected $primaryKey = 'entity_id';
+
+    /** @var array Default columns to select */
+    protected $defaultColumns = ['*'];
 
     /**
-     * Model class name for hydration
-     * @var string
+     * Create a new query builder for this collection's table
+     * 
+     * @param array|null $columns Override default columns
+     * @return QueryBuilder
      */
-    protected $modelClass = '';
-
-    /**
-     * Resource instance
-     * @var \EasyCart\Resource\Resource_Abstract
-     */
-    protected $resource;
-
-    /**
-     * Query builder instance
-     * @var QueryBuilder
-     */
-    protected $queryBuilder;
-
-    /**
-     * PDO connection
-     * @var \PDO
-     */
-    protected $pdo;
-
-    /**
-     * Loaded items
-     * @var array
-     */
-    protected $items = [];
-
-    /**
-     * Constructor
-     */
-    public function __construct()
+    protected function query(?array $columns = null): QueryBuilder
     {
-        $this->pdo = Database::getInstance()->getConnection();
-
-        if ($this->resourceClass) {
-            $this->resource = new $this->resourceClass();
+        $cols = $columns ?? $this->defaultColumns;
+        $qb = QueryBuilder::select($this->table, $cols);
+        if ($this->alias) {
+            $qb->alias($this->alias);
         }
-
-        $this->queryBuilder = new QueryBuilder();
-        $this->initSelect();
+        return $qb;
     }
 
     /**
-     * Initialize the SELECT statement - override in child classes
-     */
-    protected function initSelect(): void
-    {
-        if ($this->resource) {
-            $this->queryBuilder
-                ->from($this->resource->getTableName())
-                ->select('*');
-        }
-    }
-
-    /**
-     * Add a WHERE filter
-     * @param string $column
-     * @param mixed $value
-     * @param string $operator
-     * @return $this
-     */
-    public function addFilter(string $column, $value, string $operator = '='): self
-    {
-        $this->queryBuilder->where($column, $value, $operator);
-        return $this;
-    }
-
-    /**
-     * Add ORDER BY
-     * @param string $column
-     * @param string $direction
-     * @return $this
-     */
-    public function setOrder(string $column, string $direction = 'ASC'): self
-    {
-        $this->queryBuilder->orderBy($column, $direction);
-        return $this;
-    }
-
-    /**
-     * Set LIMIT
-     * @param int $limit
-     * @return $this
-     */
-    public function setLimit(int $limit): self
-    {
-        $this->queryBuilder->limit($limit);
-        return $this;
-    }
-
-    /**
-     * Set OFFSET
-     * @param int $offset
-     * @return $this
-     */
-    public function setOffset(int $offset): self
-    {
-        $this->queryBuilder->offset($offset);
-        return $this;
-    }
-
-    /**
-     * Load the collection from database
-     * @return $this
-     */
-    public function load(): self
-    {
-        $sql = (string) $this->queryBuilder;
-        $params = $this->queryBuilder->getParams();
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-
-        $this->items = $stmt->fetchAll();
-        return $this;
-    }
-
-    /**
-     * Get all items as arrays
+     * Get all records
      * @return array
      */
-    public function getItems(): array
+    public function getAll(): array
     {
-        return $this->items;
+        return $this->query()->fetchAll();
     }
 
     /**
-     * Get count of items
+     * Get all records with pagination
+     * 
+     * @param int $page 1-indexed page
+     * @param int $perPage Items per page
+     * @return array
+     */
+    public function paginate(int $page = 1, int $perPage = 20): array
+    {
+        return $this->query()
+            ->paginate($page, $perPage)
+            ->fetchAll();
+    }
+
+    /**
+     * Count total records
      * @return int
      */
     public function count(): int
     {
-        return count($this->items);
+        $result = QueryBuilder::select($this->table, ['COUNT(*) as total'])
+            ->fetchOne();
+        return (int) ($result['total'] ?? 0);
     }
 
     /**
-     * Get first item
+     * Find records by a field value
+     * 
+     * @param string $field
+     * @param mixed $value
+     * @return array
+     */
+    public function findBy(string $field, $value): array
+    {
+        return $this->query()
+            ->where($field, '=', $value)
+            ->fetchAll();
+    }
+
+    /**
+     * Find a single record by a field value
+     * 
+     * @param string $field
+     * @param mixed $value
      * @return array|null
      */
-    public function getFirstItem(): ?array
+    public function findOneBy(string $field, $value): ?array
     {
-        return $this->items[0] ?? null;
+        return $this->query()
+            ->where($field, '=', $value)
+            ->fetchOne();
     }
 
     /**
-     * Reset query builder for new query
-     * @return $this
+     * Process a single result row (override for transformations)
+     * 
+     * @param array $row
+     * @return array
      */
-    public function reset(): self
+    protected function processRow(array $row): array
     {
-        $this->queryBuilder = new QueryBuilder();
-        $this->items = [];
-        $this->initSelect();
-        return $this;
+        return $row;
+    }
+
+    /**
+     * Process multiple result rows
+     * 
+     * @param array $rows
+     * @return array
+     */
+    protected function processRows(array $rows): array
+    {
+        return array_map([$this, 'processRow'], $rows);
     }
 }

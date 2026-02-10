@@ -79,3 +79,109 @@ function active_class(string $route, string $class = 'active'): string
 {
     return ViewHelper::activeClass($route, $class);
 }
+/**
+ * Get category by ID
+ */
+function getCategory(?int $id): ?array
+{
+    if (!$id)
+        return null;
+    return ViewHelper::getCategory($id);
+}
+
+/**
+ * Check if product is in wishlist
+ */
+function isInWishlist(?int $productId): bool
+{
+    if (!$productId)
+        return false;
+    return ViewHelper::isInWishlist($productId);
+}
+
+/**
+ * Get brand by ID
+ */
+function getBrand(?int $id): ?array
+{
+    if (!$id)
+        return null;
+    return ViewHelper::getBrand($id);
+}
+
+/**
+ * Format price (alias for price)
+ */
+function formatPrice($amount): string
+{
+    return ViewHelper::formatPrice($amount);
+}
+/**
+ * Get item count in cart
+ */
+function getCartCount(): int
+{
+    $cartService = new \EasyCart\Services\CartService();
+    return $cartService->getCount();
+}
+
+/**
+ * Get item count in wishlist
+ */
+function getWishlistCount(): int
+{
+    $wishlistService = new \EasyCart\Services\WishlistService();
+    return $wishlistService->getCount();
+}
+
+/**
+ * Check if user is logged in
+ */
+function isLoggedIn(): bool
+{
+    return \EasyCart\Services\AuthService::check();
+}
+
+/**
+ * Get all active categories
+ */
+function getCategories(): array
+{
+    $resource = new \EasyCart\Resource\Resource_Category();
+    return $resource->getAllCategories();
+}
+
+/**
+ * Get all brands
+ */
+function getBrands(): array
+{
+    $resource = new \EasyCart\Resource\Resource_Brand();
+    return $resource->getAllBrands();
+}
+
+/**
+ * Check if product is in cart
+ */
+function isInCart(?int $productId): bool
+{
+    if (!$productId)
+        return false;
+    $cartService = new \EasyCart\Services\CartService();
+    return $cartService->has($productId);
+}
+/**
+ * Generate product URL (prefers slug with /p/ prefix)
+ */
+function product_url(?array $product): string
+{
+    if (!$product)
+        return '#';
+
+    static $rewriteService = null;
+    if ($rewriteService === null) {
+        $rewriteService = new \EasyCart\Services\UrlRewriteService();
+    }
+
+    return $rewriteService->getProductUrl($product);
+}

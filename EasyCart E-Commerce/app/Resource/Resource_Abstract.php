@@ -3,42 +3,30 @@
 namespace EasyCart\Resource;
 
 use EasyCart\Core\Database;
+use EasyCart\Database\QueryBuilder;
+use PDO;
 
 /**
- * Resource_Abstract
+ * Resource_Abstract — Base Resource Class
  * 
- * Base class for all Resource classes.
- * Resources define database table configuration (table name, primary key, columns).
+ * Handles DB config: table name, primary key, column definitions.
+ * Provides basic CRUD operations using QueryBuilder.
+ * Each entity Resource subclass defines its own table/columns.
  */
 abstract class Resource_Abstract
 {
-    /**
-     * Database table name
-     * @var string
-     */
-    protected $tableName = '';
-
-    /**
-     * Primary key column name
-     * @var string
-     */
-    protected $primaryKey = 'id';
-
-    /**
-     * List of table columns
-     * @var array
-     */
-    protected $columns = [];
-
-    /**
-     * PDO connection
-     * @var \PDO
-     */
+    /** @var PDO Database connection */
     protected $pdo;
 
-    /**
-     * Constructor
-     */
+    /** @var string Table name (set in subclass) */
+    protected $table = '';
+
+    /** @var string Primary key column */
+    protected $primaryKey = 'entity_id';
+
+    /** @var array Column definitions (set in subclass) */
+    protected $columns = [];
+
     public function __construct()
     {
         $this->pdo = Database::getInstance()->getConnection();
@@ -48,9 +36,9 @@ abstract class Resource_Abstract
      * Get table name
      * @return string
      */
-    public function getTableName(): string
+    public function getTable(): string
     {
-        return $this->tableName;
+        return $this->table;
     }
 
     /**
@@ -63,7 +51,7 @@ abstract class Resource_Abstract
     }
 
     /**
-     * Get all column names
+     * Get column list
      * @return array
      */
     public function getColumns(): array
@@ -72,82 +60,80 @@ abstract class Resource_Abstract
     }
 
     /**
-     * Get PDO connection
-     * @return \PDO
-     */
-    public function getConnection(): \PDO
-    {
-        return $this->pdo;
-    }
-
-    /**
-     * Find a single record by primary key
-     * @param int|string $id
+     * Load a single record by primary key
+     * 
+     * @param mixed $id
      * @return array|null
      */
     public function load($id): ?array
     {
-        $sql = "SELECT * FROM {$this->tableName} WHERE {$this->primaryKey} = :id LIMIT 1";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':id' => $id]);
-        $result = $stmt->fetch();
-        return $result ?: null;
+        return QueryBuilder::select($this->table, ['*'])
+            ->where($this->primaryKey, '=', $id)
+            ->fetchOne();
     }
 
     /**
-     * Save (insert or update) a record
-     * @param array $data
-     * @return int|null Returns inserted/updated ID
+     * Save a record (INSERT)
+     * 
+     * @param array $data Column => value pairs
+     * @return string Inserted ID
      */
-    public function save(array $data): ?int
+    public function save(array $data): string
     {
-        $id = $data[$this->primaryKey] ?? null;
+        // Filter to only allowed columns
+        $filtered = array_intersect_key($data, array_flip($this->columns));
+        return QueryBuilder::insert($this->table, $filtered)
+            ->executeInsert($this->table . '_' . $this->primaryKey . '_seq');
+    }
 
-        if ($id) {
-            // Update
-            $setClauses = [];
-            $params = [':id' => $id];
-            foreach ($data as $col => $val) {
-                if ($col !== $this->primaryKey && in_array($col, $this->columns)) {
-                    $setClauses[] = "{$col} = :{$col}";
-                    $params[":{$col}"] = $val;
-                }
-            }
-            if (empty($setClauses)) {
-                return $id;
-            }
-            $sql = "UPDATE {$this->tableName} SET " . implode(', ', $setClauses) . " WHERE {$this->primaryKey} = :id";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute($params);
-            return $id;
-        } else {
-            // Insert
-            $cols = [];
-            $placeholders = [];
-            $params = [];
-            foreach ($data as $col => $val) {
-                if (in_array($col, $this->columns) && $col !== $this->primaryKey) {
-                    $cols[] = $col;
-                    $placeholders[] = ":{$col}";
-                    $params[":{$col}"] = $val;
-                }
-            }
-            $sql = "INSERT INTO {$this->tableName} (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $placeholders) . ") RETURNING {$this->primaryKey}";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute($params);
-            return (int) $stmt->fetchColumn();
-        }
+    /**
+     * Update a record by primary key
+     * 
+     * @param mixed $id
+     * @param array $data Column => value pairs
+     * @return int Affected rows
+     */
+    public function update($id, array $data): int
+    {
+        $filtered = array_intersect_key($data, array_flip($this->columns));
+        return QueryBuilder::update($this->table, $filtered)
+            ->where($this->primaryKey, '=', $id)
+            ->execute();
     }
 
     /**
      * Delete a record by primary key
-     * @param int|string $id
+     * 
+     * @param mixed $id
+     * @return int Affected rows
+     */
+    public function delete($id): int
+    {
+        return QueryBuilder::delete($this->table)
+            ->where($this->primaryKey, '=', $id)
+            ->execute();
+    }
+
+    /**
+     * Check if a record exists
+     * 
+     * @param mixed $id
      * @return bool
      */
-    public function delete($id): bool
+    public function exists($id): bool
     {
-        $sql = "DELETE FROM {$this->tableName} WHERE {$this->primaryKey} = :id";
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([':id' => $id]);
+        $result = QueryBuilder::select($this->table, ['COUNT(*) as cnt'])
+            ->where($this->primaryKey, '=', $id)
+            ->fetchOne();
+        return ($result['cnt'] ?? 0) > 0;
+    }
+
+    /**
+     * Get raw PDO connection for complex operations
+     * @return PDO
+     */
+    public function getConnection(): PDO
+    {
+        return $this->pdo;
     }
 }

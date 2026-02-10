@@ -64,6 +64,9 @@ function toggleView(view) {
     const rowView = document.getElementById('rowView');
     const viewBtns = document.querySelectorAll('.view-btn');
 
+    // Defensive check: only run if view elements exist
+    if (!gridView || !rowView) return;
+
     viewBtns.forEach(btn => btn.classList.remove('active'));
 
     if (view === 'grid') {
@@ -186,6 +189,9 @@ document.addEventListener('DOMContentLoaded', function () {
         let closeTimeout;
         const menu = dropdown.querySelector('.dropdown-menu');
 
+        // Defensive check: skip if no menu found
+        if (!menu) return;
+
         dropdown.addEventListener('mouseenter', () => {
             clearTimeout(closeTimeout);
             menu.style.display = 'block';
@@ -194,60 +200,65 @@ document.addEventListener('DOMContentLoaded', function () {
         dropdown.addEventListener('mouseleave', () => {
             closeTimeout = setTimeout(() => {
                 menu.style.display = 'none';
-            }, 300); // 300ms delay before closing
+            }, 400); // Increased slightly for better usability
         });
     });
-});
 
-// Product count update removed to prevent flashing (server-side rendering used instead)
+    // Prevent link jump on empty hrefs (Original version)
+    document.addEventListener('click', function (e) {
+        if (e.target.matches('a[href="#"]')) {
+            e.preventDefault();
+        }
+    });
 
-// ============================================
-// FORM VALIDATIONS
-// ============================================
+    // Product count update removed to prevent flashing (server-side rendering used instead)
 
-// Email validation
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
+    // ============================================
+    // FORM VALIDATIONS
+    // ============================================
 
-// Phone validation (10 digits)
-function validatePhone(phone) {
-    const re = /^\d{10}$/;
-    return re.test(phone.replace(/\D/g, ''));
-}
-
-// Zip code validation (6 digits for India)
-function validateZip(zip) {
-    const re = /^\d{6}$/;
-    return re.test(zip);
-}
-
-// Show error message
-function showFieldError(input, message) {
-    input.classList.add('error');
-
-    let errorDiv = input.parentElement.querySelector('.field-error');
-    if (!errorDiv) {
-        errorDiv = document.createElement('div');
-        errorDiv.className = 'field-error';
-        input.parentElement.appendChild(errorDiv);
+    // Email validation
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
     }
-    errorDiv.textContent = message;
-    errorDiv.style.display = 'block';
-}
 
-// Clear error message
-function clearFieldError(input) {
-    input.classList.remove('error');
-    const errorDiv = input.parentElement.querySelector('.field-error');
-    if (errorDiv) {
-        errorDiv.style.display = 'none';
+    // Phone validation (10 digits)
+    function validatePhone(phone) {
+        const re = /^\d{10}$/;
+        return re.test(phone.replace(/\D/g, ''));
     }
-}
 
-// Login Form Validation
-document.addEventListener('DOMContentLoaded', function () {
+    // Zip code validation (6 digits for India)
+    function validateZip(zip) {
+        const re = /^\d{6}$/;
+        return re.test(zip);
+    }
+
+    // Show error message
+    function showFieldError(input, message) {
+        input.classList.add('error');
+
+        let errorDiv = input.parentElement.querySelector('.field-error');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'field-error';
+            input.parentElement.appendChild(errorDiv);
+        }
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+
+    // Clear error message
+    function clearFieldError(input) {
+        input.classList.remove('error');
+        const errorDiv = input.parentElement.querySelector('.field-error');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+        }
+    }
+
+    // Login Form Validation
     const loginForm = document.querySelector('form[action*="login"]');
     if (loginForm) {
         const emailInput = loginForm.querySelector('input[type="email"]');
@@ -1447,10 +1458,10 @@ function saveForLater(productId, event) {
                         location.reload(); // Reload to show empty state
                     }
 
-                    // showNotification(data.message || 'Item saved for later', 'success'); // Optional: suppressing notification for instant feel or keep it? User didn't specify. Keeping it.
-                    showNotification(data.message || 'Item saved for later', 'saved');
+                    showNotification(data.message || 'Item saved for later', 'success');
                 } else {
-                    showNotification(data.message || 'Error saving item', 'error');
+                    // Not on cart page (e.g. product list), just show notification
+                    showNotification(data.message || 'Item saved for later', 'success');
                 }
             } else {
                 showNotification(data.message || 'Error saving item', 'error');
@@ -1534,5 +1545,3 @@ document.addEventListener('DOMContentLoaded', function () {
         paymentSelect.addEventListener('change', updateCheckoutPricing);
     }
 });
-
-

@@ -2,7 +2,7 @@
 
 namespace EasyCart\Services;
 
-use EasyCart\Repositories\WishlistRepository;
+use EasyCart\Resource\Resource_Wishlist;
 use EasyCart\Services\AuthService;
 
 /**
@@ -13,11 +13,11 @@ use EasyCart\Services\AuthService;
  */
 class WishlistService
 {
-    private $wishlistRepo;
+    private $wishlistResource;
 
     public function __construct()
     {
-        $this->wishlistRepo = new WishlistRepository();
+        $this->wishlistResource = new Resource_Wishlist();
     }
 
     private function getUserId()
@@ -42,15 +42,15 @@ class WishlistService
 
         if ($userId) {
             // Logged-in user: use database
-            $wishlist = $this->wishlistRepo->get($userId);
+            $wishlist = $this->wishlistResource->getByUserId($userId);
 
             if (in_array($productId, $wishlist)) {
                 // Remove
-                $this->wishlistRepo->remove($userId, $productId);
+                $this->wishlistResource->remove($userId, $productId);
                 return false;
             } else {
                 // Add
-                $this->wishlistRepo->add($userId, $productId);
+                $this->wishlistResource->add($userId, $productId);
                 return true;
             }
         } else {
@@ -85,7 +85,7 @@ class WishlistService
         if (!$userId)
             return false;
 
-        $this->wishlistRepo->add($userId, $productId);
+        $this->wishlistResource->add($userId, $productId);
         return true;
     }
 
@@ -101,7 +101,7 @@ class WishlistService
         if (!$userId)
             return false;
 
-        $this->wishlistRepo->remove($userId, $productId);
+        $this->wishlistResource->remove($userId, $productId);
         return true;
     }
 
@@ -117,7 +117,7 @@ class WishlistService
 
         if ($userId) {
             // Logged-in user: check database
-            $wishlist = $this->wishlistRepo->get($userId);
+            $wishlist = $this->wishlistResource->getByUserId($userId);
             return in_array($productId, $wishlist);
         } else {
             // Guest user: check session
@@ -135,7 +135,7 @@ class WishlistService
         $userId = $this->getUserId();
 
         if ($userId) {
-            return count($this->wishlistRepo->get($userId));
+            return count($this->wishlistResource->getByUserId($userId));
         } else {
             return isset($_SESSION['guest_wishlist']) ? count($_SESSION['guest_wishlist']) : 0;
         }
@@ -151,7 +151,7 @@ class WishlistService
         $userId = $this->getUserId();
 
         if ($userId) {
-            return $this->wishlistRepo->get($userId);
+            return $this->wishlistResource->getByUserId($userId);
         } else {
             return $_SESSION['guest_wishlist'] ?? [];
         }

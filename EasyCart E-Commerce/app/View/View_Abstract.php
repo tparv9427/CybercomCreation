@@ -3,87 +3,104 @@
 namespace EasyCart\View;
 
 /**
- * View_Abstract
+ * View_Abstract — Base View Class
  * 
- * Base class for all View classes.
- * Each View must implement toHtml() to render content.
+ * Every View MUST implement toHtml().
+ * Views contain HTML only — no business logic.
+ * Data is passed in via setData() or constructor.
+ * Template files are rendered using output buffering.
  */
 abstract class View_Abstract
 {
-    /**
-     * Template data
-     * @var array
-     */
+    /** @var array Data available to the template */
     protected $data = [];
 
+    /** @var string Path to the PHP template file */
+    protected $template = '';
+
     /**
-     * Set template data
-     * @param string $key
-     * @param mixed $value
-     * @return $this
+     * @param array $data Initial data for the view
      */
-    public function setData(string $key, $value): self
+    public function __construct(array $data = [])
     {
-        $this->data[$key] = $value;
-        return $this;
+        $this->data = $data;
     }
 
     /**
-     * Get template data
-     * @param string $key
-     * @return mixed|null
+     * MANDATORY: Render this view to HTML string
+     * 
+     * @return string HTML output
      */
-    public function getData(string $key)
+    public function toHtml(): string
     {
-        return $this->data[$key] ?? null;
+        if (empty($this->template) || !file_exists($this->template)) {
+            error_log("View_Abstract: Template not found: " . $this->template);
+            return '';
+        }
+
+        // Use a isolated scope for extraction and inclusion
+        return (function ($____template____, $____data____) {
+            extract($____data____);
+            ob_start();
+            include $____template____;
+            return ob_get_clean();
+        })($this->template, $this->data);
     }
 
     /**
-     * Set multiple data values
+     * Set all data at once
+     * 
      * @param array $data
-     * @return $this
+     * @return self
      */
-    public function setDataArray(array $data): self
+    public function setData(array $data): self
     {
         $this->data = array_merge($this->data, $data);
         return $this;
     }
 
     /**
-     * Render the view to HTML string
-     * Must be implemented by child classes
-     * @return string
+     * Set a single variable
+     * 
+     * @param string $key
+     * @param mixed $value
+     * @return self
      */
-    abstract public function toHtml(): string;
-
-    /**
-     * Helper to escape HTML
-     * @param string $string
-     * @return string
-     */
-    protected function escape(string $string): string
+    public function assign(string $key, $value): self
     {
-        return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+        $this->data[$key] = $value;
+        return $this;
     }
 
     /**
-     * Include a template file and return output
-     * @param string $templatePath Relative path from Views directory
-     * @return string
+     * Get a data value
+     * 
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
      */
-    protected function renderTemplate(string $templatePath): string
+    public function get(string $key, $default = null)
     {
-        $fullPath = __DIR__ . '/../Views/' . $templatePath;
+        return $this->data[$key] ?? $default;
+    }
 
-        if (!file_exists($fullPath)) {
-            return '';
-        }
+    /**
+     * Render the view and echo it directly
+     */
+    public function render(): void
+    {
+        echo $this->toHtml();
+    }
 
-        // Extract data to local scope
-        extract($this->data);
-
-        ob_start();
-        include $fullPath;
-        return ob_get_clean();
+    /**
+     * Set the template path
+     * 
+     * @param string $path Absolute path to template
+     * @return self
+     */
+    public function setTemplate(string $path): self
+    {
+        $this->template = $path;
+        return $this;
     }
 }

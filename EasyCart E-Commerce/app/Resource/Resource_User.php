@@ -3,21 +3,36 @@
 namespace EasyCart\Resource;
 
 /**
- * Resource_User
+ * Resource_User — User DB Configuration
  * 
- * Database configuration for users table.
+ * Table: customer_entity
+ * Primary Key: entity_id
  */
 class Resource_User extends Resource_Abstract
 {
-    protected $tableName = 'users';
-    protected $primaryKey = 'id';
+    protected $table = 'customer_entity';
+    protected $primaryKey = 'entity_id';
     protected $columns = [
-        'id',
+        'entity_id',
+        'name',
         'email',
         'password',
-        'name',
         'role',
         'is_active',
-        'created_at'
+        'created_at',
+        'updated_at'
     ];
+
+    /**
+     * Find user by email address
+     * 
+     * @param string $email
+     * @return array|null
+     */
+    public function findByEmail(string $email): ?array
+    {
+        return \EasyCart\Database\QueryBuilder::select($this->table, ['*'])
+            ->where('email', '=', $email)
+            ->fetchOne();
+    }
 }

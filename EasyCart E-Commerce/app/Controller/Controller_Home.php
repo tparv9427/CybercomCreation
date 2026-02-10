@@ -4,43 +4,49 @@ namespace EasyCart\Controller;
 
 use EasyCart\Collection\Collection_Product;
 use EasyCart\Collection\Collection_Category;
-use EasyCart\View\View_Home_Index;
+use EasyCart\View\View_Home;
 
 /**
- * Controller_Home
+ * Controller_Home — Home Page Controller
  * 
- * Handles the homepage.
+ * No SQL, no HTML. Uses Collection + View classes.
  */
-class Controller_Home
+class Controller_Home extends Controller_Abstract
 {
-    public function index()
+    private $productCollection;
+    private $categoryCollection;
+
+    public function __construct()
     {
-        $featuredProducts = (new Collection_Product())
-            ->addFeaturedFilter()
-            ->setLimit(8)
-            ->load()
-            ->getItems();
+        $this->productCollection = new Collection_Product();
+        $this->categoryCollection = new Collection_Category();
+    }
 
-        $newProducts = (new Collection_Product())
-            ->addNewFilter()
-            ->setLimit(6)
-            ->load()
-            ->getItems();
+    /**
+     * Display homepage
+     */
+    public function index(): void
+    {
+        $featured = $this->productCollection->getFeatured();
+        $newProducts = $this->productCollection->getNew();
+        $categories = $this->categoryCollection->getAll();
 
-        $categories = (new Collection_Category())
-            ->addActiveFilter()
-            ->setPositionOrder()
-            ->load()
-            ->getItems();
+        $getCategory = [\EasyCart\Helpers\ViewHelper::class, 'getCategory'];
+        $isInWishlist = [\EasyCart\Helpers\ViewHelper::class, 'isInWishlist'];
+        $formatPrice = [\EasyCart\Helpers\ViewHelper::class, 'formatPrice'];
 
-        $view = new View_Home_Index();
-        $view->setDataArray([
-            'page_title' => 'EasyCart - Home',
-            'featured_products' => $featuredProducts,
-            'new_products' => $newProducts,
-            'categories' => $categories
+        $contentView = new View_Home([
+            'featured' => $featured,
+            'newProducts' => $newProducts,
+            'categories' => $categories,
+            'getCategory' => $getCategory,
+            'isInWishlist' => $isInWishlist,
+            'formatPrice' => $formatPrice,
         ]);
 
-        echo $view->toHtml();
+        $this->renderWithLayout($contentView, [
+            'page_title' => 'Home',
+            'categories' => $categories,
+        ]);
     }
 }

@@ -33,58 +33,6 @@ Session::init();
 require_once __DIR__ . '/../app/Helpers/view_helpers.php';
 
 // ============================================================================
-// Backward Compatibility Helpers (for views not yet refactored)
-// ============================================================================
-function getCartCount()
-{
-    $cartService = new \EasyCart\Services\CartService();
-    return $cartService->getCount();
-}
-
-function getWishlistCount()
-{
-    $wishlistService = new \EasyCart\Services\WishlistService();
-    return $wishlistService->getCount();
-}
-
-function isLoggedIn()
-{
-    return \EasyCart\Services\AuthService::check();
-}
-
-function getCategory($id)
-{
-    return \EasyCart\Helpers\ViewHelper::getCategory($id);
-}
-
-function getBrand($id)
-{
-    return \EasyCart\Helpers\ViewHelper::getBrand($id);
-}
-
-function getBrands()
-{
-    $repo = new \EasyCart\Repositories\BrandRepository();
-    return $repo->getAll();
-}
-
-function formatPrice($price)
-{
-    return \EasyCart\Helpers\ViewHelper::formatPrice($price);
-}
-
-function isInCart($productId)
-{
-    $cartService = new \EasyCart\Services\CartService();
-    return $cartService->has($productId);
-}
-
-function isInWishlist($productId)
-{
-    return \EasyCart\Helpers\ViewHelper::isInWishlist($productId);
-}
-
-// ============================================================================
 // Load Routes
 // ============================================================================
 $router = require __DIR__ . '/../routes/web.php';

@@ -2,14 +2,14 @@
 
 namespace EasyCart\Helpers;
 
-use EasyCart\Repositories\CategoryRepository;
-use EasyCart\Repositories\BrandRepository;
+use EasyCart\Resource\Resource_Category;
+use EasyCart\Resource\Resource_Brand;
 use EasyCart\Services\WishlistService;
 
 class ViewHelper
 {
-    private static $categoryRepo = null;
-    private static $brandRepo = null;
+    private static $categoryResource = null;
+    private static $brandResource = null;
     private static $wishlistService = null;
 
     /**
@@ -17,10 +17,10 @@ class ViewHelper
      */
     public static function getCategory($id)
     {
-        if (self::$categoryRepo === null) {
-            self::$categoryRepo = new CategoryRepository();
+        if (self::$categoryResource === null) {
+            self::$categoryResource = new Resource_Category();
         }
-        return self::$categoryRepo->find($id);
+        return self::$categoryResource->load($id);
     }
 
     /**
@@ -28,10 +28,10 @@ class ViewHelper
      */
     public static function getBrand($id)
     {
-        if (self::$brandRepo === null) {
-            self::$brandRepo = new BrandRepository();
+        if (self::$brandResource === null) {
+            self::$brandResource = new Resource_Brand();
         }
-        return self::$brandRepo->find($id);
+        return self::$brandResource->load($id);
     }
 
     /**
@@ -105,31 +105,6 @@ class ViewHelper
         }
 
         return $url;
-    }
-
-    /**
-     * Generate product URL using slug (url_key) or fallback to ID
-     * Format: /product/Ultra-Tablet-Series
-     * @param array $product Product data array
-     * @return string URL like /product/Ultra-Tablet-Series
-     */
-    public static function productUrl(array $product): string
-    {
-        // Use url_key if available
-        if (!empty($product['url_key'])) {
-            return '/product/' . $product['url_key'];
-        }
-
-        // Generate slug from name if no url_key (preserve case, replace spaces with hyphens)
-        if (!empty($product['name'])) {
-            $slug = str_replace(' ', '-', $product['name']);
-            $slug = preg_replace('/[^a-zA-Z0-9-]+/', '-', $slug);
-            $slug = trim($slug, '-');
-            return '/product/' . $slug;
-        }
-
-        // Fallback to ID-based URL
-        return '/product/' . ($product['id'] ?? $product['entity_id'] ?? 0);
     }
 
     // ========================================================================
