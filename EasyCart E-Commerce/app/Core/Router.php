@@ -91,6 +91,40 @@ class Router
             }
         }
 
+        // SEO URL Fallback (Custom logic for Dynamic Slugs)
+        if ($method === 'GET') {
+            $rewriteService = new \EasyCart\Services\UrlRewriteService();
+            $rewrite = $rewriteService->resolve($uri);
+
+            if ($rewrite) {
+                // 1. Handle Redirects (301)
+                if ($rewrite['redirect_type'] == 301) {
+                    header("Location: /" . $rewrite['target_path'], true, 301);
+                    exit();
+                }
+
+                // 2. Map Target Path to Controller/Params
+                // Format: 'product/view/123' -> Controller_Product::showBySlug(slug)
+                // Actually, it's easier to just map it to the right internal route.
+                if ($rewrite['entity_type'] === 'product') {
+                    $productId = $rewrite['entity_id'];
+                    $controller = new \EasyCart\Controller\Controller_Product();
+                    return $controller->showBySlug($rewrite['request_path']);
+                }
+
+                if ($rewrite['entity_type'] === 'category') {
+                    $_GET['category'] = $rewrite['entity_id'];
+                    $controller = new \EasyCart\Controller\Controller_Product();
+                    return $controller->index();
+                }
+
+                if ($rewrite['entity_type'] === 'brand') {
+                    $controller = new \EasyCart\Controller\Controller_Product();
+                    return $controller->brand($rewrite['entity_id']);
+                }
+            }
+        }
+
         // 404 Not Found
         $this->handleNotFound();
         return null;
