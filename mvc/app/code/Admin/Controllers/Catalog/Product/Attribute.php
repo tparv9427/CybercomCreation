@@ -3,28 +3,43 @@
 class Admin_Controllers_Catalog_Product_Attribute
 {
 
-    public function indexAction()
+ public function indexAction()
     {
-        echo "Admin Index Catalog Product Attribute";
+        $root = Sdp::getBlock("page/root");
+        $index = Sdp::getBlock('admin/catalog_product_attribute_index');
+        $root->getChild('content')->addChild('index', $index);
+        $root->toHtml();
     }
     public function listAction()
     {
-        echo "Admin List Catalog Product Attribute";
+        $root = Sdp::getBlock("page/root");
+        $list = Sdp::getBlock('admin/catalog_product_attribute_list');
+        $root->getChild('content')->addChild('list', $list);
+        $root->toHtml();
     }
 
     public function newAction()
     {
-        echo "Admin New Catalog Product Attribute";
+        $root = Sdp::getBlock("page/root");
+        $new = Sdp::getBlock('admin/catalog_product_attribute_new');
+        $root->getChild('content')->addChild('new', $new);
+        $root->toHtml();
     }
 
     public function editAction()
     {
-        echo "Admin Edit Catalog Product Attribute";
+        $root = Sdp::getBlock("page/root");
+        $edit = Sdp::getBlock('admin/catalog_product_attribute_edit');
+        $root->getChild('content')->addChild('edit', $edit);
+        $root->toHtml();
     }
 
     public function deleteAction()
     {
-        echo "Admin Delete Catalog Product Attribute";
+        $root = Sdp::getBlock("page/root");
+        $delete = Sdp::getBlock('admin/catalog_product_attribute_delete');
+        $root->getChild('content')->addChild('delete', $delete);
+        $root->toHtml();
     }
 }
 ?>

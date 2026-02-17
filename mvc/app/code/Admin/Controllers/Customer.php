@@ -4,27 +4,42 @@ class Admin_Controllers_Customer
 {
     public function indexAction()
     {
-        echo "Admin Customer Account";
+        $root = Sdp::getBlock("page/root");
+        $index = Sdp::getBlock('admin/customer_index');
+        $root->getChild('content')->addChild('index', $index);
+        $root->toHtml();
     }
 
     public function newAction()
     {
-        echo "Admin New Customer";
+        $root = Sdp::getBlock("page/root");
+        $new = Sdp::getBlock('admin/customer_new');
+        $root->getChild('content')->addChild('new', $new);
+        $root->toHtml();
     }
 
     public function editAction()
     {
-        echo "Admin Edit Customer";
+        $root = Sdp::getBlock("page/root");
+        $edit = Sdp::getBlock('admin/customer_edit');
+        $root->getChild('content')->addChild('edit', $edit);
+        $root->toHtml();
     }
 
     public function deleteAction()
     {
-        echo "Admin Delete Customer Details";
+        $root = Sdp::getBlock("page/root");
+        $delete = Sdp::getBlock('admin/customer_delete');
+        $root->getChild('content')->addChild('delete', $delete);
+        $root->toHtml();
     }
 
     public function listAction()
     {
-        echo "Admin Customer List";
+        $root = Sdp::getBlock("page/root");
+        $list = Sdp::getBlock('admin/customer_list');
+        $root->getChild('content')->addChild('list', $list);
+        $root->toHtml();
     }
 }
 ?>

@@ -5,26 +5,41 @@ class Admin_Controllers_Catalog_Product
 
     public function indexAction()
     {
-        echo "Admin Index Catalog Product";
+        $root = Sdp::getBlock("page/root");
+        $index = Sdp::getBlock('admin/catalog_product_index');
+        $root->getChild('content')->addChild('index', $index);
+        $root->toHtml();
     }
     public function listAction()
     {
-        echo "Admin List Catalog Product";
+        $root = Sdp::getBlock("page/root");
+        $list = Sdp::getBlock('admin/catalog_product_list');
+        $root->getChild('content')->addChild('list', $list);
+        $root->toHtml();
     }
 
     public function newAction()
     {
-        echo "Admin New Catalog Product";
+        $root = Sdp::getBlock("page/root");
+        $new = Sdp::getBlock('admin/catalog_product_new');
+        $root->getChild('content')->addChild('new', $new);
+        $root->toHtml();
     }
 
     public function editAction()
     {
-        echo "Admin Edit Catalog Product";
+        $root = Sdp::getBlock("page/root");
+        $edit = Sdp::getBlock('admin/catalog_product_edit');
+        $root->getChild('content')->addChild('edit', $edit);
+        $root->toHtml();
     }
 
     public function deleteAction()
     {
-        echo "Admin Delete Catalog Product";
+        $root = Sdp::getBlock("page/root");
+        $delete = Sdp::getBlock('admin/catalog_product_delete');
+        $root->getChild('content')->addChild('delete', $delete);
+        $root->toHtml();
     }
 }
 ?>
