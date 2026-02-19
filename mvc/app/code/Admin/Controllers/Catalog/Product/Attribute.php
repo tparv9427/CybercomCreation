@@ -1,9 +1,9 @@
 <?php
 
-class Admin_Controllers_Catalog_Product_Attribute
+class Admin_Controllers_Catalog_Product_Attribute extends Core_Controllers_Front
 {
 
- public function indexAction()
+    public function indexAction()
     {
         $root = Sdp::getBlock("page/root");
         $index = Sdp::getBlock('admin/catalog_product_attribute_index');

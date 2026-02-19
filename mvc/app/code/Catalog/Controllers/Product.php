@@ -1,5 +1,5 @@
 <?php
-class Catalog_Controllers_Product
+class Catalog_Controllers_Product 
 {
     public function listAction()
     {
@@ -12,6 +12,7 @@ class Catalog_Controllers_Product
     {
         $root = Sdp::getBlock("page/root");
         $view = Sdp::getBlock('catalog/product_View');
+        $root->getChild('head')->addJs("js/default13333.js");
         $root->getChild('content')->addChild('view',$view);
         $root->toHtml();
     }
