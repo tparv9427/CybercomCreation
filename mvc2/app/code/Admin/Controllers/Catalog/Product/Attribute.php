@@ -1,21 +1,19 @@
 <?php
 
-class Admin_Controllers_Catalog_Product_Attribute
+class Admin_Controllers_Catalog_Product_Attribute extends Core_Controllers_Front
 {
-   private $model = "admin/";
-    private $controller = "catalog_product_attribute_";
+
     public function indexAction()
     {
         $root = Sdp::getBlock("page/root");
-        $index = Sdp::getBlock($this->model . $this->controller .'index');
+        $index = Sdp::getBlock('admin/catalog_product_attribute_index');
         $root->getChild('content')->addChild('index', $index);
         $root->toHtml();
     }
-
- public function listAction()
+    public function listAction()
     {
         $root = Sdp::getBlock("page/root");
-        $list = Sdp::getBlock($this->model . $this->controller .'list');
+        $list = Sdp::getBlock('admin/catalog_product_attribute_list');
         $root->getChild('content')->addChild('list', $list);
         $root->toHtml();
     }
@@ -23,7 +21,7 @@ class Admin_Controllers_Catalog_Product_Attribute
     public function newAction()
     {
         $root = Sdp::getBlock("page/root");
-        $new = Sdp::getBlock($this->model . $this->controller .'new');
+        $new = Sdp::getBlock('admin/catalog_product_attribute_new');
         $root->getChild('content')->addChild('new', $new);
         $root->toHtml();
     }
@@ -31,7 +29,7 @@ class Admin_Controllers_Catalog_Product_Attribute
     public function editAction()
     {
         $root = Sdp::getBlock("page/root");
-        $edit = Sdp::getBlock($this->model . $this->controller .'edit');
+        $edit = Sdp::getBlock('admin/catalog_product_attribute_edit');
         $root->getChild('content')->addChild('edit', $edit);
         $root->toHtml();
     }
@@ -39,7 +37,7 @@ class Admin_Controllers_Catalog_Product_Attribute
     public function deleteAction()
     {
         $root = Sdp::getBlock("page/root");
-        $delete = Sdp::getBlock($this->model . $this->controller .'delete');
+        $delete = Sdp::getBlock('admin/catalog_product_attribute_delete');
         $root->getChild('content')->addChild('delete', $delete);
         $root->toHtml();
     }

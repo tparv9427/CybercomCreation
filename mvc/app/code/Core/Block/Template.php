@@ -20,7 +20,6 @@ class Core_Block_Template
     public function toHtml()
     {
         include getcwd() . "/app/code/" . $this->_template;
-
     }
 
     public function addChild($name, $block)
@@ -37,18 +36,15 @@ class Core_Block_Template
 
     public function getChildHtml($name = "")
     {
-        if (isset($this->_child[$name])) {
+        if(isset($this->_child[$name])){
             $this->_child[$name]->toHtml();
-        } else {
-            if (count($this->_child)) {
-                foreach ($this->_child as $child) {
+        }else{
+            if(count($this->_child)){
+                foreach($this->_child as $child){
                     $child->toHtml();
                 }
             }
         }
-
     }
 
-
 }
-?>

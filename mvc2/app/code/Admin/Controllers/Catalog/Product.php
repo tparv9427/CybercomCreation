@@ -1,21 +1,19 @@
 <?php
 
-class Admin_Controllers_Catalog_Product
+class Admin_Controllers_Catalog_Product extends Core_Controllers_Front
 {
-    private $model = "admin/";
-    private $controller = "catalog_product_";
+
     public function indexAction()
     {
         $root = Sdp::getBlock("page/root");
-        $index = Sdp::getBlock($this->model . $this->controller .'index');
+        $index = Sdp::getBlock('admin/catalog_product_index');
         $root->getChild('content')->addChild('index', $index);
         $root->toHtml();
     }
-
- public function listAction()
+    public function listAction()
     {
         $root = Sdp::getBlock("page/root");
-        $list = Sdp::getBlock($this->model . $this->controller .'list');
+        $list = Sdp::getBlock('admin/catalog_product_list');
         $root->getChild('content')->addChild('list', $list);
         $root->toHtml();
     }
@@ -23,7 +21,7 @@ class Admin_Controllers_Catalog_Product
     public function newAction()
     {
         $root = Sdp::getBlock("page/root");
-        $new = Sdp::getBlock($this->model . $this->controller .'new');
+        $new = Sdp::getBlock('admin/catalog_product_new');
         $root->getChild('content')->addChild('new', $new);
         $root->toHtml();
     }
@@ -31,7 +29,7 @@ class Admin_Controllers_Catalog_Product
     public function editAction()
     {
         $root = Sdp::getBlock("page/root");
-        $edit = Sdp::getBlock($this->model . $this->controller .'edit');
+        $edit = Sdp::getBlock('admin/catalog_product_edit');
         $root->getChild('content')->addChild('edit', $edit);
         $root->toHtml();
     }
@@ -39,7 +37,15 @@ class Admin_Controllers_Catalog_Product
     public function deleteAction()
     {
         $root = Sdp::getBlock("page/root");
-        $delete = Sdp::getBlock($this->model . $this->controller .'delete');
+        $delete = Sdp::getBlock('admin/catalog_product_delete');
+        $root->getChild('content')->addChild('delete', $delete);
+        $root->toHtml();
+    }
+
+        public function getAction()
+    {
+        $root = Sdp::getBlock("page/root");
+        $delete = Sdp::getBlock('admin/catalog_product_delete');
         $root->getChild('content')->addChild('delete', $delete);
         $root->toHtml();
     }

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <ul>
+        <?php foreach ($this->getMenuArray() as $key => $value) { ?>
+            <li>
+                <a href="<?php echo $key; ?>"><?php echo $value; ?></a>
+            </li>
+        <?php } ?>
+    </ul>
+
+</body>
+</html>

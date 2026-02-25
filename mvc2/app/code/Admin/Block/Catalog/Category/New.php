@@ -1,11 +1,15 @@
 <?php
 
-class Admin_Block_Catalog_Category_New extends Core_Block_Template{
-    public function _contstruct(){
+class Admin_Block_Catalog_Category_New extends Core_Block_Template
+{
+     public function _contstruct()
+     {
 
-    }
-   public function __construct(){
-        $this->setTemplate("Admin\View\Catalog\Category\New.phtml");
-   }
+     }
+     public function __construct()
+     {
+          parent::__construct();
+          $this->setTemplate("Admin\View\Catalog\Category\New.phtml");
+     }
 }
 ?>

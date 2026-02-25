@@ -1,11 +1,12 @@
 <?php
 
-class Admin_Block_Catalog_Product_Edit extends Core_Block_Template{
-    public function _contstruct(){
-
+class Admin_Block_Catalog_Product_Edit extends Core_Block_Template
+{
+    public function __construct()
+    {
+        parent::__construct();
+        $this->setTemplate("Admin/View/Catalog/Product/edit.phtml");
     }
-   public function __construct(){
-        $this->setTemplate("Admin\View\Catalog\Product/edit.phtml");
-   }
+
+    public function _construct(){}
 }
-?>

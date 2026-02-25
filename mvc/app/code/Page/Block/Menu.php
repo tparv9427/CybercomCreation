@@ -2,6 +2,8 @@
 
 class Page_Block_Menu extends Core_Block_Template
 {
+
+
     public function __construct()
     {
         $this->setTemplate("Page/View/menu.phtml");
@@ -9,12 +11,10 @@ class Page_Block_Menu extends Core_Block_Template
 
     public function getMenuArray()
     {
-        $category = [
-            "url1" => "category1",
-            "url2" => "category2",
-            "url3" => "category3"
-        ];        
-        return $category;
+        return [
+            "url1" => "category 1",
+            "url2" => "category 2",
+            "url3" => "category 3"
+        ];
     }
 }
-?>

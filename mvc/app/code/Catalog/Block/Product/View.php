@@ -2,28 +2,37 @@
 
 class Catalog_Block_Product_View extends Core_Block_Template
 {
-     public function _contstruct()
-     {
+    protected $request;
+    protected $base;
 
-     }
-     public function __construct()
-     {
-          $this->setTemplate("Catalog/View/Product/view.phtml");
-     }
+    public function __construct()
+    {
+        parent::__construct();
+        $this->setTemplate("Catalog/View/Product/view.phtml");
+        $this->request = Sdp::getModel("core/request");
+        $this->base = $this->request->getBaseUrl();
+    }
 
-     public function getProduct()
-     {
-          $product = Sdp::getModel("catalog/product");
-          $product->addData(
-               [
-                    "product_ID" => 1,
-                    "name"       => "Dell Laptop 001",
-                    "url"        => "Dell-Laptop-001",
-               ]
-          );
-          // echo "<pre>";
-          // print_r($product);
-          return $product;
-     }
+    public function _construct()
+    {
+        $media        = Sdp::getBlock("catalog/product_View_Media");
+        $info         = Sdp::getBlock("catalog/product_View_Info");
+        $actions      = Sdp::getBlock("catalog/product_View_Actions");
+        $specs        = Sdp::getBlock("catalog/product_View_Specs");
+        $description  = Sdp::getBlock("catalog/product_View_Description");
+
+        $this->addChild("media", $media);
+        $this->addChild("info", $info);
+        $this->addChild("actions", $actions);
+        $this->addChild("specs", $specs);
+        $this->addChild("description", $description);
+    }
+
+    public function getProduct()
+    {
+        $product = Sdp::getModel("catalog/product");
+        $product->load(1);
+        return $product;
+    }
 }
 ?>

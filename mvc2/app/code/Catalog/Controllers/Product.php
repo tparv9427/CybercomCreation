@@ -1,19 +1,18 @@
 <?php
-class Catalog_Controllers_Product
-{   
-    private $model = "catalog/";
-    private $controller = "product_";
+class Catalog_Controllers_Product 
+{
     public function listAction()
     {
         $root = Sdp::getBlock("page/root");
-        $list = Sdp::getBlock($this->model . $this->controller .'List');
+        $list = Sdp::getBlock('catalog/product_List');
         $root->getChild('content')->addChild('list',$list);
         $root->toHtml();
     }
     public function viewAction()
     {
         $root = Sdp::getBlock("page/root");
-        $view = Sdp::getBlock($this->model . $this->controller .'View');
+        $view = Sdp::getBlock('catalog/product_View');
+        $root->getChild('head')->addJs("js/default13333.js");
         $root->getChild('content')->addChild('view',$view);
         $root->toHtml();
     }

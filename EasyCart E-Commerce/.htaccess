@@ -1,4 +1,4 @@
-AuthType Basic
-AuthName "Restricted Project Access"
-AuthUserFile "C:/xampp/apache/conf/global.htpasswd"
-Require valid-user
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Standard rules can go here if needed, or leave empty if the app handles it.
+</IfModule>

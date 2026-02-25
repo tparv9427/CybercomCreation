@@ -1,0 +1,39 @@
+<?php
+
+class Core_Model_Connection_Mysql
+{
+    protected $_connection = null;
+
+    public function connect()
+    {
+        if (is_null($this->_connection)) {
+
+            $this->_connection = new mysqli("localhost", "root", "", "mvc",9000);
+        }
+
+        if ($this->_connection->connect_error) {
+            die("Connection failed: " . $this->_connection->connect_error);
+        }
+    }
+
+    public function __construct()
+    {
+        $this->connect();
+    }
+
+    public function fetchOne($query)
+    {
+
+        $sql = $query;
+        $result = $this->_connection->query($sql);
+
+        while ($row = $result->fetch_assoc()) {
+            return $row;
+        }
+    }
+
+    public function __destruct()
+    {
+        $this->_connection->close();
+    }
+}
