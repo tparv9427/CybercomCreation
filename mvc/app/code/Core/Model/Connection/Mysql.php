@@ -8,7 +8,7 @@ class Core_Model_Connection_Mysql
     {
         if (is_null($this->_connection)) {
 
-            $this->_connection = new mysqli("localhost", "root", "", "mvc",9000);
+            $this->_connection = new mysqli("localhost", "root", "", "mvc", 9000);
         }
 
         if ($this->_connection->connect_error) {
@@ -30,6 +30,16 @@ class Core_Model_Connection_Mysql
         while ($row = $result->fetch_assoc()) {
             return $row;
         }
+    }
+
+    public function fetchAll($query)
+    {
+        $rows = [];
+        $result = $this->_connection->query($query);
+        while ($row = $result->fetch_assoc()) {
+            $rows[] = $row;
+        }
+        return $rows;
     }
 
     public function __destruct()

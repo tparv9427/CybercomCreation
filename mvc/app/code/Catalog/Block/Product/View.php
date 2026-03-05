@@ -15,11 +15,11 @@ class Catalog_Block_Product_View extends Core_Block_Template
 
     public function _construct()
     {
-        $media        = Sdp::getBlock("catalog/product_View_Media");
-        $info         = Sdp::getBlock("catalog/product_View_Info");
-        $actions      = Sdp::getBlock("catalog/product_View_Actions");
-        $specs        = Sdp::getBlock("catalog/product_View_Specs");
-        $description  = Sdp::getBlock("catalog/product_View_Description");
+        $media = Sdp::getBlock("catalog/product_View_Media");
+        $info = Sdp::getBlock("catalog/product_View_Info");
+        $actions = Sdp::getBlock("catalog/product_View_Actions");
+        $specs = Sdp::getBlock("catalog/product_View_Specs");
+        $description = Sdp::getBlock("catalog/product_View_Description");
 
         $this->addChild("media", $media);
         $this->addChild("info", $info);
@@ -31,7 +31,9 @@ class Catalog_Block_Product_View extends Core_Block_Template
     public function getProduct()
     {
         $product = Sdp::getModel("catalog/product");
-        $product->load(1);
+        $id = $this->request->getParams();
+        $id = isset($id['id']) ? $id['id'] : 1;
+        $product->load($id);
         return $product;
     }
 }

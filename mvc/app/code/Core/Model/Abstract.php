@@ -5,7 +5,8 @@ class Core_Model_Abstract
     protected $_data = [];
     protected $_resource = null;
 
-    public function _init($resource){
+    public function _init($resource)
+    {
         $this->_resource = Sdp::getResourceModel($resource);
     }
 
@@ -40,17 +41,28 @@ class Core_Model_Abstract
         $this->_data = $data;
         return $this;
     }
-    public function getResource(){
+    public function getResource()
+    {
         return $this->_resource;
+    }
+
+    public function getId()
+    {
+        $pk = ($this->_resource) ? $this->_resource->getPrimaryKey() : 'product_id';
+        return $this->_data[$pk] ?? null;
+    }
+
+    public function isLoaded()
+    {
+        return !empty($this->getId());
     }
 
     public function load($value, $field = null)
     {
-
-        $data = $this->getResource()->load($this,$value,$field);
-        $this->_data = $data;
+        $data = $this->getResource()->load($this, $value, $field);
+        $this->_data = is_array($data) ? $data : [];
     }
 
 
-    
+
 }

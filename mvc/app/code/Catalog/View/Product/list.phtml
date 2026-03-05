@@ -1,1 +1,30 @@
-List Page content
+<?php $products = $this->getProducts(); ?>
+
+<h2 class="product-list-heading">All Products</h2>
+
+<?php if (!empty($products)): ?>
+<table class="product-list-table">
+    <thead>
+        <tr>
+            <th class="col-center">Sr. No.</th>
+            <th class="col-center">ID</th>
+            <th>Product Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($products as $i => $product): ?>
+        <tr>
+            <td class="col-center"><?php echo $i + 1; ?></td>
+            <td class="col-center"><?php echo $product['product_id']; ?></td>
+            <td>
+                <a href="<?php echo $this->base; ?>catalog/product/view?id=<?php echo $product['product_id']; ?>">
+                    <?php echo htmlspecialchars($product['name']); ?>
+                </a>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+<?php else: ?>
+    <p>No products found.</p>
+<?php endif; ?>

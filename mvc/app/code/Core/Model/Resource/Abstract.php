@@ -23,10 +23,17 @@ class Core_Model_Resource_Abstract
     public function load($model, $value, $field)
     {
         $mysql = Sdp::getModel('core/connection_Mysql');
-        $field = (is_null($field))? $this->getPrimaryKey():$field;
+        $field = (is_null($field)) ? $this->getPrimaryKey() : $field;
         $query = "Select * from {$this->getTableName()} where {$field} = {$value}";
         $data = $mysql->fetchOne($query);
         return $data;
+    }
+
+    public function fetchAll()
+    {
+        $mysql = Sdp::getModel('core/connection_Mysql');
+        $query = "SELECT * FROM {$this->getTableName()}";
+        return $mysql->fetchAll($query);
     }
 }
 ?>

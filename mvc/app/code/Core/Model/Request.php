@@ -10,16 +10,19 @@ class Core_Model_Request
     public function __construct()
     {
         $uri = $this->getRequestUri();
-        $uri = str_replace($this->getBaseUrl(), "", $uri);
-        $uri = array_filter(explode('/', $uri));
 
-        $this->_module     = isset($uri[0]) ? $uri[0] : "page";
-        $this->_controller = isset($uri[1]) ? $uri[1] : "index";
-        $this->_action     = isset($uri[2]) ? $uri[2] : "index";
+        // Strip query string, then explode path into segments
+        $path = explode('?', $uri)[0];
+        $path = str_replace($this->getBaseUrl(), "", $path);
+        $segments = array_values(array_filter(explode('/', $path)));
 
-        // echo "<pre>";
-        // print_r($uri);
+        $this->_module = isset($segments[0]) ? $segments[0] : "page";
+        $this->_controller = isset($segments[1]) ? $segments[1] : "index";
+        $this->_action = isset($segments[2]) ? $segments[2] : "index";
+        // Params come from query string: e.g. ?id=1
     }
+
+
 
     public function getRequestUri()
     {
