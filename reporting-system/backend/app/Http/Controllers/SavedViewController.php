@@ -35,6 +35,12 @@ class SavedViewController extends Controller
             'updated_at' => now(),
         ]);
 
+        \App\Models\AuditLog::create([
+            'action' => 'save_view',
+            'ip_address' => $request->ip(),
+            'details' => ['view_name' => $request->get('name')]
+        ]);
+
         return response()->json([
             'id'      => $id,
             'message' => 'View saved successfully',

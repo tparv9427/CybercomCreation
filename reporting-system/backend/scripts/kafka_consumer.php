@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 $topic     = 'report_data_topic';
 $broker    = 'kafka:9092';
@@ -21,7 +21,13 @@ $conf->set('socket.timeout.ms', '60000');
 $consumer = new RdKafka\KafkaConsumer($conf);
 $consumer->subscribe([$topic]);
 
-function sendToSolr(array $docs, string $url): bool
+// Setup DLQ Producer
+$dlqConf = new RdKafka\Conf();
+$dlqConf->set('metadata.broker.list', $broker);
+$dlqProducer = new RdKafka\Producer($dlqConf);
+$dlqTopic = $dlqProducer->newTopic($topic . '_dlq');
+
+function sendToSolr(array $docs, string $url, $dlqTopic = null): bool
 {
     $json = json_encode($docs);
 
@@ -42,6 +48,15 @@ function sendToSolr(array $docs, string $url): bool
 
     if ($httpCode !== 200 || ($result['responseHeader']['status'] ?? 1) !== 0) {
         echo "ERROR sending to Solr: $response\n";
+        
+        // Send to DLQ
+        if ($dlqTopic) {
+            foreach ($docs as $doc) {
+                $dlqTopic->produce(RD_KAFKA_PARTITION_UA, 0, json_encode($doc));
+            }
+            $dlqTopic->produce(RD_KAFKA_PARTITION_UA, 0, "BATCH FAILED: $response");
+            echo "Sent failed batch to DLQ.\n";
+        }
         return false;
     }
 
@@ -72,7 +87,7 @@ while (true) {
 
                 if (count($batch) >= $batchSize) {
 
-                    if (sendToSolr($batch, $solrUrl)) {
+                    if (sendToSolr($batch, $solrUrl, $dlqTopic)) {
                         $batchCount++;
                         echo "Indexed batch $batchCount — Total: $total\n";
                     }
@@ -88,7 +103,7 @@ while (true) {
             if (time() - $lastMsgTs > 5) {
 
                 if (!empty($batch)) {
-                    if (sendToSolr($batch, $solrUrl)) {
+                    if (sendToSolr($batch, $solrUrl, $dlqTopic)) {
                         $batchCount++;
                         echo "Indexed final batch — Total: $total\n";
                     }

@@ -112,39 +112,61 @@ class ReportController extends Controller
 
     public function facets(Request $request): JsonResponse
     {
-        $field = $request->get('field', 'Brand_Name_s');
-        $limit = (int) $request->get('limit', 50);
+        $metric    = $request->get('metric', 'Price_f');
+        $groupBy   = $request->get('group_by', 'Brand_Name_s');
+        $limit     = (int) $request->get('limit', 15);
+        $dateField = $request->get('date_field', 'Date_dt');
 
-        $params = [
-            'q'             => '*:*',
-            'facet.field'   => $field,
-            'facet.limit'   => $limit,
-            'facet.mincount'=> 1,
-            'wt'            => 'json',
+        // JSON Facet for sub-aggregation
+        $jsonFacet = [
+            'categories' => [
+                'type'   => 'terms',
+                'field'  => $groupBy,
+                'limit'  => $limit,
+                'facet'  => [
+                    'y_val' => "avg($metric)"
+                ]
+            ]
         ];
 
-        // Apply same filters if provided
+        $params = [
+            'q'          => '*:*',
+            'rows'       => 0,
+            'json.facet' => json_encode($jsonFacet),
+        ];
+
+        // Apply filters & Date ranges
+        $fqList = [];
         if ($filterJson = $request->get('filters')) {
             $filterGroup = json_decode($filterJson, true);
             if (!empty($filterGroup['rules'])) {
                 $fq = $this->qb->build($filterGroup);
-                if ($fq) $params['fq'] = $fq;
+                if ($fq) $fqList[] = $fq;
             }
         }
 
-        $result = $this->solr->facet($params);
-        $facets = $result['facet_counts']['facet_fields'][$field] ?? [];
-        
-        // Convert flat array [key, count, key, count] to assoc
-        $data = [];
-        for ($i = 0; $i < count($facets); $i += 2) {
-            $data[] = [
-                'value' => $facets[$i],
-                'count' => $facets[$i+1],
-            ];
+        if ($from = $request->get('date_from')) {
+            $to       = $request->get('date_to', 'NOW');
+            $fqList[] = "{$dateField}:[$from TO $to]";
         }
 
-        return response()->json($data);
+        if (!empty($fqList)) {
+            $params['fq'] = implode(' AND ', $fqList);
+        }
+
+        try {
+            $result  = $this->solr->query($params);
+            $buckets = $result['facets']['categories']['buckets'] ?? [];
+            
+            $data = array_map(fn($b) => [
+                'label' => $b['val'],
+                'value' => round($b['y_val'] ?? 0, 2)
+            ], $buckets);
+
+            return response()->json($data);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function compare(Request $request): JsonResponse
@@ -240,7 +262,7 @@ class ReportController extends Controller
     {
         $params = [
             'q'    => '*:*',
-            'rows' => 100000,
+            'rows' => 20000,
             'start'=> 0,
             'wt'   => 'json',
         ];
@@ -256,7 +278,7 @@ class ReportController extends Controller
         $result = $this->solr->query($params);
         $docs   = $result['response']['docs'] ?? [];
 
-        return response()->streamDownload(function () use ($docs) {
+        $response = response()->streamDownload(function () use ($docs) {
             $out = fopen('php://output', 'w');
             if (!empty($docs)) {
                 fputcsv($out, array_keys($docs[0]));
@@ -272,5 +294,13 @@ class ReportController extends Controller
         }, 'report_export.csv', [
             'Content-Type' => 'text/csv',
         ]);
+
+        \App\Models\AuditLog::create([
+            'action' => 'export_report',
+            'ip_address' => $request->ip(),
+            'details' => ['filters' => $request->get('filters')]
+        ]);
+
+        return $response;
     }
 }

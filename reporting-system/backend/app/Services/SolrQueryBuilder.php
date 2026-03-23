@@ -53,7 +53,7 @@ class SolrQueryBuilder
             '!=', 'doesNotEqual'       => "-$field:\"$escaped\"",
             'contains'                 => "$field:*$escaped*",
             'doesNotContain'           => "-$field:*$escaped*",
-            'beginsWith'               => "$field:$escaped*",
+            'beginsWith', 'starts_with' => "$field:$escaped*",
             'endsWith'                 => "$field:*$escaped",
             '>', 'greaterThan'         => "$field:{{$value} TO *}",
             '<', 'lessThan'            => "$field:{* TO {$value}}",
