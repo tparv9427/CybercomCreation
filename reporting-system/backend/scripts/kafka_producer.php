@@ -1,4 +1,27 @@
 <?php
+/**
+ * ⚠️  DEPRECATED — DO NOT USE IN PRODUCTION
+ * ─────────────────────────────────────────────────────────────────────────────
+ * This script has been replaced by the Laravel async pipeline:
+ *
+ *   NEW FLOW:
+ *   POST /api/import/upload  →  ImportController
+ *                            →  ProcessCsvBatch (Laravel Job, queued via Redis)
+ *                            →  KafkaService::produce()
+ *                            →  Kafka Topic: report_data_topic
+ *                            →  kafka:consume (Artisan Daemon)
+ *                            →  Solr
+ *
+ *   PRODUCTION COMMAND:
+ *   curl -X POST http://localhost:9006/api/import/upload \
+ *        -F 'csv_file=@your_file.csv'
+ *
+ *   OR from dashboard: http://localhost:5173
+ *
+ * This file is kept only as a reference / manual testing fallback.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
 
 $input = $argv[1] ?? null;
 

@@ -1,108 +1,158 @@
 # Reporting System
 
-A dynamic reporting system built with PHP (Laravel) + React + Solr + Kafka + MySQL.
+A production-ready dynamic reporting system built with **Laravel** + **Vue 3** + **Apache Solr** + **Apache Kafka** + **MySQL** + **Redis** — all orchestrated via Docker.
+
+---
+
+## Architecture Pipeline
+
+```
+CSV Upload (Dashboard)
+  → POST /api/import/upload   (Laravel ImportController)
+  → ProcessCsvBatch Job       (Redis Queue Worker, async batches of 1000 rows)
+  → KafkaService::produce()   (rdkafka extension)
+  → Kafka Topic               (report_data_topic)
+  → php artisan kafka:consume (Artisan Daemon, batches of 500 → Solr)
+  → Apache Solr               (indexed, searchable documents)
+  → GET /api/report/*         (Laravel API, queries Solr)
+  → Vue Dashboard             (Charts, Table, Comparison)
+```
 
 ---
 
 ## Prerequisites
 
-Make sure these are installed before starting:
-
-| Tool | Download |
-|------|----------|
+| Tool           | Download                                       |
+|----------------|------------------------------------------------|
 | Docker Desktop | https://www.docker.com/products/docker-desktop |
-| Git Bash (Windows only) | https://git-scm.com/downloads |
-| Node.js 20+ | https://nodejs.org |
+| GNU Make       | Pre-installed on Mac/Linux. Windows: use Git Bash or WSL |
 
 ---
 
-## Project Ports
+## Services & Ports
 
-| Service | Host Port | Access |
-|---------|-----------|--------|
-| App (Nginx + PHP API) | 9006 | http://localhost:9006 |
-| Solr Admin UI | 9007 | http://localhost:9007/solr |
-| MySQL | 9008 | use any MySQL client |
-| Kafka | 9009 | internal broker |
+| Service            | Port | URL                                  |
+|--------------------|------|--------------------------------------|
+| App (Nginx + PHP)  | 9006 | http://localhost:9006                |
+| Frontend (Vite)    | 5173 | http://localhost:5173                |
+| Solr Admin UI      | 9007 | http://localhost:9007/solr           |
+| MySQL              | 9008 | any MySQL client                     |
+| Kafka Broker       | 9009 | internal                             |
+| Redis              | 9010 | internal                             |
 
 ---
 
-## How to Run
+## First Time Setup
 
-### Windows
 ```bash
-# Open Git Bash in the project folder and run:
-bash setup.sh
-```
+# 1. Build and start all 7 containers
+make build
 
-### 5. Run Data Pipeline (Strict: CSV → Kafka → Solr)
-To ingest the 16 CSV files from the `uploads` folder:
-```bash
-# 1. Run Producer (Processes all CSVs in uploads/ and sends to Kafka)
-docker compose exec app php /var/www/html/backend/scripts/kafka_producer.php /var/www/html/backend/storage/app/uploads
+# 2. Install Laravel dependencies
+make install
 
-# 2. Run Consumer (Indexes messages from Kafka to Solr)
-docker compose exec app php /var/www/html/backend/scripts/kafka_consumer.php
-```
+# 3. Generate app key
+make key-gen
 
-### New Features:
-- **Period Comparison:** Select two date ranges to compare metrics (e.g., Price) across groups (e.g., Brand).
-- **Dynamic Field Mapping:** Automatically detects and maps CSV columns to Solr types.
-- **Premium UI:** Revamped dashboard with glassmorphism and real-time visualization.
+# 4. Run database migrations
+make migrate
 
-### Mac
-```bash
-chmod +x setup.sh
-./setup.sh
-```
+# 5. Install frontend dependencies
+make fe-install
 
-### Linux
-```bash
-chmod +x setup.sh
-./setup.sh
+# 6. Start the frontend dev server
+make fe-dev
+
+# 7. Open the dashboard
+#    http://localhost:5173
 ```
 
 ---
 
-## First Time Setup (follow in order)
+## Available Commands
+
+```bash
+make help          # Show all commands
+
+# Docker
+make up            # Start all containers
+make down          # Stop all containers
+make build         # Rebuild & start
+make restart       # Stop → Rebuild → Start
+make logs          # Tail all container logs
+make ps            # Container status
+
+# Backend
+make install       # Composer install
+make key-gen       # Generate APP_KEY
+make migrate       # Run migrations
+make cache-clear   # Clear Laravel caches
+make sample        # Generate a sample 10k-row CSV
+make ingest        # Show curl command for ingesting CSV
+make solr-status   # Check Solr document count
+
+# Frontend
+make fe-install    # npm install
+make fe-dev        # Start Vite dev server
+make fe-build      # Build for production
 ```
-1. Run setup.sh
-2. Choose [1] Docker → [3] Rebuild and start containers
-3. Wait for all 4 containers to show "Up"
-4. Choose [2] Backend → [1] Install Laravel dependencies
-5. Choose [2] Backend → [2] Run database migrations
-6. Choose [2] Backend → [3] Generate sample CSV
-7. Choose [2] Backend → [4] Ingest CSV into Solr
-8. Choose [3] Frontend → [1] Install dependencies
-9. Choose [3] Frontend → [2] Start dev server
-10. Open http://localhost:5173 in your browser
+
+---
+
+## Data Ingestion (Production)
+
+Upload any CSV file via the dashboard or directly via API:
+
+```bash
+curl -X POST http://localhost:9006/api/import/upload \
+     -F 'csv_file=@/path/to/your/data.csv'
 ```
+
+The system will:
+1. Validate and parse the CSV without loading it all into memory
+2. Dispatch async background jobs (1,000 rows per batch) via **Redis Queue**
+3. Each job uses `KafkaService` to stream rows into Kafka
+4. The `kafka-consumer` Docker service continuously indexes batches into **Solr**
 
 ---
 
 ## Credentials
 
-| Service | Detail |
-|---------|--------|
-| MySQL Host | localhost:9008 |
-| MySQL Database | reporting |
+| Service  | Detail           |
+|----------|------------------|
+| MySQL DB | reporting        |
 | MySQL User | reporting_user |
-| MySQL Password | reporting_pass |
-| MySQL Root Password | root |
+| MySQL Pass | reporting_pass |
+| MySQL Root | root           |
 
 ---
 
 ## Folder Structure
+
 ```
 reporting-system/
 ├── docker/
 │   └── php/
 │       ├── Dockerfile
 │       └── nginx.conf
-├── backend/          ← Laravel PHP API
-├── frontend/         ← React + Vite
-├── solr/             ← Solr config
-├── docker-compose.yml
-├── setup.sh
+├── backend/                    ← Laravel PHP API
+│   ├── app/
+│   │   ├── Console/Commands/
+│   │   │   └── KafkaConsumeCommand.php   ← Kafka Consumer Daemon
+│   │   ├── Http/Controllers/
+│   │   │   └── ImportController.php      ← CSV Upload API
+│   │   ├── Jobs/
+│   │   │   └── ProcessCsvBatch.php       ← Async Batch Job
+│   │   └── Services/
+│   │       ├── KafkaService.php          ← Kafka Producer Service
+│   │       └── SolrClient.php
+│   └── scripts/
+│       └── kafka_producer.php            ← ⚠️ DEPRECATED (kept as reference)
+├── frontend/                   ← Vue 3 + Vite
+│   └── src/components/
+│       └── ChartRenderer.vue             ← Bar/Pie/Line Charts
+├── solr/                       ← Solr config
+├── Makefile                    ← All project commands
+├── docker-compose.yml          ← 7-service orchestration
 └── README.md
 ```

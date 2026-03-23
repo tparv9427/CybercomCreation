@@ -1,6 +1,8 @@
 name: reporting-system
 
 services:
+
+  # ── Web App (Nginx + PHP-FPM) ──────────────────────────────────────────────
   app:
     build:
       context: .
@@ -12,12 +14,59 @@ services:
     volumes:
       - .:/var/www/html
     depends_on:
+      - redis
       - solr
       - mysql
       - kafka
     networks:
       - reporting_net
+    restart: unless-stopped
 
+  # ── Redis (Queue Driver) ───────────────────────────────────────────────────
+  redis:
+    image: redis:alpine
+    container_name: reporting-redis
+    ports:
+      - "9010:6379"
+    networks:
+      - reporting_net
+    restart: unless-stopped
+
+  # ── Queue Worker (Laravel Jobs — CSV Batch Dispatch via Redis) ─────────────
+  queue-worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: reporting-queue-worker
+    command: php /var/www/html/backend/artisan queue:work --tries=3 --sleep=3 --max-time=3600
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - redis
+      - mysql
+      - kafka
+      - solr
+    networks:
+      - reporting_net
+    restart: unless-stopped
+
+  # ── Kafka Consumer Daemon (Artisan Command → Solr Indexing) ───────────────
+  kafka-consumer:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: reporting-kafka-consumer
+    command: php /var/www/html/backend/artisan kafka:consume --batch-size=500
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - kafka
+      - solr
+    networks:
+      - reporting_net
+    restart: unless-stopped
+
+  # ── Solr (Search & Indexing Engine) ───────────────────────────────────────
   solr:
     image: solr:9
     container_name: reporting-solr
@@ -28,7 +77,9 @@ services:
     command: solr-precreate reports
     networks:
       - reporting_net
+    restart: unless-stopped
 
+  # ── MySQL (Metadata & Application State) ──────────────────────────────────
   mysql:
     image: mysql:8
     container_name: reporting-mysql
@@ -43,7 +94,9 @@ services:
       - reporting_mysql_data:/var/lib/mysql
     networks:
       - reporting_net
+    restart: unless-stopped
 
+  # ── Kafka (Message Broker) ─────────────────────────────────────────────────
   kafka:
     image: confluentinc/cp-kafka:7.6.0
     container_name: reporting-kafka
@@ -62,6 +115,7 @@ services:
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
     networks:
       - reporting_net
+    restart: unless-stopped
 
 networks:
   reporting_net:
