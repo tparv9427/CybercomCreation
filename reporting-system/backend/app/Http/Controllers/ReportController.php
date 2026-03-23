@@ -14,6 +14,15 @@ class ReportController extends Controller
         private SolrQueryBuilder $qb
     ) {}
 
+    private function formatDate(?string $val, bool $isEnd = false): string
+    {
+        if (!$val || $val === 'NOW') return 'NOW';
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $val)) {
+            return $val . ($isEnd ? 'T23:59:59Z' : 'T00:00:00Z');
+        }
+        return $val;
+    }
+
     public function fields(): JsonResponse
     {
         // Sample the first 100 docs to find all active fields from your 16 CSVs
@@ -93,8 +102,9 @@ class ReportController extends Controller
         // Date range filter
         if ($from = $request->get('date_from')) {
             $dateField = $request->get('date_field', 'Date_dt');
-            $to        = $request->get('date_to', 'NOW');
-            $fqList[]  = "{$dateField}:[$from TO $to]";
+            $fmtFrom   = $this->formatDate($from, false);
+            $fmtTo     = $this->formatDate($request->get('date_to', 'NOW'), true);
+            $fqList[]  = "{$dateField}:[$fmtFrom TO $fmtTo]";
         }
 
         if (!empty($fqList)) {
@@ -146,8 +156,9 @@ class ReportController extends Controller
         }
 
         if ($from = $request->get('date_from')) {
-            $to       = $request->get('date_to', 'NOW');
-            $fqList[] = "{$dateField}:[$from TO $to]";
+            $fmtFrom   = $this->formatDate($from, false);
+            $fmtTo     = $this->formatDate($request->get('date_to', 'NOW'), true);
+            $fqList[]  = "{$dateField}:[$fmtFrom TO $fmtTo]";
         }
 
         if (!empty($fqList)) {
@@ -175,22 +186,13 @@ class ReportController extends Controller
         $groupBy = $request->get('group_by', 'Brand_Name_s');
         $dateField = $request->get('date_field', 'Date_dt');
 
-        // Helper to ensure dates are in Solr ISO format (YYYY-MM-DDTHH:MM:SSZ)
-        $formatDate = function($val, $isEnd = false) {
-            if (!$val || $val === 'NOW') return 'NOW';
-            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $val)) {
-                return $val . ($isEnd ? 'T23:59:59Z' : 'T00:00:00Z');
-            }
-            return $val;
-        };
-
         $rangeA = [
-            'from' => $formatDate($request->get('date_from_a')),
-            'to'   => $formatDate($request->get('date_to_a'), true)
+            'from' => $this->formatDate($request->get('date_from_a')),
+            'to'   => $this->formatDate($request->get('date_to_a'), true)
         ];
         $rangeB = [
-            'from' => $formatDate($request->get('date_from_b')),
-            'to'   => $formatDate($request->get('date_to_b'), true)
+            'from' => $this->formatDate($request->get('date_from_b')),
+            'to'   => $this->formatDate($request->get('date_to_b'), true)
         ];
 
         if ($rangeA['from'] === 'NOW' || $rangeB['from'] === 'NOW') {
@@ -267,12 +269,24 @@ class ReportController extends Controller
             'wt'   => 'json',
         ];
 
+        $fqList = [];
         if ($filterJson = $request->get('filters')) {
             $filterGroup = json_decode($filterJson, true);
             if (!empty($filterGroup['rules'])) {
                 $fq = $this->qb->build($filterGroup);
-                if ($fq) $params['fq'] = $fq;
+                if ($fq) $fqList[] = $fq;
             }
+        }
+        
+        if ($from = $request->get('date_from')) {
+            $dateField = $request->get('date_field', 'Date_dt');
+            $fmtFrom   = $this->formatDate($from, false);
+            $fmtTo     = $this->formatDate($request->get('date_to', 'NOW'), true);
+            $fqList[]  = "{$dateField}:[$fmtFrom TO $fmtTo]";
+        }
+
+        if (!empty($fqList)) {
+            $params['fq'] = implode(' AND ', $fqList);
         }
 
         $result = $this->solr->query($params);

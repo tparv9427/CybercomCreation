@@ -1,10 +1,10 @@
 <template>
   <div class="analytics-card">
 
-    <!-- ── Chart Type Selector ─────────────────────────────────────────── -->
-    <div class="chart-type-bar">
+    <!-- ── Chart Type Selector (only in barPie mode) ──────────────────── -->
+    <div class="chart-type-bar" v-if="mode === 'barPie'">
       <button
-        v-for="t in types"
+        v-for="t in barPieTypes"
         :key="t.id"
         :class="['type-btn', { active: chartType === t.id }]"
         @click="chartType = t.id"
@@ -17,18 +17,22 @@
     <div class="chart-controls">
 
       <!-- SHARED: Metric + Group By (Bar & Pie) -->
-      <template v-if="chartType === 'bar' || chartType === 'pie'">
+      <template v-if="mode === 'barPie' && (chartType === 'bar' || chartType === 'pie')">
         <div class="ctrl">
           <label>Metric</label>
           <select v-model="store.chartField" @change="refresh">
-            <option v-for="f in numericFields" :key="f.name" :value="f.name">{{ f.label }}</option>
+            <optgroup v-for="(fieldsList, groupName) in groupedNumericFields" :key="groupName" :label="groupName">
+              <option v-for="f in fieldsList" :key="f.name" :value="f.name">{{ f.label }}</option>
+            </optgroup>
           </select>
         </div>
 
         <div class="ctrl" v-if="chartType === 'bar'">
           <label>Group By</label>
           <select v-model="store.chartGroupBy" @change="refresh">
-            <option v-for="f in textFields" :key="f.name" :value="f.name">{{ f.label }}</option>
+            <optgroup v-for="(fieldsList, groupName) in groupedTextFields" :key="groupName" :label="groupName">
+              <option v-for="f in fieldsList" :key="f.name" :value="f.name">{{ f.label }}</option>
+            </optgroup>
           </select>
         </div>
 
@@ -36,82 +40,40 @@
         <div class="ctrl" v-if="chartType === 'pie'">
           <label>Distribution Column</label>
           <select v-model="store.chartGroupBy" @change="refresh">
-            <option v-for="f in textFields" :key="f.name" :value="f.name">{{ f.label }}</option>
+            <optgroup v-for="(fieldsList, groupName) in groupedTextFields" :key="groupName" :label="groupName">
+              <option v-for="f in fieldsList" :key="f.name" :value="f.name">{{ f.label }}</option>
+            </optgroup>
           </select>
         </div>
       </template>
 
-      <!-- BAR CHART: Range vs Limit mode -->
-      <template v-if="chartType === 'bar'">
-        <div class="ctrl range-mode-ctrl">
-          <label>Display Mode</label>
-          <div class="radio-group">
-            <label class="radio-label">
-              <input type="radio" value="limit" v-model="barMode" @change="refresh" />
-              Top Limit
-            </label>
-            <label class="radio-label">
-              <input type="radio" value="range" v-model="barMode" @change="refresh" />
-              Row Range
-            </label>
-          </div>
-        </div>
+      <!-- (Removed Display Mode and Range Selectors) -->
 
-        <!-- Limit Mode -->
-        <div class="ctrl" v-if="barMode === 'limit'">
-          <label>Top N Results</label>
-          <input
-            id="bar-limit"
-            type="number"
-            v-model.number="barLimit"
-            min="1"
-            max="500"
-            @change="refresh"
-            class="num-input"
-          />
-        </div>
-
-        <!-- Range Mode -->
-        <template v-if="barMode === 'range'">
-          <div class="ctrl">
-            <label>From Rank</label>
-            <input
-              id="bar-range-from"
-              type="number"
-              v-model.number="barRangeFrom"
-              min="1"
-              @change="onRangeChange"
-              class="num-input"
-            />
-          </div>
-          <div class="ctrl">
-            <label>To Rank</label>
-            <input
-              id="bar-range-to"
-              type="number"
-              v-model.number="barRangeTo"
-              :min="barRangeFrom + 1"
-              @change="onRangeChange"
-              class="num-input"
-            />
-          </div>
-        </template>
-      </template>
-
-      <!-- LINE CHART: Column selector (bound to comparisonData) -->
-      <template v-if="chartType === 'line'">
+      <!-- LINE CHART: Metric and Group By -->
+      <template v-if="mode === 'line'">
         <div class="ctrl">
           <label>Compare Metric</label>
           <select v-model="lineMetric" @change="renderLine">
-            <option v-for="f in numericFields" :key="f.name" :value="f.name">{{ f.label }}</option>
+            <optgroup v-for="(fieldsList, groupName) in groupedNumericFields" :key="groupName" :label="groupName">
+              <option v-for="f in fieldsList" :key="f.name" :value="f.name">{{ f.label }}</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="ctrl">
+          <label>Group By</label>
+          <select v-model="lineGroupBy" @change="renderLine">
+            <option value="">(None - Row Intervals)</option>
+            <optgroup v-for="(fieldsList, groupName) in groupedTextFields" :key="groupName" :label="groupName">
+              <option v-for="f in fieldsList" :key="f.name" :value="f.name">{{ f.label }}</option>
+            </optgroup>
           </select>
         </div>
         <div v-if="!hasComparisonData" class="no-comparison-hint">
-          ⚠ Run a Period Comparison first to populate this chart.
+          ⚠ Run a comparison above to populate this chart.
         </div>
       </template>
 
-      <button class="btn-refresh" :disabled="loading" @click="refresh" v-if="chartType !== 'line'">
+      <button class="btn-refresh" :disabled="loading" @click="refresh" v-if="mode === 'barPie'">
         {{ loading ? '...' : '↺ Refresh' }}
       </button>
     </div>
@@ -126,8 +88,8 @@
       </div>
 
       <div v-if="!loading && !hasData" class="chart-overlay empty">
-        <span v-if="chartType === 'line' && !hasComparisonData">
-          No comparison data yet. Use the <strong>Comparison Panel</strong> to select two date ranges.
+        <span v-if="mode === 'line' && !hasComparisonData">
+          Run a comparison above to see the trend chart.
         </span>
         <span v-else>No data found for this period/filter.</span>
       </div>
@@ -139,11 +101,10 @@
         <span class="dot"></span>
         <strong>{{ currentMetricLabel }}</strong>
       </div>
-      <span class="hint" v-if="chartType === 'bar'">
-        <template v-if="barMode === 'limit'">Top {{ barLimit }} results</template>
-        <template v-else>Showing ranks {{ barRangeFrom }} – {{ barRangeTo }}</template>
+      <span class="hint" v-if="mode === 'barPie' && chartType === 'bar'">
+        Displaying data from the current table view
       </span>
-      <span class="hint" v-else-if="chartType === 'line'">
+      <span class="hint" v-else-if="mode === 'line'">
         Comparing two periods across {{ chartLabels.length }} intervals
       </span>
       <span class="hint" v-else>
@@ -165,88 +126,102 @@ const API   = 'http://localhost:9006/api'
 const store = useReportStore()
 
 // ── Refs ────────────────────────────────────────────────────────────────────
+// ── Props ────────────────────────────────────────────────────────────────────
+const props = withDefaults(defineProps<{
+  mode?: 'barPie' | 'line'
+}>(), { mode: 'barPie' })
+
 const canvasRef  = ref<HTMLCanvasElement | null>(null)
-const chartType  = ref<'bar' | 'line' | 'pie'>('bar')
+const chartType  = ref<'bar' | 'pie'>('bar')
 const loading    = ref(false)
 let chartInstance: Chart | null = null
 
 const chartLabels = ref<string[]>([])
 const chartValues = ref<number[]>([])
 
-// ── Bar chart options ────────────────────────────────────────────────────────
-const barMode      = ref<'limit' | 'range'>('limit')
-const barLimit     = ref(20)
-const barRangeFrom = ref(1)
-const barRangeTo   = ref(20)
+
 
 // ── Line chart option ────────────────────────────────────────────────────────
 const lineMetric = ref('')
+const lineGroupBy = ref('')
 
 // ── Chart type definitions ───────────────────────────────────────────────────
-const types = [
+const barPieTypes = [
   { id: 'bar',  icon: '📊', label: 'Bar Chart'  },
   { id: 'pie',  icon: '🥧', label: 'Pie Chart'  },
-  { id: 'line', icon: '📈', label: 'Line Chart' },
 ] as const
 
 // ── Computed ─────────────────────────────────────────────────────────────────
 const numericFields      = computed(() => store.fields.filter(f => f.type === 'number'))
 const textFields         = computed(() => store.fields.filter(f => f.type === 'text'))
+
+function getFieldGroup(fieldObj: any): string {
+  const n = (fieldObj.label || fieldObj.name || '').toLowerCase()
+  if (n.includes('price') || n.includes('cost') || n.includes('margin') || n.includes('map') || n.includes('msrp')) return 'Pricing & Margins'
+  if (n.includes('stock') || n.includes('qty') || n.includes('quantity') || n.includes('inventory')) return 'Inventory & Stock'
+  if (n.includes('url') || n.includes('link') || n.includes('screenshot') || n.includes('image') || n.includes('media')) return 'Media & Links'
+  if (n.includes('sku') || n.includes('id ') || n.endsWith(' id') || n === 'id' || n.includes('code') || n.includes('upc')) return 'Identifiers'
+  if (n.includes('name') || n.includes('brand') || n.includes('type') || n.includes('category') || n.includes('status') || n.includes('vendor')) return 'Categorical Dimensions'
+  if (n.includes('date') || n.includes('time') || n.includes('created') || n.includes('updated')) return 'Dates & Times'
+  return 'Other Metadata'
+}
+
+function groupFieldsByCategory(fields: any[]) {
+  const groups: Record<string, any[]> = {}
+  for (const f of fields) {
+    const gVal = getFieldGroup(f)
+    if (!groups[gVal]) groups[gVal] = []
+    groups[gVal].push(f)
+  }
+  return groups
+}
+
+const groupedNumericFields = computed(() => groupFieldsByCategory(numericFields.value))
+const groupedTextFields    = computed(() => groupFieldsByCategory(textFields.value))
+
 const hasData            = computed(() => chartLabels.value.length > 0)
 const hasComparisonData  = computed(() => store.comparisonData && store.comparisonData.length > 0)
 const currentMetricLabel = computed(() => store.fields.find(f => f.name === store.chartField)?.label || 'Value')
 
-// ── Bar: computed rows/start params ─────────────────────────────────────────
-const barParams = computed(() => {
-  if (barMode.value === 'limit') {
-    return { limit: barLimit.value, start: 0 }
-  }
-  const from  = Math.max(1, barRangeFrom.value)
-  const to    = Math.max(from + 1, barRangeTo.value)
-  return { limit: to - from + 1, start: from - 1 }
-})
-
-// ── Range validation ─────────────────────────────────────────────────────────
-function onRangeChange() {
-  if (barRangeTo.value <= barRangeFrom.value) {
-    barRangeTo.value = barRangeFrom.value + 1
-  }
-  refresh()
-}
-
 // ── Main refresh (Bar & Pie) ─────────────────────────────────────────────────
 async function refresh() {
-  if (chartType.value === 'line') {
+  if (props.mode === 'line') {
     renderLine()
     return
   }
   if (!store.chartField || !store.chartGroupBy) return
 
-  loading.value = true
   try {
-    const { data } = await axios.get(`${API}/report/facets`, {
-      params: {
-        metric:   store.chartField,
-        group_by: store.chartGroupBy,
-        limit:    barParams.value.limit,
-        start:    barParams.value.start,
-        filters:  store.filters.rules.length ? JSON.stringify(store.filters) : undefined,
-        date_from: store.dateFrom || undefined,
-        date_to:   store.dateTo   || undefined,
-      }
-    })
+    const docs = store.docs || []
+    
+    
+    // Group and aggregate top N rows locally
+    const grouped: Record<string, number> = {}
+    
+    for (const doc of docs) {
+      // Find values for the selected group & metric fields
+      const gVal = doc[store.chartGroupBy] ?? 'Unknown'
+      const mVal = parseFloat(doc[store.chartField]) || 0
+      
+      // Represent arrays (like multi-select strings) as joined strings
+      const key = Array.isArray(gVal) ? gVal.join(', ') : String(gVal)
+      
+      grouped[key] = (grouped[key] || 0) + mVal
+    }
 
-    chartLabels.value = data.map((d: any) => d.label)
-    chartValues.value = data.map((d: any) => d.value)
+    // Convert map to arrays, sorted by value descending
+    const sortedGroups = Object.entries(grouped).sort((a, b) => b[1] - a[1])
+    
+    chartLabels.value = sortedGroups.map(g => g[0])
+    chartValues.value = sortedGroups.map(g => Number(g[1].toFixed(2)))
 
     await nextTick()
     renderBarOrPie()
   } catch (e) {
-    console.error('Chart Load Error:', e)
-  } finally {
-    loading.value = false
+    console.error('Chart Render Error:', e)
   }
 }
+
 
 // ── Render: Bar or Pie ───────────────────────────────────────────────────────
 function renderBarOrPie() {
@@ -269,6 +244,7 @@ function renderBarOrPie() {
       }]
     },
     options: {
+      indexAxis: 'x',
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -289,16 +265,45 @@ function renderBarOrPie() {
 
 // ── Render: Line (from Comparison Panel data) ────────────────────────────────
 function renderLine() {
-  if (!canvasRef.value || !hasComparisonData.value) return
+  if (!canvasRef.value || (!store.docsA.length && !store.docsB.length)) return
   if (chartInstance) chartInstance.destroy()
 
-  const metric   = lineMetric.value || numericFields.value[0]?.name
-  const compData = store.comparisonData
+  const metric = lineMetric.value || numericFields.value[0]?.name
+  const groupByField = lineGroupBy.value
 
-  // comparisonData shape: [{ label, a_value, b_value, ... }]
-  const labels  = compData.map((d: any) => d.label ?? d.name ?? '')
-  const valuesA = compData.map((d: any) => d[`${metric}_a`] ?? d.a_value ?? 0)
-  const valuesB = compData.map((d: any) => d[`${metric}_b`] ?? d.b_value ?? 0)
+  let labels: string[] = []
+  let valuesA: number[] = []
+  let valuesB: number[] = []
+
+  if (!groupByField) {
+    // Mode: Row-by-Row Comparison
+    const maxRows = Math.max(store.docsA.length, store.docsB.length)
+    labels = Array.from({ length: maxRows }, (_, i) => `Row ${i + 1}`)
+    valuesA = store.docsA.map(d => parseFloat(d[metric]) || 0)
+    valuesB = store.docsB.map(d => parseFloat(d[metric]) || 0)
+  } else {
+    // Mode: Grouped Comparison (like Bar chart)
+    const mapA: Record<string, number> = {}
+    const mapB: Record<string, number> = {}
+
+    const safeParse = (v: any) => Array.isArray(v) ? v.join(', ') : String(v ?? 'Unknown')
+
+    for (const doc of store.docsA) {
+      const key = safeParse(doc[groupByField])
+      mapA[key] = (mapA[key] || 0) + (parseFloat(doc[metric]) || 0)
+    }
+    for (const doc of store.docsB) {
+      const key = safeParse(doc[groupByField])
+      mapB[key] = (mapB[key] || 0) + (parseFloat(doc[metric]) || 0)
+    }
+
+    const allKeys = Array.from(new Set([...Object.keys(mapA), ...Object.keys(mapB)]))
+    allKeys.sort() // Sort alphabetically to maintain consistent X-Axis across renders
+
+    labels = allKeys
+    valuesA = allKeys.map(k => Number((mapA[k] || 0).toFixed(2)))
+    valuesB = allKeys.map(k => Number((mapB[k] || 0).toFixed(2)))
+  }
 
   chartLabels.value = labels
 
@@ -352,29 +357,38 @@ function renderLine() {
 watch(chartType, () => {
   chartLabels.value = []
   chartValues.value = []
-  if (chartType.value === 'line') renderLine()
-  else refresh()
+  refresh()
 })
 
-watch(() => store.dateFrom, refresh)
-
-// When comparison data changes → re-render line chart if active
-watch(() => store.comparisonData, () => {
-  if (chartType.value === 'line') renderLine()
+watch(() => store.docs, () => {
+  if (props.mode === 'barPie') refresh()
 }, { deep: true })
+
+watch(() => store.dateFrom, () => {
+  if (props.mode === 'barPie') refresh()
+})
+
+// When comparison data changes → re-render line chart if in line mode
+watch(() => store.comparisonData, () => {
+  if (props.mode === 'line') renderLine()
+}, { deep: true })
+
 
 // ── Mounted ──────────────────────────────────────────────────────────────────
 onMounted(() => {
-  if (store.fields.length) {
+  if (store.fields.length && props.mode === 'barPie') {
     if (!store.chartField)   store.chartField   = numericFields.value[0]?.name
     if (!store.chartGroupBy) store.chartGroupBy = textFields.value[0]?.name
-    if (!lineMetric.value)   lineMetric.value   = numericFields.value[0]?.name
     refresh()
+  }
+  if (props.mode === 'line') {
+    lineMetric.value = numericFields.value[0]?.name || ''
+    renderLine()
   }
 })
 
 watch(() => store.fields, (newFields) => {
-  if (newFields.length && !chartLabels.value.length) {
+  if (newFields.length && props.mode === 'barPie' && !chartLabels.value.length) {
     if (!store.chartField)   store.chartField   = numericFields.value[0]?.name
     if (!store.chartGroupBy) store.chartGroupBy = textFields.value[0]?.name
     if (!lineMetric.value)   lineMetric.value   = numericFields.value[0]?.name

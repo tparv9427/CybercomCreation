@@ -95,13 +95,8 @@
           <div class="card-body shortcuts-grid">
             <router-link to="/reports" class="shortcut-card" @click="setTab('table')">
               <div class="sc-icon table">📋</div>
-              <div class="sc-label">Data Table</div>
-              <div class="sc-desc">Browse &amp; filter all indexed records</div>
-            </router-link>
-            <router-link to="/reports" class="shortcut-card" @click="setTab('chart')">
-              <div class="sc-icon chart">📊</div>
-              <div class="sc-label">Charts</div>
-              <div class="sc-desc">Visualise data with bar, line &amp; pie</div>
+              <div class="sc-label">Data Table & Charts</div>
+              <div class="sc-desc">Browse records and view bar/pie visualisations</div>
             </router-link>
             <router-link to="/reports" class="shortcut-card" @click="setTab('compare')">
               <div class="sc-icon compare">⇌</div>

@@ -25,10 +25,6 @@
         <span>Filter Builder</span>
       </router-link>
       <router-link to="/reports" class="nav-item sub" active-class="active">
-        <span class="icon">📊</span>
-        <span>Charts</span>
-      </router-link>
-      <router-link to="/reports" class="nav-item sub" active-class="active">
         <span class="icon">⇌</span>
         <span>Period Compare</span>
       </router-link>

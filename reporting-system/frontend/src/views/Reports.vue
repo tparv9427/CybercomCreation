@@ -14,11 +14,6 @@
         >📋 Data Table</button>
         <button
           class="btn-tab"
-          :class="{ active: activeTab === 'chart' }"
-          @click="activeTab = 'chart'"
-        >📊 Charts</button>
-        <button
-          class="btn-tab"
           :class="{ active: activeTab === 'compare' }"
           @click="activeTab = 'compare'"
         >⇌ Compare</button>
@@ -66,15 +61,18 @@
 
       <!-- Main Tab Content -->
       <div class="tab-content">
-        <!-- Data Table -->
         <transition name="fade" mode="out-in">
+          <!-- Data Table + Bar/Pie Charts -->
           <div v-if="activeTab === 'table'" key="table">
             <DataTable />
-          </div>
-
-          <!-- Charts -->
-          <div v-else-if="activeTab === 'chart'" key="chart">
-            <ChartRenderer />
+            <!-- Bar & Pie charts appear only after data is loaded -->
+            <div v-if="store.docs.length > 0" class="inline-chart-section">
+              <div class="inline-chart-header">
+                <span class="inline-chart-title">📊 Data Visualisation</span>
+                <span class="inline-chart-hint">Based on current report results</span>
+              </div>
+              <ChartRenderer mode="barPie" />
+            </div>
           </div>
 
           <!-- Period Comparison -->
@@ -98,7 +96,7 @@ import ComparisonTool from '../components/ComparisonTool.vue'
 
 const store = useReportStore()
 
-const activeTab   = ref<'table' | 'chart' | 'compare'>('table')
+const activeTab   = ref<'table' | 'compare'>('table')
 const filtersOpen = ref(true)
 const viewsOpen   = ref(false)
 const initLoading = ref(true)
@@ -229,4 +227,33 @@ onMounted(async () => {
 .fade-leave-active   { transition: opacity 0.2s ease; }
 .fade-enter-from,
 .fade-leave-to       { opacity: 0; }
+
+/* Inline chart section (below data table) */
+.inline-chart-section {
+  margin-top: 1.5rem;
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  padding: 1.25rem 1.5rem;
+}
+
+.inline-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.inline-chart-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.inline-chart-hint {
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
 </style>

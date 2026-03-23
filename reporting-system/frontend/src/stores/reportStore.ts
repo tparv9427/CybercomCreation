@@ -54,6 +54,8 @@ export const useReportStore = defineStore('report', {
     comparisonData: [] as any[],
     comparing: false,
     columnWidths: {} as Record<string, number>,
+    docsA: [] as Record<string, any>[],
+    docsB: [] as Record<string, any>[],
   }),
 
   actions: {
@@ -129,8 +131,6 @@ export const useReportStore = defineStore('report', {
     },
 
     async compareRanges(payload: {
-      field: string
-      groupBy: string
       dateField: string
       dateFromA: string
       dateToA: string
@@ -138,19 +138,47 @@ export const useReportStore = defineStore('report', {
       dateToB: string
     }) {
       this.comparing = true
-      const { data } = await axios.get(`${API}/report/compare`, {
-        params: {
-          field: payload.field,
-          group_by: payload.groupBy,
-          date_field: payload.dateField,
-          date_from_a: payload.dateFromA,
-          date_to_a: payload.dateToA,
-          date_from_b: payload.dateFromB,
-          date_to_b: payload.dateToB,
-        },
-      })
-      this.comparisonData = data
-      this.comparing = false
+      this.docsA = []
+      this.docsB = []
+      
+      const baseParams: Record<string, any> = {
+        rows: this.rows,
+        start: 0,
+        sort: this.sort,
+      }
+      if (this.filters.rules.length) {
+        baseParams.filters = JSON.stringify(this.filters)
+      }
+
+      try {
+        const [resA, resB] = await Promise.all([
+          axios.get(`${API}/report/data`, {
+            params: {
+              ...baseParams,
+              date_from: payload.dateFromA,
+              date_to:   payload.dateToA,
+              date_field: payload.dateField,
+            }
+          }),
+          axios.get(`${API}/report/data`, {
+            params: {
+              ...baseParams,
+              date_from: payload.dateFromB,
+              date_to:   payload.dateToB,
+              date_field: payload.dateField,
+            }
+          })
+        ])
+        
+        this.docsA = resA.data.docs
+        this.docsB = resB.data.docs
+        this.comparisonData = [{ completed: true }] // trigger dependent UI
+      } catch (e) {
+        console.error('Comparison error', e)
+        this.comparisonData = []
+      } finally {
+        this.comparing = false
+      }
     },
 
     async exportCsv() {

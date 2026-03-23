@@ -35,25 +35,13 @@
     <!-- Field selectors -->
     <div class="field-row">
       <div class="input-group">
-        <label>Metric</label>
-        <select v-model="field">
-          <option v-for="f in numericFields" :key="f.name" :value="f.name">{{ f.label }}</option>
-        </select>
-      </div>
-      <div class="input-group">
-        <label>Group by</label>
-        <select v-model="groupBy">
-          <option v-for="f in textFields" :key="f.name" :value="f.name">{{ f.label }}</option>
-        </select>
-      </div>
-      <div class="input-group">
         <label>Date field</label>
         <select v-model="dateField">
           <option v-for="f in dateFields" :key="f.name" :value="f.name">{{ f.label }}</option>
         </select>
       </div>
       <button class="btn-compare" @click="compare" :disabled="store.comparing">
-        {{ store.comparing ? 'Comparing…' : '⇌ Compare' }}
+        {{ store.comparing ? 'Searching…' : '⇌ Fetch Comparison Data' }}
       </button>
     </div>
 
@@ -63,36 +51,65 @@
       <button class="shortcut" @click="setRelative('prev_year')">Same Period Last Year</button>
     </div>
 
-    <!-- Results Table -->
-    <div v-if="store.comparisonData.length" class="results-table-wrap">
-      <table class="results-table">
-        <thead>
-          <tr>
-            <th>Group</th>
-            <th>Period A</th>
-            <th>Period B</th>
-            <th>Δ Absolute</th>
-            <th>Δ %</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in store.comparisonData" :key="row.group">
-            <td class="td-group">{{ row.group }}</td>
-            <td>{{ row.period_a }}</td>
-            <td>{{ row.period_b }}</td>
-            <td :class="row.diff >= 0 ? 'positive' : 'negative'">
-              {{ row.diff >= 0 ? '+' : '' }}{{ row.diff }}
-            </td>
-            <td :class="row.pct_change >= 0 ? 'positive' : 'negative'">
-              {{ row.pct_change >= 0 ? '+' : '' }}{{ row.pct_change }}%
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Two Side-by-Side Results Tables -->
+    <div v-if="store.comparisonData.length && (store.docsA.length || store.docsB.length)" class="dual-tables-wrap">
+      
+      <!-- Table A -->
+      <div class="table-section">
+        <h4 class="table-title">Period A Data</h4>
+        <div class="scroll-table">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th v-for="col in store.selectedColumns" :key="col" class="col-hdr">{{ store.fields.find(f => f.name === col)?.label || col }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(doc, i) in store.docsA" :key="i">
+                <td v-for="col in store.selectedColumns" :key="col">{{ Array.isArray(doc[col]) ? doc[col].join(', ') : doc[col] }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="!store.docsA.length" class="empty-hint">No exact matches for Period A.</div>
+        </div>
+      </div>
+
+      <!-- Table B -->
+      <div class="table-section">
+        <h4 class="table-title">Period B Data</h4>
+        <div class="scroll-table">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th v-for="col in store.selectedColumns" :key="col" class="col-hdr">{{ store.fields.find(f => f.name === col)?.label || col }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(doc, i) in store.docsB" :key="i">
+                <td v-for="col in store.selectedColumns" :key="col">{{ Array.isArray(doc[col]) ? doc[col].join(', ') : doc[col] }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="!store.docsB.length" class="empty-hint">No exact matches for Period B.</div>
+        </div>
+      </div>
+
     </div>
 
-    <div v-else-if="!store.comparing" class="no-results">
-      Select two date ranges and click Compare to see results.
+    <div v-if="store.comparisonData.length && !store.docsA.length && !store.docsB.length" class="no-results">
+      No data found in either period matching your active filters.
+    </div>
+    <div v-else-if="!store.comparisonData.length && !store.comparing" class="no-results">
+      Select two date ranges and click Fetch Comparison Data to see results.
+    </div>
+
+    <!-- Line Chart (appears after comparison results) -->
+    <div v-if="store.docsA.length || store.docsB.length" class="inline-chart-section">
+      <div class="inline-chart-header">
+        <span class="inline-chart-title">📈 Metric Trend Comparison</span>
+        <span class="inline-chart-hint">Compare a specific metric row-by-row</span>
+      </div>
+      <ChartRenderer mode="line" />
     </div>
   </div>
 </template>
@@ -100,6 +117,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useReportStore } from '../stores/reportStore'
+import ChartRenderer from './ChartRenderer.vue'
 
 const store = useReportStore()
 
@@ -107,8 +125,6 @@ const dateFromA = ref('')
 const dateToA   = ref('')
 const dateFromB = ref('')
 const dateToB   = ref('')
-const field     = ref(store.chartField)
-const groupBy   = ref(store.chartGroupBy)
 const dateField = ref('Date_dt')
 
 const numericFields = computed(() => store.fields.filter(f => f.type === 'number'))
@@ -117,8 +133,6 @@ const dateFields    = computed(() => store.fields.filter(f => f.type === 'date')
 
 function compare() {
   store.compareRanges({
-    field: field.value,
-    groupBy: groupBy.value,
     dateField: dateField.value,
     dateFromA: dateFromA.value,
     dateToA: dateToA.value,
@@ -261,50 +275,103 @@ function fmt(d: Date) {
 .shortcut:hover { border-color: #6366f1; color: #4f46e5; }
 
 /* results */
-.results-table-wrap {
+.dual-tables-wrap {
+  display: flex;
+  gap: 2rem;
   overflow-x: auto;
+  align-items: flex-start;
+}
+
+.table-section {
+  flex: 1;
+  min-width: 45%;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.table-title {
+  padding: 0.75rem 1rem;
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6366f1;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.scroll-table {
+  max-height: 400px;
+  overflow: auto;
 }
 
 .results-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8125rem;
+  font-size: 0.8rem;
 }
 
-.results-table thead th {
+.col-hdr {
   padding: 0.6rem 1rem;
   text-align: left;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: #374151;
-  background: #f8fafc;
+  background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
-  font-weight: 700;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .results-table tbody td {
-  padding: 0.6rem 1rem;
+  padding: 0.5rem 1rem;
   border-bottom: 1px solid #f3f4f6;
-  color: #374151;
+  color: #4b5563;
+  white-space: nowrap;
 }
 
 .results-table tbody tr:hover td {
   background: #f0f4ff;
 }
 
-.td-group {
-  font-weight: 600;
-  color: #111827;
+.empty-hint {
+  padding: 1.5rem;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.85rem;
 }
-
-.positive { color: #16a34a; font-weight: 600; }
-.negative { color: #dc2626; font-weight: 600; }
 
 .no-results {
   text-align: center;
   padding: 2rem;
   color: #9ca3af;
   font-size: 0.875rem;
+}
+
+/* Inline line chart section */
+.inline-chart-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 2px dashed #e5e7eb;
+}
+
+.inline-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.inline-chart-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.inline-chart-hint {
+  font-size: 0.78rem;
+  color: #9ca3af;
 }
 </style>
