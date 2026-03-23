@@ -9,6 +9,13 @@ export default defineConfig({
     watch: {
       usePolling: true,
     },
+    proxy: {
+      '/api': {
+        target: 'http://app:80',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api'), // actually keep /api
+      }
+    }
   },
   build: {
     outDir: 'dist',

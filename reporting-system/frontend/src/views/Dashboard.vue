@@ -93,12 +93,12 @@
             <h2 class="card-title">Quick Launch</h2>
           </div>
           <div class="card-body shortcuts-grid">
-            <router-link to="/reports" class="shortcut-card" @click="setTab('table')">
+            <router-link to="/reports" class="shortcut-card">
               <div class="sc-icon table">📋</div>
               <div class="sc-label">Data Table & Charts</div>
               <div class="sc-desc">Browse records and view bar/pie visualisations</div>
             </router-link>
-            <router-link to="/reports" class="shortcut-card" @click="setTab('compare')">
+            <router-link to="/reports" class="shortcut-card">
               <div class="sc-icon compare">⇌</div>
               <div class="sc-label">Compare Periods</div>
               <div class="sc-desc">A vs B period metric comparison</div>
@@ -212,10 +212,6 @@ function detailText(details: any) {
   return Object.values(details).join(', ')
 }
 
-function setTab(_tab: string) {
-  // The Reports page reads this from localStorage on mount
-  localStorage.setItem('reports_tab', _tab)
-}
 </script>
 
 <style scoped>

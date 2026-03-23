@@ -17,6 +17,11 @@
           :class="{ active: activeTab === 'compare' }"
           @click="activeTab = 'compare'"
         >⇌ Compare</button>
+        <button
+          class="btn-tab"
+          :class="{ active: activeTab === 'pivot' }"
+          @click="activeTab = 'pivot'"
+        >📉 Pivot Table</button>
       </div>
     </div>
 
@@ -79,6 +84,11 @@
           <div v-else-if="activeTab === 'compare'" key="compare">
             <ComparisonTool />
           </div>
+
+          <!-- Pivot Table -->
+          <div v-else-if="activeTab === 'pivot'" key="pivot">
+            <PivotTable />
+          </div>
         </transition>
       </div>
     </template>
@@ -93,10 +103,11 @@ import SavedViews from '../components/SavedViews.vue'
 import DataTable from '../components/DataTable.vue'
 import ChartRenderer from '../components/ChartRenderer.vue'
 import ComparisonTool from '../components/ComparisonTool.vue'
+import PivotTable from '../components/PivotTable.vue'
 
 const store = useReportStore()
 
-const activeTab   = ref<'table' | 'compare'>('table')
+const activeTab   = ref<'table' | 'compare' | 'pivot'>('table')
 const filtersOpen = ref(true)
 const viewsOpen   = ref(false)
 const initLoading = ref(true)

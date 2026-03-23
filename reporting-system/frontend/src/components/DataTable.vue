@@ -33,7 +33,7 @@
           {{ store.loading ? '...' : '🔍 Search' }}
         </button>
         <span class="count-badge">{{ store.total.toLocaleString() }} rows</span>
-        <select v-model.number="store.rows" class="rows-select" @change="reload">
+        <select v-model.number="store.rows" class="rows-select" @change="store.resetPaging()">
           <option :value="25">25 / page</option>
           <option :value="50">50 / page</option>
           <option :value="100">100 / page</option>
@@ -92,7 +92,7 @@
             :class="{ 'row-alt': i % 2 === 1 }"
           >
             <td v-for="col in store.selectedColumns" :key="col">
-              {{ formatCell(doc[col]) }}
+              <span v-html="formatCell(doc[col])"></span>
             </td>
           </tr>
         </tbody>
@@ -101,13 +101,12 @@
 
     <!-- Pagination -->
     <div class="pagination" v-if="!store.loading && store.total > 0">
-      <button class="page-btn" :disabled="store.start === 0" @click="store.setPage(0)">«</button>
-      <button class="page-btn" :disabled="store.start === 0" @click="store.setPage(Math.max(0, store.start - store.rows))">‹</button>
+      <button class="page-btn-wide" :disabled="store.cursor === '*'" @click="store.resetPaging()">« Start</button>
+      <button class="page-btn-wide" :disabled="store.cursorHistory.length === 0" @click="store.prevPage()">‹ Prev</button>
       <span class="page-info">
-        {{ store.start + 1 }}–{{ Math.min(store.start + store.rows, store.total) }} of {{ store.total.toLocaleString() }}
+        Paging: {{ store.cursorHistory.length + 1 }}
       </span>
-      <button class="page-btn" :disabled="store.start + store.rows >= store.total" @click="store.setPage(store.start + store.rows)">›</button>
-      <button class="page-btn" :disabled="store.start + store.rows >= store.total" @click="store.setPage(Math.floor(store.total / store.rows) * store.rows)">»</button>
+      <button class="page-btn-wide" :disabled="!store.nextCursor || store.nextCursor === store.cursor" @click="store.nextPage()">Next ›</button>
     </div>
   </div>
 </template>
@@ -141,8 +140,7 @@ const sortField = ref('')
 const sortDir   = ref<'asc' | 'desc'>('asc')
 
 function reload() {
-  store.start = 0
-  store.fetchData()
+  store.resetPaging()
 }
 
 function labelFor(col: string) {
@@ -163,8 +161,7 @@ function setSort(col: string) {
     sortDir.value = 'asc'
   }
   store.sort = `${col} ${sortDir.value}`
-  store.start = 0
-  store.fetchData()
+  store.resetPaging()
 }
 
 // --- Column resize ---
@@ -452,6 +449,14 @@ function dropCol(_e: DragEvent, index: number) {
   max-width: 280px;
 }
 
+.report-table tbody td mark {
+  background: #fef08a;
+  color: #854d0e;
+  border-radius: 0.25rem;
+  padding: 0 0.15rem;
+  font-weight: 600;
+}
+
 .row-alt td { background: #fafafa; }
 
 .report-table tbody tr:hover td {
@@ -486,6 +491,20 @@ function dropCol(_e: DragEvent, index: number) {
 }
 .page-btn:hover:not(:disabled) { border-color: #6366f1; color: #4f46e5; }
 .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.page-btn-wide {
+  padding: 0 0.85rem;
+  height: 32px;
+  border-radius: 0.375rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  transition: all 0.15s;
+}
+.page-btn-wide:hover:not(:disabled) { border-color: #6366f1; color: #4f46e5; background: #f0f4ff; }
+.page-btn-wide:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .page-info {
   font-size: 0.8rem;

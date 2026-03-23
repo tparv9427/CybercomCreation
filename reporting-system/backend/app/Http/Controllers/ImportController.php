@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\ProcessCsvBatch;
+use App\Models\AuditLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\LazyCollection;
@@ -12,13 +13,15 @@ class ImportController extends Controller
     private const CHUNK_SIZE   = 1000;
     private const MAX_FILE_MB  = 200;
 
-    // Field type detection helpers (mirrors kafka_producer.php logic)
     private static array $forceStringKeywords = [
-        'sku','code','id','ref','num','number','name',
-        'title','desc','description','label','tag','type',
-        'category','model','part','item','upc','ean',
+        'sku','code','id','ref','num','number',
+        'label','tag','type','category','model','part','item','upc','ean',
         'barcode','zip','postal','phone','email','url',
         'slug','handle','key','token'
+    ];
+
+    private static array $forceTextKeywords = [
+        'desc','description','text','content','comment','feedback','review','about','title','name'
     ];
 
     public function upload(Request $request): JsonResponse
@@ -66,6 +69,8 @@ class ImportController extends Controller
             $totalJobs++;
         });
 
+        AuditLog::log('import_csv', ['file' => $fileId, 'jobs' => $totalJobs]);
+
         return response()->json([
             'message'    => "Import started successfully.",
             'file'       => $fileId,
@@ -102,19 +107,39 @@ class ImportController extends Controller
 
         $fieldMap = [];
         foreach ($headers as $i => $col) {
+            $colSamples = $samples[$i] ?? [];
             if ($col === 'id') {
                 $fieldMap[$col] = 'id';
             } elseif ($this->hasSolrSuffix($col)) {
                 $fieldMap[$col] = $col;
+            } elseif ($this->isForceText($col, $colSamples)) {
+                $fieldMap[$col] = $col . '_t';
             } elseif ($this->isForceString($col)) {
                 $fieldMap[$col] = $col . '_s';
             } else {
-                $type = $this->detectType($samples[$i] ?? []);
+                $type = $this->detectType($colSamples);
                 $fieldMap[$col] = $col . '_' . $type;
             }
         }
 
         return $fieldMap;
+    }
+
+    private function isForceText(string $field, array $samples): bool
+    {
+        $lower = strtolower($field);
+        foreach (self::$forceTextKeywords as $kw) {
+            if (str_contains($lower, $kw)) return true;
+        }
+
+        // Auto-detect based on average character length (> 50 chars)
+        $nonEmpty = array_filter($samples, fn($v) => $v !== '' && $v !== null);
+        if (count($nonEmpty) > 0) {
+            $avgLen = array_sum(array_map('strlen', $nonEmpty)) / count($nonEmpty);
+            if ($avgLen > 50) return true;
+        }
+
+        return false;
     }
 
     private function isForceString(string $field): bool

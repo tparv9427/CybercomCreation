@@ -29,10 +29,14 @@ class SolrClient
         return $response->json()['fields'] ?? [];
     }
 
-    public function add(array $docs, bool $commit = true): array
+    public function add(array $docs, bool $commit = true, ?int $commitWithin = null): array
     {
-        $url = "{$this->baseUrl}/update" . ($commit ? '?commit=true' : '');
-        $response = Http::post($url, $docs);
+        $params = [];
+        if ($commit) $params['commit'] = 'true';
+        if ($commitWithin) $params['commitWithin'] = $commitWithin;
+
+        $url = "{$this->baseUrl}/update";
+        $response = Http::post($url . '?' . http_build_query($params), $docs);
         return $response->json();
     }
 

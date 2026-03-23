@@ -1,7 +1,30 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-const API = 'http://localhost:9006/api'
+const API = '/api'
+
+// Central Axios setup with token interceptor
+const api = axios.create({ baseURL: API })
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// Auto-logout on 401
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.reload()
+    }
+    return Promise.reject(error)
+  }
+)
 
 export interface FilterRule {
   id: string
@@ -21,7 +44,8 @@ export interface FilterGroup {
 export interface Field {
   name: string
   label: string
-  type: 'text' | 'number' | 'date' | 'boolean'
+  type: 'text' | 'number' | 'date' | 'boolean' | 'select'
+  options?: string[]
 }
 
 export interface SavedView {
@@ -36,11 +60,15 @@ export interface SavedView {
 
 export const useReportStore = defineStore('report', {
   state: () => ({
+    user: JSON.parse(localStorage.getItem('user') || 'null'),
+    token: localStorage.getItem('token') || '',
     fields: [] as Field[],
     selectedColumns: [] as string[],
     docs: [] as Record<string, any>[],
     total: 0,
-    start: 0,
+    cursor: '*', // Initial cursor for first page
+    nextCursor: null as string | null,
+    cursorHistory: [] as string[],
     rows: 50,
     sort: 'id asc',
     filters: { id: 'root', type: 'group', combinator: 'AND', rules: [] } as FilterGroup,
@@ -59,8 +87,45 @@ export const useReportStore = defineStore('report', {
   }),
 
   actions: {
+    async login(email: string, password: string) {
+      this.loading = true
+      this.error = null
+      try {
+        const { data } = await api.post('/login', { email, password })
+        this.token = data.token
+        this.user = data.user
+        localStorage.setItem('token', data.token)
+        localStorage.setItem('user', JSON.stringify(data.user))
+        await this.fetchFields()
+        await this.fetchData()
+        return true
+      } catch (e: any) {
+        this.error = e.response?.data?.message || e.message || 'Invalid credentials'
+        return false
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async logout() {
+      try {
+        await api.post('/logout')
+      } finally {
+        this.token = ''
+        this.user = null
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        window.location.reload()
+      }
+    },
+
     async fetchFields() {
-      const { data } = await axios.get(`${API}/report/fields`)
+      const { data } = await api.get('/report/fields')
+      if (!Array.isArray(data)) {
+        console.error('Expected fields array but got:', data)
+        this.fields = []
+        return
+      }
       this.fields = data
       if (this.selectedColumns.length === 0) {
         this.selectedColumns = data.slice(0, 8).map((f: Field) => f.name)
@@ -79,7 +144,7 @@ export const useReportStore = defineStore('report', {
       try {
         const params: Record<string, any> = {
           rows: this.rows,
-          start: this.start,
+          cursor: this.cursor,
           sort: this.sort,
         }
         if (this.filters.rules.length) {
@@ -88,10 +153,10 @@ export const useReportStore = defineStore('report', {
         if (this.dateFrom) params.date_from = this.dateFrom
         if (this.dateTo) params.date_to = this.dateTo
         
-        const { data } = await axios.get(`${API}/report/data`, { params })
+        const { data } = await api.get('/report/data', { params })
         this.docs = data.docs
         this.total = data.total
-        this.start = data.start
+        this.nextCursor = data.nextCursor
       } catch (e: any) {
         this.error = e.message
       } finally {
@@ -100,12 +165,12 @@ export const useReportStore = defineStore('report', {
     },
 
     async fetchSavedViews() {
-      const { data } = await axios.get(`${API}/views`)
+      const { data } = await api.get('/views')
       this.savedViews = data
     },
 
     async saveView(name: string) {
-      await axios.post(`${API}/views`, {
+      await api.post('/views', {
         name,
         config: {
           selectedColumns: this.selectedColumns,
@@ -117,7 +182,7 @@ export const useReportStore = defineStore('report', {
     },
 
     async deleteView(id: number) {
-      await axios.delete(`${API}/views/${id}`)
+      await api.delete(`/views/${id}`)
       this.savedViews = this.savedViews.filter(v => v.id !== id)
     },
 
@@ -126,7 +191,8 @@ export const useReportStore = defineStore('report', {
       this.selectedColumns = cfg.selectedColumns ?? this.selectedColumns
       this.filters = cfg.filters ?? { id: 'root', type: 'group', combinator: 'AND', rules: [] }
       this.sort = cfg.sort ?? 'id asc'
-      this.start = 0
+      this.cursor = '*'
+      this.cursorHistory = []
       this.fetchData()
     },
 
@@ -143,16 +209,17 @@ export const useReportStore = defineStore('report', {
       
       const baseParams: Record<string, any> = {
         rows: this.rows,
-        start: 0,
+        cursor: '*',
         sort: this.sort,
       }
+      this.cursorHistory = []
       if (this.filters.rules.length) {
         baseParams.filters = JSON.stringify(this.filters)
       }
 
       try {
         const [resA, resB] = await Promise.all([
-          axios.get(`${API}/report/data`, {
+          api.get('/report/data', {
             params: {
               ...baseParams,
               date_from: payload.dateFromA,
@@ -160,7 +227,7 @@ export const useReportStore = defineStore('report', {
               date_field: payload.dateField,
             }
           }),
-          axios.get(`${API}/report/data`, {
+          api.get('/report/data', {
             params: {
               ...baseParams,
               date_from: payload.dateFromB,
@@ -188,7 +255,7 @@ export const useReportStore = defineStore('report', {
         if (this.filters.rules.length) {
           params.filters = JSON.stringify(this.filters)
         }
-        const resp = await axios.get(`${API}/report/export`, {
+        const resp = await api.get('/report/export', {
           params,
           responseType: 'blob',
         })
@@ -238,13 +305,63 @@ export const useReportStore = defineStore('report', {
       p.rules = p.rules.filter(r => r.id !== id)
     },
 
-    setPage(newStart: number) {
-      this.start = newStart
+    nextPage() {
+      if (this.nextCursor && this.nextCursor !== this.cursor) {
+        this.cursorHistory.push(this.cursor)
+        this.cursor = this.nextCursor
+        this.fetchData()
+      }
+    },
+
+    prevPage() {
+      if (this.cursorHistory.length > 0) {
+        this.cursor = this.cursorHistory.pop()!
+        this.fetchData()
+      }
+    },
+
+    resetPaging() {
+      this.cursor = '*'
+      this.cursorHistory = []
       this.fetchData()
     },
 
     setColWidth(col: string, width: number) {
       this.columnWidths[col] = width
+    },
+
+    async fetchFacets(metric: string, groupBy: string | string[]) {
+      if (!metric || !groupBy) return []
+      
+      const params: Record<string, any> = {
+        metric,
+        group_by: Array.isArray(groupBy) ? groupBy.join(',') : groupBy,
+        limit: 15,
+        date_from: this.dateFrom,
+        date_to: this.dateTo,
+      }
+      
+      if (this.filters.rules.length) {
+        params.filters = JSON.stringify(this.filters)
+      }
+
+      try {
+        const { data } = await api.get('/report/facets', { params })
+        return data || []
+      } catch (e) {
+        console.error('Failed to fetch facets:', e)
+        return []
+      }
+    },
+    async fetchSuggestions(field: string, q: string) {
+      if (!field || q.length < 1) return []
+      try {
+        const { data } = await api.get('/report/suggest', { params: { field, q } })
+        return data || []
+      } catch (e) {
+        console.error('Suggest error:', e)
+        return []
+      }
     },
   },
 })

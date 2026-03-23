@@ -104,25 +104,16 @@ menu_backend() {
             echo -e "  ${RED}✗ Laravel dependencies NOT installed — run option [1]${NC}"
         fi
 
-        if [ -f "backend/storage/sample_data.csv" ]; then
-            echo -e "  ${GREEN}✓ Sample CSV exists${NC}"
-        else
-            echo -e "  ${RED}✗ Sample CSV not found — run option [4]${NC}"
-        fi
-
         echo ""
         echo -e "  ${GREEN}[1]${NC} Install Laravel (first time / missing vendor)"
         echo -e "  ${GREEN}[2]${NC} Generate app key"
         echo -e "  ${GREEN}[3]${NC} Run database migrations"
-        echo -e "  ${GREEN}[4]${NC} Generate sample CSV (10k rows)"
-        echo -e "  ${GREEN}[5]${NC} Ingest CSV into Solr"
-        echo -e "  ${GREEN}[6]${NC} Run Kafka producer"
-        echo -e "  ${GREEN}[7]${NC} Clear Laravel caches"
-        echo -e "  ${GREEN}[8]${NC} Check Solr collection status"
+        echo -e "  ${GREEN}[4]${NC} Clear Laravel caches"
+        echo -e "  ${GREEN}[5]${NC} Check Solr collection status"
         print_divider
         echo -e "  ${YELLOW}[0]${NC} Back to main menu"
         echo ""
-        echo -ne "  Choose an option [0-8]: "
+        echo -ne "  Choose an option [0-5]: "
         read choice
 
         case $choice in
@@ -159,37 +150,13 @@ menu_backend() {
                 ;;
             4)
                 print_header
-                echo -e "  ${CYAN}▶ Generating sample CSV (10,000 rows)...${NC}"
-                echo -e "  ${DIM}  CMD: php scripts/generate_csv.php${NC}"
-                echo ""
-                docker compose exec app php /var/www/html/backend/scripts/generate_csv.php
-                press_any_key
-                ;;
-            5)
-                print_header
-                echo -e "  ${CYAN}▶ Ingesting CSV into Solr...${NC}"
-                echo -e "  ${DIM}  CMD: php scripts/ingest_to_solr.php${NC}"
-                echo ""
-                docker compose exec app php /var/www/html/backend/scripts/ingest_to_solr.php
-                press_any_key
-                ;;
-            6)
-                print_header
-                echo -e "  ${CYAN}▶ Running Kafka producer...${NC}"
-                echo -e "  ${DIM}  CMD: php scripts/kafka_producer.php${NC}"
-                echo ""
-                docker compose exec app php /var/www/html/backend/scripts/kafka_producer.php
-                press_any_key
-                ;;
-            7)
-                print_header
                 echo -e "  ${CYAN}▶ Clearing Laravel caches...${NC}"
                 echo -e "  ${DIM}  CMD: php artisan config:clear && cache:clear && route:clear${NC}"
                 echo ""
                 docker compose exec app bash -c "cd /var/www/html/backend && php artisan config:clear && php artisan cache:clear && php artisan route:clear"
                 press_any_key
                 ;;
-            8)
+            5)
                 print_header
                 echo -e "  ${CYAN}▶ Checking Solr collection status...${NC}"
                 echo -e "  ${DIM}  CMD: curl http://localhost:9007/solr/reports/select?q=*:*&rows=0${NC}"

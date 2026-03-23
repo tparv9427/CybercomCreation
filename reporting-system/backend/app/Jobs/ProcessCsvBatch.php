@@ -37,7 +37,7 @@ class ProcessCsvBatch implements ShouldQueue
         foreach ($this->rows as $index => $row) {
             $doc = $this->transform($row, $index);
             if (!empty($doc)) {
-                $kafka->produce($doc, $doc['id']);
+                $kafka->produce($doc, $doc['id'], $this->fileId);
                 $produced++;
             }
         }
@@ -53,8 +53,8 @@ class ProcessCsvBatch implements ShouldQueue
     private function transform(array $row, int $index): array
     {
         $doc = [
-            'id'        => $this->fileId . '_' . ($index + 1) . '_' . uniqid(),
-            'source_s'  => $this->fileId,
+            'id'        => $this->generateId($row, $index),
+            'source_s'  => ['set' => $this->fileId],
         ];
 
         foreach ($row as $col => $value) {
@@ -69,14 +69,36 @@ class ProcessCsvBatch implements ShouldQueue
                 continue;
             }
 
-            if (str_ends_with($targetKey, '_i'))       $doc[$targetKey] = (int) $value;
-            elseif (str_ends_with($targetKey, '_f'))   $doc[$targetKey] = (float) str_replace(',', '', $value);
-            elseif (str_ends_with($targetKey, '_b'))   $doc[$targetKey] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
-            elseif (str_ends_with($targetKey, '_dt'))  $doc[$targetKey] = date('Y-m-d\TH:i:s\Z', strtotime($value));
-            else                                        $doc[$targetKey] = (string) $value;
+            if (str_ends_with($targetKey, '_i'))       $doc[$targetKey] = ['set' => (int) $value];
+            elseif (str_ends_with($targetKey, '_f'))   $doc[$targetKey] = ['set' => (float) str_replace(',', '', $value)];
+            elseif (str_ends_with($targetKey, '_b'))   $doc[$targetKey] = ['set' => filter_var($value, FILTER_VALIDATE_BOOLEAN)];
+            elseif (str_ends_with($targetKey, '_dt'))  $doc[$targetKey] = ['set' => date('Y-m-d\TH:i:s\Z', strtotime($value))];
+            else                                        $doc[$targetKey] = ['set' => (string) $value];
         }
 
         return $doc;
+    }
+
+    /**
+     * Generate a deterministic ID based on row content or primary key.
+     */
+    private function generateId(array $row, int $index): string
+    {
+        $pkCandidates = ['sku', 'id', 'part_number', 'upc', 'uuid', 'vin'];
+        
+        foreach ($row as $col => $val) {
+            $cleaned = strtolower(str_replace([' ', '_', '-'], '', $col));
+            if (in_array($cleaned, $pkCandidates) && trim($val) !== '') {
+                // If we found a unique identifier, hash it.
+                return md5(trim($val));
+            }
+        }
+
+        // If no primary key is found, hash the whole row.
+        // We include the fileId if you want to keep data isolated by file, 
+        // OR exclude it if you want to deduplicate identical rows across multiple files.
+        // Defaulting to cross-file deduplication for cleaner data.
+        return md5(json_encode($row));
     }
 
     /**

@@ -14,19 +14,26 @@
         <span class="dot orange"></span>
         Kafka · port 9009
       </div>
-      <div class="user-chip">
-        <div class="avatar-circle">A</div>
-        <span>Admin</span>
+      <div class="user-chip" @click="showUserMenu = !showUserMenu">
+        <div class="avatar-circle">{{ store.user?.name?.[0] || 'U' }}</div>
+        <span>{{ store.user?.name || 'User' }}</span>
+        <div class="user-menu" v-if="showUserMenu">
+          <button @click="store.logout()" class="btn-logout">🚪 Logout</button>
+        </div>
       </div>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useReportStore } from '../stores/reportStore'
 
+const store = useReportStore()
 const route = useRoute()
+const showUserMenu = ref(false)
+
 const pageTitle = computed(() => {
   const map: Record<string, string> = {
     dashboard: 'Dashboard',
@@ -110,6 +117,44 @@ const pageTitle = computed(() => {
   font-weight: 600;
   color: #111827;
   cursor: pointer;
+  position: relative;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+.user-chip:hover {
+  background: #f3f4f6;
+}
+
+.user-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  z-index: 1000;
+  min-width: 140px;
+}
+
+.btn-logout {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #ef4444;
+  cursor: pointer;
+  border-radius: 0.375rem;
+  transition: background 0.2s;
+}
+.btn-logout:hover {
+  background: #fef2f2;
 }
 
 .avatar-circle {

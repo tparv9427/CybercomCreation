@@ -117,12 +117,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
-import axios from 'axios'
 import { useReportStore } from '../stores/reportStore'
 
 Chart.register(...registerables)
 
-const API   = 'http://localhost:9006/api'
 const store = useReportStore()
 
 // ── Refs ────────────────────────────────────────────────────────────────────
@@ -191,34 +189,19 @@ async function refresh() {
   }
   if (!store.chartField || !store.chartGroupBy) return
 
+  loading.value = true
   try {
-    const docs = store.docs || []
+    const data = await store.fetchFacets(store.chartField, store.chartGroupBy)
     
-    
-    // Group and aggregate top N rows locally
-    const grouped: Record<string, number> = {}
-    
-    for (const doc of docs) {
-      // Find values for the selected group & metric fields
-      const gVal = doc[store.chartGroupBy] ?? 'Unknown'
-      const mVal = parseFloat(doc[store.chartField]) || 0
-      
-      // Represent arrays (like multi-select strings) as joined strings
-      const key = Array.isArray(gVal) ? gVal.join(', ') : String(gVal)
-      
-      grouped[key] = (grouped[key] || 0) + mVal
-    }
-
-    // Convert map to arrays, sorted by value descending
-    const sortedGroups = Object.entries(grouped).sort((a, b) => b[1] - a[1])
-    
-    chartLabels.value = sortedGroups.map(g => g[0])
-    chartValues.value = sortedGroups.map(g => Number(g[1].toFixed(2)))
+    chartLabels.value = data.map((d: any) => d.label)
+    chartValues.value = data.map((d: any) => d.value)
 
     await nextTick()
     renderBarOrPie()
   } catch (e) {
     console.error('Chart Render Error:', e)
+  } finally {
+    loading.value = false
   }
 }
 

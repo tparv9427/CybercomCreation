@@ -55,10 +55,10 @@ class SolrQueryBuilder
             'doesNotContain'           => "-$field:*$escaped*",
             'beginsWith', 'starts_with' => "$field:$escaped*",
             'endsWith'                 => "$field:*$escaped",
-            '>', 'greaterThan'         => "$field:{{$value} TO *}",
-            '<', 'lessThan'            => "$field:{* TO {$value}}",
-            '>=', 'greaterThanOrEqual' => "$field:[{$value} TO *]",
-            '<=', 'lessThanOrEqual'    => "$field:[* TO {$value}]",
+            '>', 'greaterThan'         => "$field:{" . $this->val($field, $value, false) . " TO *}",
+            '<', 'lessThan'            => "$field:{* TO " . $this->val($field, $value, true) . "}",
+            '>=', 'greaterThanOrEqual' => "$field:[" . $this->val($field, $value, false) . " TO *]",
+            '<=', 'lessThanOrEqual'    => "$field:[* TO " . $this->val($field, $value, true) . "]",
             'between'                  => $this->buildBetween($field, $value),
             'in'                       => $this->buildIn($field, $value),
             'notIn'                    => $this->buildNotIn($field, $value),
@@ -72,9 +72,30 @@ class SolrQueryBuilder
     {
         $parts = explode(',', $value);
         if (count($parts) === 2) {
-            return "$field:[{$parts[0]} TO {$parts[1]}]";
+            $v1 = $this->val($field, $parts[0], false);
+            $v2 = $this->val($field, $parts[1] ?: 'NOW', true);
+            return "$field:[$v1 TO $v2]";
         }
-        return "$field:\"$value\"";
+        return "$field:\"" . $this->escape($value) . "\"";
+    }
+
+    private function val(string $field, string $val, bool $isEnd): string
+    {
+        if (str_ends_with($field, '_dt')) {
+            return $this->formatDate($val, $isEnd);
+        }
+        return $val;
+    }
+
+    private function formatDate(string $date, bool $isEnd): string
+    {
+        if (!$date || $date === '*' || $date === 'NOW') return $date ?: '*';
+        try {
+            $dt = new \DateTime($date);
+            return $isEnd ? $dt->format('Y-m-d\T23:59:59\Z') : $dt->format('Y-m-d\T00:00:00\Z');
+        } catch (\Exception $e) {
+            return '*';
+        }
     }
 
     private function buildIn(string $field, string $value): string

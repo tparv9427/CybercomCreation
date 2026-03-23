@@ -2,58 +2,52 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SavedView;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 
 class SavedViewController extends Controller
 {
     public function index(): JsonResponse
     {
-        $views = DB::table('saved_views')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($view) {
-                $view->config = json_decode($view->config, true);
-                return $view;
-            });
-
-        return response()->json($views);
+        return response()->json(SavedView::orderBy('created_at', 'desc')->get());
     }
 
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
+        $data = $request->validate([
             'name'   => 'required|string|max:255',
             'config' => 'required|array',
         ]);
 
-        $id = DB::table('saved_views')->insertGetId([
-            'name'       => $request->get('name'),
-            'config'     => json_encode($request->get('config')),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $view = SavedView::create($data);
 
-        \App\Models\AuditLog::create([
-            'action' => 'save_view',
-            'ip_address' => $request->ip(),
-            'details' => ['view_name' => $request->get('name')]
-        ]);
+        AuditLog::log('save_view', ['view_name' => $view->name, 'view_id' => $view->id]);
 
         return response()->json([
-            'id'      => $id,
+            'id'      => $view->id,
             'message' => 'View saved successfully',
         ], 201);
     }
 
     public function destroy(int $id): JsonResponse
     {
-        $deleted = DB::table('saved_views')->delete($id);
+        // Only Admin can delete views
+        if (!auth()->user()->hasRole('Admin')) {
+            return response()->json(['message' => 'Unauthorized. Admin role required.'], 403);
+        }
 
-        if (!$deleted) {
+        $view = SavedView::find($id);
+
+        if (!$view) {
             return response()->json(['message' => 'View not found'], 404);
         }
+
+        $view_name = $view->name;
+        $view->delete();
+
+        AuditLog::log('delete_view', ['view_name' => $view_name, 'view_id' => $id]);
 
         return response()->json(['message' => 'View deleted successfully']);
     }

@@ -43,10 +43,20 @@ class ReportController extends Controller
         }
 
         $fields = [];
+        $stringFields = array_filter(array_keys($uniqueFields), fn($f) => str_ends_with($f, '_s'));
+        
+        // Single pass facet for all string fields to detect categorical options
+        $facetConfig = [];
+        foreach ($stringFields as $sf) {
+            $facetConfig[$sf] = ['type' => 'terms', 'field' => $sf, 'limit' => 51];
+        }
+        $facetResult = $this->solr->query(['q' => '*:*', 'rows' => 0, 'json.facet' => json_encode($facetConfig)]);
+        $facets = $facetResult['facets'] ?? [];
+
         foreach (array_keys($uniqueFields) as $name) {
-            
-            // Map Solr suffixes to frontend types
             $type = 'text';
+            $options = null;
+
             if (str_ends_with($name, '_f') || str_ends_with($name, '_i') || str_ends_with($name, '_l')) {
                 $type = 'number';
             } elseif (str_ends_with($name, '_dt')) {
@@ -54,38 +64,49 @@ class ReportController extends Controller
             } elseif (str_ends_with($name, '_b')) {
                 $type = 'boolean';
             } elseif (str_ends_with($name, '_s')) {
-                $type = 'text'; // Keep as text or select
+                // If it's a string with limited unique values, it's categorical
+                $buckets = $facets[$name]['buckets'] ?? [];
+                if (!empty($buckets) && count($buckets) <= 50) {
+                    $type = 'select';
+                    $options = array_map(fn($b) => $b['val'], $buckets);
+                    sort($options);
+                }
             }
 
-            // Cleanup label for humans (remove suffixes and underscores)
-            $label = $name;
-            $label = preg_replace('/_(s|f|i|l|dt|b|t)$/', '', $label);
-            $label = ucwords(str_replace('_', ' ', $label));
+            $label = ucwords(str_replace('_', ' ', preg_replace('/_(s|f|i|l|dt|b|t)$/', '', $name)));
 
             $fields[] = [
-                'name'  => $name,
-                'label' => $label,
-                'type'  => $type,
+                'name'    => $name,
+                'label'   => $label,
+                'type'    => $type,
+                'options' => $options
             ];
         }
 
-        // Sort fields alphabetically by label
         usort($fields, fn($a, $b) => strcmp($a['label'], $b['label']));
-
         return response()->json($fields);
     }
     public function data(Request $request): JsonResponse
     {
-        $rows  = min((int) $request->get('rows', 50), 500);
-        $start = (int) $request->get('start', 0);
-        $sort  = $request->get('sort', 'id asc');
+        $rows   = min((int) $request->get('rows', 50), 500);
+        $cursor = $request->get('cursor', '*'); // Default to '*' for the first page
+        $sort   = $request->get('sort', 'id asc');
+
+        // cursorMark requires a unique field in the sort. Let's ensure 'id' is always there.
+        if (!str_contains($sort, 'id')) {
+            $sort .= ', id asc';
+        }
 
         $params = [
-            'q'    => '*:*',
-            'rows' => $rows,
-            'start'=> $start,
-            'sort' => $sort,
-            'wt'   => 'json',
+            'q'          => '*:*',
+            'rows'       => $rows,
+            'sort'       => $sort,
+            'cursorMark' => $cursor,
+            'wt'         => 'json',
+            'hl'         => 'true',
+            'hl.fl'      => '*',
+            'hl.simple.pre'  => '<mark>',
+            'hl.simple.post' => '</mark>',
         ];
 
         // Apply filters from react-querybuilder
@@ -95,7 +116,10 @@ class ReportController extends Controller
             $filterGroup = json_decode($filterJson, true);
             if (!empty($filterGroup['rules'])) {
                 $fq = $this->qb->build($filterGroup);
-                if ($fq) $fqList[] = $fq;
+                if ($fq) {
+                    $fqList[] = $fq;
+                    $params['hl.q'] = $fq;
+                }
             }
         }
 
@@ -113,36 +137,43 @@ class ReportController extends Controller
 
         $result = $this->solr->query($params);
 
+        $docs = $result['response']['docs'] ?? [];
+        $highlights = $result['highlighting'] ?? [];
+
+        foreach ($docs as &$doc) {
+            $id = $doc['id'] ?? null;
+            if ($id && isset($highlights[$id])) {
+                foreach ($highlights[$id] as $field => $snippets) {
+                    if (!empty($snippets)) {
+                        $doc[$field] = $snippets[0];
+                    }
+                }
+            }
+        }
+
         return response()->json([
-            'total' => $result['response']['numFound'] ?? 0,
-            'docs'  => $result['response']['docs']     ?? [],
-            'start' => $result['response']['start']    ?? 0,
+            'total'      => $result['response']['numFound']    ?? 0,
+            'docs'       => $docs,
+            'nextCursor' => $result['nextCursorMark']          ?? null,
         ]);
     }
 
     public function facets(Request $request): JsonResponse
     {
-        $metric    = $request->get('metric', 'Price_f');
-        $groupBy   = $request->get('group_by', 'Brand_Name_s');
-        $limit     = (int) $request->get('limit', 15);
+        $metric  = $request->get('metric', 'Price_f');
+        $groupBy = $request->get('group_by', 'Brand_Name_s');
+        $groups  = is_array($groupBy) ? $groupBy : explode(',', $groupBy);
+        $groups  = array_map('trim', array_filter($groups));
+        $limit   = (int) $request->get('limit', 15);
         $dateField = $request->get('date_field', 'Date_dt');
 
-        // JSON Facet for sub-aggregation
-        $jsonFacet = [
-            'categories' => [
-                'type'   => 'terms',
-                'field'  => $groupBy,
-                'limit'  => $limit,
-                'facet'  => [
-                    'y_val' => "avg($metric)"
-                ]
-            ]
-        ];
+        // Build Recursive JSON Facet
+        $jsonFacet = $this->buildPivotFacet($groups, $metric, $limit);
 
         $params = [
             'q'          => '*:*',
             'rows'       => 0,
-            'json.facet' => json_encode($jsonFacet),
+            'json.facet' => json_encode($jsonFacet['categories'] ?? []),
         ];
 
         // Apply filters & Date ranges
@@ -167,17 +198,95 @@ class ReportController extends Controller
 
         try {
             $result  = $this->solr->query($params);
-            $buckets = $result['facets']['categories']['buckets'] ?? [];
+            $buckets = $result['facets']['buckets'] ?? [];
             
-            $data = array_map(fn($b) => [
-                'label' => $b['val'],
-                'value' => round($b['y_val'] ?? 0, 2)
-            ], $buckets);
+            $data = $this->mapBuckets($buckets);
 
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function suggest(Request $request): JsonResponse
+    {
+        $field = $request->get('field');
+        $query = $request->get('q', '');
+        
+        if (!$field) {
+            return response()->json([]);
+        }
+
+        $jsonFacet = [
+            'suggestions' => [
+                'type'   => 'terms',
+                'field'  => $field,
+                'limit'  => 10,
+            ]
+        ];
+
+        if ($query !== '') {
+            $jsonFacet['suggestions']['prefix'] = $query;
+        }
+
+        $params = [
+            'q'          => '*:*',
+            'rows'       => 0,
+            'json.facet' => json_encode($jsonFacet),
+        ];
+
+        try {
+            $result  = $this->solr->query($params);
+            $buckets = $result['facets']['suggestions']['buckets'] ?? [];
+            $data    = array_map(fn($b) => $b['val'], $buckets);
+            return response()->json($data);
+        } catch (\Exception $e) {
+            return response()->json([]);
+        }
+    }
+
+    /**
+     * Recursive Facet Mapping
+     */
+    private function mapBuckets(array $buckets): array
+    {
+        return array_map(function ($b) {
+            $data = [
+                'label' => $b['val'],
+                'value' => round($b['y_val'] ?? 0, 2),
+            ];
+            
+            if (isset($b['sub_pivot']['buckets'])) {
+                $data['subs'] = $this->mapBuckets($b['sub_pivot']['buckets']);
+            }
+            
+            return $data;
+        }, $buckets);
+    }
+
+    /**
+     * Recursive Pivot Facet Builder
+     */
+    private function buildPivotFacet(array $fields, string $metric, int $limit): array
+    {
+        if (empty($fields)) return [];
+        $field = array_shift($fields);
+        
+        $facet = [
+            'type'   => 'terms',
+            'field'  => $field,
+            'limit'  => $limit,
+            'facet'  => [
+                'y_val' => "avg($metric)"
+            ]
+        ];
+        
+        if (!empty($fields)) {
+            // Further levels have smaller limits to avoid JSON bloat
+            $facet['facet']['sub_pivot'] = $this->buildPivotFacet($fields, $metric, 5)['categories'];
+        }
+        
+        return ['categories' => $facet];
     }
 
     public function compare(Request $request): JsonResponse

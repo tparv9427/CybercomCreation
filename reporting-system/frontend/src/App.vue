@@ -1,22 +1,27 @@
 <template>
-  <div class="app-container">
+  <div v-if="!isLoggedIn">
+    <Login />
+  </div>
+  <div v-else class="app-container">
     <Sidebar />
     <div class="main-wrapper">
       <Topbar />
       <main class="content-area">
-        <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
+        <router-view />
       </main>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import Topbar from './components/Topbar.vue';
+import Login from './components/Login.vue';
+import { useReportStore } from './stores/reportStore';
+
+const store = useReportStore();
+const isLoggedIn = computed(() => !!store.token);
 </script>
 
 <style scoped>

@@ -36,14 +36,26 @@ class KafkaService
 
     /**
      * Produce a single document to Kafka.
+     * We hash the partitionKey (filename) to ensure all rows from one file
+     * end up in the same Kafka partition.
      */
-    public function produce(array $data, ?string $key = null): void
+    public function produce(array $data, ?string $key = null, ?string $partitionKey = null): void
     {
         if (!$this->topic) {
             $this->initialize();
         }
 
-        $this->topic->produce(RD_KAFKA_PARTITION_UA, 0, json_encode($data), $key);
+        // Default to UA (Unassigned)
+        $partition = RD_KAFKA_PARTITION_UA;
+
+        if ($partitionKey !== null) {
+            // Map the filename to one of 10 logical partitions (0-9)
+            // Even if the topic has more/less, Kafka will re-map UA if this is out of range,
+            // but providing a consistent integer ensures grouping.
+            $partition = abs(crc32($partitionKey)) % 10;
+        }
+
+        $this->topic->produce($partition, 0, json_encode($data), $key);
         $this->producer->poll(0);
     }
 
