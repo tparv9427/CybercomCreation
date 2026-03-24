@@ -13,6 +13,7 @@ services:
       - "5173:5173"
     volumes:
       - .:/var/www/html
+    command: /var/www/html/docker/php/start.sh
     depends_on:
       - redis
       - solr
@@ -62,6 +63,24 @@ services:
     depends_on:
       - kafka
       - solr
+    networks:
+      - reporting_net
+    restart: unless-stopped
+
+  # ── Reverb (Laravel WebSocket Server) ───────────────────────────────────────
+  reverb:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: reporting-reverb
+    command: php /var/www/html/backend/artisan reverb:start --host=0.0.0.0 --port=8080 --debug
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - mysql
+      - redis
     networks:
       - reporting_net
     restart: unless-stopped

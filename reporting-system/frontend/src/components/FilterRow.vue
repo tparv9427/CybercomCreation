@@ -16,89 +16,91 @@
     </div>
 
     <div class="rules-list">
-      <div v-for="rule in group.rules" :key="rule.id" class="rule-item">
-        <!-- Render Rule -->
-        <div v-if="rule.type === 'rule'" class="rule-row">
-          <select v-model="rule.field" class="rule-select">
-            <option v-for="f in store.fields" :key="f.name" :value="f.name">{{ f.label }}</option>
-          </select>
-
-          <select v-model="rule.operator" class="rule-op">
-            <option v-for="op in operatorsFor(rule.field)" :key="op.val" :value="op.val">{{ op.label }}</option>
-          </select>
-
-          <template v-if="fieldType(rule.field) !== 'boolean'">
-            <!-- Range Filter (Between) -->
-            <div v-if="rule.operator === 'between'" class="range-row">
-              <input
-                :value="getRange(rule.value, 0)"
-                @input="e => setRange(rule, (e.target as any).value, 0)"
-                :type="inputType(rule.field)"
-                class="rule-input-sm"
-                placeholder="Min..."
-              />
-              <span class="range-sep">to</span>
-              <input
-                :value="getRange(rule.value, 1)"
-                @input="e => setRange(rule, (e.target as any).value, 1)"
-                :type="inputType(rule.field)"
-                class="rule-input-sm"
-                placeholder="Max..."
-              />
-            </div>
-
-            <!-- Single Select -->
-            <select 
-              v-else-if="fieldType(rule.field) === 'select'"
-              v-model="rule.value" 
-              class="rule-select rule-input"
-            >
-              <option value="">Select Option...</option>
-              <option v-for="opt in fieldOptions(rule.field)" :key="opt" :value="opt">{{ opt }}</option>
+      <transition-group name="fade">
+        <div v-for="rule in group.rules" :key="rule.id" class="rule-item">
+          <!-- Render Rule -->
+          <div v-if="rule.type === 'rule'" class="rule-row">
+            <select v-model="rule.field" class="rule-select">
+              <option v-for="f in store.fields" :key="f.name" :value="f.name">{{ f.label }}</option>
             </select>
 
-            <!-- Regular Text/Number/Date Input -->
-            <div v-else class="autocomplete-wrapper">
-              <input
-                v-model="rule.value"
-                :type="inputType(rule.field)"
-                class="rule-input"
-                placeholder="Value..."
-                @input="onInput(rule)"
-                @focus="onInput(rule)"
-                @blur="hideSuggestions(rule.id)"
-              />
-              <div v-if="suggestions[rule.id]?.length" class="suggestion-list">
-                <div 
-                  v-for="s in suggestions[rule.id]" 
-                  :key="s" 
-                  class="suggestion-item"
-                  @mousedown.prevent="selectSuggestion(rule, s)"
-                >
-                  {{ s }}
+            <select v-model="rule.operator" class="rule-op">
+              <option v-for="op in operatorsFor(rule.field)" :key="op.val" :value="op.val">{{ op.label }}</option>
+            </select>
+
+            <template v-if="fieldType(rule.field) !== 'boolean'">
+              <!-- Range Filter (Between) -->
+              <div v-if="rule.operator === 'between'" class="range-row">
+                <input
+                  :value="getRange(rule.value, 0)"
+                  @input="e => setRange(rule, (e.target as any).value, 0)"
+                  :type="inputType(rule.field)"
+                  class="rule-input-sm"
+                  placeholder="Min..."
+                />
+                <span class="range-sep">to</span>
+                <input
+                  :value="getRange(rule.value, 1)"
+                  @input="e => setRange(rule, (e.target as any).value, 1)"
+                  :type="inputType(rule.field)"
+                  class="rule-input-sm"
+                  placeholder="Max..."
+                />
+              </div>
+
+              <!-- Single Select -->
+              <select 
+                v-else-if="fieldType(rule.field) === 'select'"
+                v-model="rule.value" 
+                class="rule-select rule-input"
+              >
+                <option value="">Select Option...</option>
+                <option v-for="opt in fieldOptions(rule.field)" :key="opt" :value="opt">{{ opt }}</option>
+              </select>
+
+              <!-- Regular Text/Number/Date Input -->
+              <div v-else class="autocomplete-wrapper">
+                <input
+                  v-model="rule.value"
+                  :type="inputType(rule.field)"
+                  class="rule-input"
+                  placeholder="Value..."
+                  @input="onInput(rule)"
+                  @focus="onInput(rule)"
+                  @blur="hideSuggestions(rule.id)"
+                />
+                <div v-if="suggestions[rule.id]?.length" class="suggestion-list">
+                  <div 
+                    v-for="s in suggestions[rule.id]" 
+                    :key="s" 
+                    class="suggestion-item"
+                    @mousedown.prevent="selectSuggestion(rule, s)"
+                  >
+                    {{ s }}
+                  </div>
                 </div>
               </div>
-            </div>
-          </template>
+            </template>
 
-          <!-- Boolean select -->
-          <div v-else class="rule-input-wrapper">
-            <select v-model="rule.value" class="rule-select">
-              <option value="true">True</option>
-              <option value="false">False</option>
-            </select>
+            <!-- Boolean select -->
+            <div v-else class="rule-input-wrapper">
+              <select v-model="rule.value" class="rule-select">
+                <option value="true">True</option>
+                <option value="false">False</option>
+              </select>
+            </div>
+
+            <button class="btn-remove-rule" @click="remove(rule.id)">✕</button>
           </div>
 
-          <button class="btn-remove-rule" @click="remove(rule.id)">✕</button>
+          <!-- Recursively Render Group -->
+          <FilterRow 
+            v-else 
+            :group="(rule as any)" 
+            @remove="remove(rule.id)"
+          />
         </div>
-
-        <!-- Recursively Render Group -->
-        <FilterRow 
-          v-else 
-          :group="(rule as any)" 
-          @remove="remove(rule.id)"
-        />
-      </div>
+      </transition-group>
     </div>
   </div>
 </template>
@@ -345,5 +347,23 @@ function hideSuggestions(id: string) {
   align-items: center;
   justify-content: center;
   font-size: 0.7rem;
+}
+
+/* Transitions */
+.fade-move,
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.fade-leave-active {
+  position: absolute; /* Ensures smooth movement of remaining items */
+  width: 100%;
 }
 </style>

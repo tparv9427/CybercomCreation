@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     libzip-dev libonig-dev \
     libcurl4-openssl-dev libssl-dev \
     librdkafka-dev default-mysql-client \
-    && docker-php-ext-install pdo pdo_mysql zip mbstring \
+    && docker-php-ext-install pdo pdo_mysql zip mbstring pcntl \
     && docker-php-ext-configure curl \
     && docker-php-ext-install curl
 

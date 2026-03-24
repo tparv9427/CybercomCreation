@@ -32,6 +32,14 @@
         <span class="icon">💾</span>
         <span>Saved Views</span>
       </router-link>
+
+      <template v-if="isAdmin">
+        <div class="nav-title" style="margin-top:1.5rem">Management</div>
+        <router-link to="/admin" class="nav-item" active-class="active">
+          <span class="icon">🛡️</span>
+          <span>Admin Monitoring</span>
+        </router-link>
+      </template>
     </nav>
 
     <div class="sidebar-footer">
@@ -42,6 +50,14 @@
     </div>
   </aside>
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useReportStore } from '../stores/reportStore'
+
+const store = useReportStore()
+const isAdmin = computed(() => store.user?.roles?.includes('Admin'))
+</script>
 
 <style scoped>
 .sidebar {

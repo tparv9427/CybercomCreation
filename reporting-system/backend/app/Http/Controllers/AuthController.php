@@ -45,8 +45,20 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out successfully']);
     }
 
-    public function user(Request $request)
+    public function updateConfig(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user();
+        if ($request->has('column_config')) {
+            $user->column_config = $request->get('column_config');
+        }
+        if ($request->has('default_view_id')) {
+            $user->default_view_id = $request->get('default_view_id');
+        }
+        $user->save();
+
+        return response()->json([
+            'message' => 'Config updated successfully',
+            'user' => $user->load('roles')
+        ]);
     }
 }

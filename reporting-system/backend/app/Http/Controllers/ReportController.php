@@ -23,6 +23,14 @@ class ReportController extends Controller
         return $val;
     }
 
+    private function applyTenantFilter(array &$fqList): void
+    {
+        $user = auth()->user();
+        if ($user && $user->tenant_id) {
+            $fqList[] = "tenant_id_s:\"{$user->tenant_id}\"";
+        }
+    }
+
     public function fields(): JsonResponse
     {
         // Sample the first 100 docs to find all active fields from your 16 CSVs
@@ -103,14 +111,11 @@ class ReportController extends Controller
             'sort'       => $sort,
             'cursorMark' => $cursor,
             'wt'         => 'json',
-            'hl'         => 'true',
-            'hl.fl'      => '*',
-            'hl.simple.pre'  => '<mark>',
-            'hl.simple.post' => '</mark>',
         ];
 
         // Apply filters from react-querybuilder
         $fqList = [];
+        $hasFilters = false;
 
         if ($filterJson = $request->get('filters')) {
             $filterGroup = json_decode($filterJson, true);
@@ -118,7 +123,14 @@ class ReportController extends Controller
                 $fq = $this->qb->build($filterGroup);
                 if ($fq) {
                     $fqList[] = $fq;
+                    $hasFilters = true;
+                    
+                    // Only highlight if there's an actual filter
+                    $params['hl'] = 'true';
                     $params['hl.q'] = $fq;
+                    $params['hl.fl'] = '*_s,*_t'; // Only highlight strings and text
+                    $params['hl.simple.pre']  = '<mark>';
+                    $params['hl.simple.post' ] = '</mark>';
                 }
             }
         }
@@ -131,6 +143,8 @@ class ReportController extends Controller
             $fqList[]  = "{$dateField}:[$fmtFrom TO $fmtTo]";
         }
 
+        $this->applyTenantFilter($fqList);
+
         if (!empty($fqList)) {
             $params['fq'] = implode(' AND ', $fqList);
         }
@@ -140,12 +154,14 @@ class ReportController extends Controller
         $docs = $result['response']['docs'] ?? [];
         $highlights = $result['highlighting'] ?? [];
 
-        foreach ($docs as &$doc) {
-            $id = $doc['id'] ?? null;
-            if ($id && isset($highlights[$id])) {
-                foreach ($highlights[$id] as $field => $snippets) {
-                    if (!empty($snippets)) {
-                        $doc[$field] = $snippets[0];
+        if ($hasFilters && !empty($highlights)) {
+            foreach ($docs as &$doc) {
+                $id = $doc['id'] ?? null;
+                if ($id && isset($highlights[$id])) {
+                    foreach ($highlights[$id] as $field => $snippets) {
+                        if (!empty($snippets)) {
+                            $doc[$field] = $snippets[0];
+                        }
                     }
                 }
             }
@@ -192,6 +208,8 @@ class ReportController extends Controller
             $fqList[]  = "{$dateField}:[$fmtFrom TO $fmtTo]";
         }
 
+        $this->applyTenantFilter($fqList);
+
         if (!empty($fqList)) {
             $params['fq'] = implode(' AND ', $fqList);
         }
@@ -234,6 +252,12 @@ class ReportController extends Controller
             'rows'       => 0,
             'json.facet' => json_encode($jsonFacet),
         ];
+
+        $fqList = [];
+        $this->applyTenantFilter($fqList);
+        if (!empty($fqList)) {
+            $params['fq'] = implode(' AND ', $fqList);
+        }
 
         try {
             $result  = $this->solr->query($params);
@@ -335,13 +359,18 @@ class ReportController extends Controller
             'json.facet' => json_encode($jsonFacet),
         ];
 
+        $fqList = [];
+
         if ($filterJson = $request->get('filters')) {
             $filterGroup = json_decode($filterJson, true);
             if (!empty($filterGroup['rules'])) {
                 $fq = $this->qb->build($filterGroup);
-                if ($fq) $params['fq'] = $fq;
+                if ($fq) $fqList[] = $fq;
             }
         }
+
+        $this->applyTenantFilter($fqList);
+        if (!empty($fqList)) $params['fq'] = implode(' AND ', $fqList);
 
         $result = $this->solr->query($params);
         $buckets = $result['facets']['categories']['buckets'] ?? [];
@@ -393,6 +422,8 @@ class ReportController extends Controller
             $fmtTo     = $this->formatDate($request->get('date_to', 'NOW'), true);
             $fqList[]  = "{$dateField}:[$fmtFrom TO $fmtTo]";
         }
+
+        $this->applyTenantFilter($fqList);
 
         if (!empty($fqList)) {
             $params['fq'] = implode(' AND ', $fqList);

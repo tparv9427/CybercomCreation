@@ -50,6 +50,7 @@ class ImportController extends Controller
         // 3. Dispatch batches asynchronously (Pass 2) using LazyCollection
         //    LazyCollection reads one line at a time - never loads full file into memory.
         $totalJobs = 0;
+        $tenantId  = auth()->user()->tenant_id;
 
         LazyCollection::make(function () use ($path) {
             $handle = fopen($path, 'r');
@@ -60,12 +61,12 @@ class ImportController extends Controller
             fclose($handle);
         })
         ->chunk(self::CHUNK_SIZE)
-        ->each(function ($chunk) use ($fieldMap, $fileId, &$totalJobs) {
+        ->each(function ($chunk) use ($fieldMap, $fileId, $tenantId, &$totalJobs) {
             // Re-key each row array using original header names
             $headers = array_keys($fieldMap);
             $rows    = $chunk->map(fn($row) => array_combine($headers, array_pad($row, count($headers), '')))->all();
 
-            ProcessCsvBatch::dispatch($rows, $fieldMap, $fileId);
+            ProcessCsvBatch::dispatch($rows, $fieldMap, $fileId, $tenantId);
             $totalJobs++;
         });
 

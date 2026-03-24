@@ -39,6 +39,7 @@
           <option :value="100">100 / page</option>
         </select>
         <button class="btn-export" @click="store.exportCsv()">⬇ Export CSV</button>
+        <button class="btn-export print-hide" @click="printReport">🖨️ Print PDF</button>
       </div>
     </div>
 
@@ -141,6 +142,10 @@ const sortDir   = ref<'asc' | 'desc'>('asc')
 
 function reload() {
   store.resetPaging()
+}
+
+function printReport() {
+  window.print()
 }
 
 function labelFor(col: string) {
@@ -511,5 +516,57 @@ function dropCol(_e: DragEvent, index: number) {
   color: #6b7280;
   padding: 0 0.5rem;
   white-space: nowrap;
+}
+/* Print styles */
+@media print {
+  .print-hide,
+  .table-toolbar,
+  .pagination,
+  .dropdown,
+  .page-header,
+  .section-header, /* Hide accordion headers in print */
+  .sidebar,
+  .topbar {
+    display: none !important;
+  }
+
+  .data-table-wrapper {
+    border: none;
+    border-radius: 0;
+  }
+
+  .table-scroll {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .report-table {
+    font-size: 10pt;
+  }
+
+  .report-table thead th {
+    position: static;
+    background: #eee !important;
+    border-bottom: 2pt solid #000;
+  }
+
+  .report-table tbody td {
+    border-bottom: 1pt solid #ccc;
+    white-space: normal; /* allow wrap in print */
+    word-break: break-all;
+  }
+
+  /* Force charts onto new page if needed or keep together */
+  .inline-chart-section {
+    page-break-before: auto;
+    page-break-inside: avoid;
+    border: 1px solid #ccc;
+    padding: 20px;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
 }
 </style>

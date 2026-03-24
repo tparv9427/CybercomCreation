@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import Topbar from './components/Topbar.vue';
 import Login from './components/Login.vue';
@@ -22,6 +22,12 @@ import { useReportStore } from './stores/reportStore';
 
 const store = useReportStore();
 const isLoggedIn = computed(() => !!store.token);
+
+onMounted(() => {
+  if (isLoggedIn.value) {
+    store.setupEcho();
+  }
+});
 </script>
 
 <style scoped>

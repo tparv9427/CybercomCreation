@@ -26,6 +26,11 @@
     </div>
 
     <!-- Loading banner for fields -->
+    <div v-if="store.error" class="error-banner">
+      <span>⚠️ {{ store.error }}</span>
+      <button @click="store.error = null" class="btn-clear-error">✕</button>
+    </div>
+
     <div v-if="initLoading" class="init-loading">
       <div class="spinner"></div>
       <span>Connecting to Solr and loading fields…</span>
@@ -114,7 +119,11 @@ const initLoading = ref(true)
 
 onMounted(async () => {
   await store.fetchFields()
-  store.fetchData()
+  if (store.user?.default_view_id) {
+    await store.applyDefaultView()
+  } else {
+    store.fetchData()
+  }
   initLoading.value = false
 })
 </script>
@@ -203,6 +212,13 @@ onMounted(async () => {
   font-size: 0.7rem;
   font-weight: 700;
   padding: 0.1rem 0.5rem;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
 }
 
 .toggle-icon {
@@ -211,6 +227,35 @@ onMounted(async () => {
 }
 
 .tab-content { min-height: 300px; }
+
+/* Error banner */
+.error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: slideDown 0.3s ease-out;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-clear-error {
+  background: transparent;
+  color: #991b1b;
+  font-size: 1.1rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: background 0.15s;
+}
+.btn-clear-error:hover { background: #fee2e2; }
 
 /* init loading */
 .init-loading {
@@ -235,9 +280,9 @@ onMounted(async () => {
 
 /* tab transitions */
 .fade-enter-active,
-.fade-leave-active   { transition: opacity 0.2s ease; }
-.fade-enter-from,
-.fade-leave-to       { opacity: 0; }
+.fade-leave-active   { transition: all 0.25s ease; }
+.fade-enter-from     { opacity: 0; transform: translateY(10px); }
+.fade-leave-to       { opacity: 0; transform: translateY(-10px); }
 
 /* Inline chart section (below data table) */
 .inline-chart-section {

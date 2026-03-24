@@ -23,7 +23,10 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'tenant_id',
         'password',
+        'column_config',
+        'default_view_id',
     ];
 
     /**
@@ -46,6 +49,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'column_config' => 'array',
         ];
     }
 }

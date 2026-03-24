@@ -27,7 +27,8 @@ class ProcessCsvBatch implements ShouldQueue
     public function __construct(
         protected array $rows,
         protected array $fieldMap,
-        protected string $fileId
+        protected string $fileId,
+        protected ?string $tenantId = null
     ) {}
 
     public function handle(KafkaService $kafka): void
@@ -44,7 +45,7 @@ class ProcessCsvBatch implements ShouldQueue
 
         $kafka->flush();
 
-        Log::info("ProcessCsvBatch: Produced {$produced} messages for file [{$this->fileId}].");
+        Log::info("ProcessCsvBatch: Produced {$produced} messages for file [{$this->fileId}] (Tenant: {$this->tenantId}).");
     }
 
     /**
@@ -53,8 +54,9 @@ class ProcessCsvBatch implements ShouldQueue
     private function transform(array $row, int $index): array
     {
         $doc = [
-            'id'        => $this->generateId($row, $index),
-            'source_s'  => ['set' => $this->fileId],
+            'id'          => $this->generateId($row, $index),
+            'source_s'    => ['set' => $this->fileId],
+            'tenant_id_s' => ['set' => $this->tenantId ?? 'global'],
         ];
 
         foreach ($row as $col => $value) {

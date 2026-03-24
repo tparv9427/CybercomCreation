@@ -14,7 +14,7 @@ class KafkaConsumeCommand extends Command
      *          php artisan kafka:consume --batch-size=1000
      */
     protected $signature = 'kafka:consume
-                            {--batch-size=500 : Number of messages to collect before indexing into Solr}
+                            {--batch-size=1000 : Number of messages to collect before indexing into Solr}
                             {--idle-timeout=5 : Seconds of inactivity before flushing the current batch}';
 
     protected $description = 'Long-running Kafka consumer daemon. Reads from report_data_topic and indexes batches into Solr.';
@@ -151,6 +151,12 @@ class KafkaConsumeCommand extends Command
 
             if (($result['responseHeader']['status'] ?? 1) !== 0) {
                 throw new \Exception("Solr indexing failed: " . json_encode($result));
+            }
+
+            // Identify unique tenants in this batch & dispatch WebSocket events
+            $tenants = collect($docs)->pluck('tenant_id_s')->filter()->unique();
+            foreach ($tenants as $tenantId) {
+                \App\Events\SolrDataUpdated::dispatch($tenantId);
             }
 
             return 1;

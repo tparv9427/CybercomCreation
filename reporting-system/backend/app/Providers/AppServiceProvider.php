@@ -3,6 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\SavedView;
+use App\Models\ScheduledReport;
+use App\Observers\SavedViewObserver;
+use App\Observers\ScheduledReportObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        SavedView::observe(SavedViewObserver::class);
+        ScheduledReport::observe(ScheduledReportObserver::class);
     }
 }

@@ -51,6 +51,24 @@
       <button class="shortcut" @click="setRelative('prev_year')">Same Period Last Year</button>
     </div>
 
+    <!-- Comparison Summary (Aggregated Deltas) -->
+    <div v-if="store.docsA.length || store.docsB.length" class="summary-deltas">
+      <div v-for="col in numericFields" :key="col.name" class="delta-card">
+        <div class="delta-label">{{ col.label }}</div>
+        <div class="delta-values">
+          <div class="delta-main">
+             <span class="delta-valA">{{ formatNum(getAverage(store.docsA, col.name)) }}</span>
+             <span class="delta-sep">→</span>
+             <span class="delta-valB">{{ formatNum(getAverage(store.docsB, col.name)) }}</span>
+          </div>
+          <div class="delta-percent" :class="getDeltaClass(store.docsA, store.docsB, col.name)">
+            {{ getDeltaSymbol(store.docsA, store.docsB, col.name) }}
+            {{ getDeltaPercent(store.docsA, store.docsB, col.name) }}%
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Two Side-by-Side Results Tables -->
     <div v-if="store.comparisonData.length && (store.docsA.length || store.docsB.length)" class="dual-tables-wrap">
       
@@ -164,6 +182,41 @@ function setRelative(mode: 'prev_month' | 'prev_year') {
 
 function fmt(d: Date) {
   return d.toISOString().split('T')[0]
+}
+
+// ── Delta Helpers ───────────────────────────────────────────────────────────
+function getAverage(docs: any[], field: string): number {
+  if (!docs.length) return 0
+  const sum = docs.reduce((acc, d) => acc + (parseFloat(d[field]) || 0), 0)
+  return sum / docs.length
+}
+
+function getDeltaPercent(docsA: any[], docsB: any[], field: string): string {
+  const avgA = getAverage(docsA, field)
+  const avgB = getAverage(docsB, field)
+  if (avgA === 0) return avgB === 0 ? '0' : '100'
+  const diff = ((avgB - avgA) / avgA) * 100
+  return diff.toFixed(1)
+}
+
+function getDeltaSymbol(docsA: any[], docsB: any[], field: string): string {
+  const avgA = getAverage(docsA, field)
+  const avgB = getAverage(docsB, field)
+  if (avgB > avgA) return '▲'
+  if (avgB < avgA) return '▼'
+  return '•'
+}
+
+function getDeltaClass(docsA: any[], docsB: any[], field: string): string {
+  const avgA = getAverage(docsA, field)
+  const avgB = getAverage(docsB, field)
+  if (avgB > avgA) return 'trend-up'
+  if (avgB < avgA) return 'trend-down'
+  return 'trend-neutral'
+}
+
+function formatNum(val: number): string {
+  return val.toLocaleString(undefined, { maximumFractionDigits: 2 })
 }
 </script>
 
@@ -356,6 +409,60 @@ function fmt(d: Date) {
   padding-top: 1.25rem;
   border-top: 2px dashed #e5e7eb;
 }
+
+/* Deltas */
+.summary-deltas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.delta-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.65rem;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: transform 0.15s;
+}
+.delta-card:hover { transform: translateY(-2px); }
+
+.delta-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.delta-values {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delta-main {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.delta-sep { color: #94a3b8; font-weight: 400; }
+
+.delta-percent {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.trend-up { background: #dcfce7; color: #15803d; }
+.trend-down { background: #fee2e2; color: #b91c1c; }
+.trend-neutral { background: #f1f5f9; color: #475569; }
 
 .inline-chart-header {
   display: flex;

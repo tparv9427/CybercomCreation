@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import { initEcho } from '../utils/echo'
 
 const API = '/api'
 
@@ -51,6 +52,14 @@ export interface Field {
 export interface SavedView {
   id: number
   name: string
+  version: number
+  parent_id?: number
+  user_id?: number
+  is_public: boolean
+  user?: { name: string }
+  schedule?: { frequency: string }
+  tempFrequency?: string
+  created_at: string
   config: {
     selectedColumns: string[]
     filters: FilterGroup
@@ -81,12 +90,25 @@ export const useReportStore = defineStore('report', {
     chartGroupBy: '',
     comparisonData: [] as any[],
     comparing: false,
-    columnWidths: {} as Record<string, number>,
+    columnWidths: (JSON.parse(localStorage.getItem('user') || '{}')?.column_config || {}) as Record<string, number>,
     docsA: [] as Record<string, any>[],
     docsB: [] as Record<string, any>[],
+    currentViewId: null as number | null,
+    adminStats: null as any,
   }),
 
   actions: {
+    // ... existed actions ...
+
+    async fetchAdminStats() {
+      try {
+        const { data } = await api.get('/admin/stats')
+        this.adminStats = data
+      } catch (e: any) {
+        console.error('Failed to fetch admin stats:', e)
+        this.error = 'Failed to load administrative analytics.'
+      }
+    },
     async login(email: string, password: string) {
       this.loading = true
       this.error = null
@@ -94,10 +116,17 @@ export const useReportStore = defineStore('report', {
         const { data } = await api.post('/login', { email, password })
         this.token = data.token
         this.user = data.user
+        if (data.user.column_config) {
+          this.columnWidths = data.user.column_config
+        }
         localStorage.setItem('token', data.token)
         localStorage.setItem('user', JSON.stringify(data.user))
+        if (data.user.default_view_id) {
+          this.currentViewId = data.user.default_view_id
+        }
         await this.fetchFields()
         await this.fetchData()
+        this.setupEcho()
         return true
       } catch (e: any) {
         this.error = e.response?.data?.message || e.message || 'Invalid credentials'
@@ -165,28 +194,67 @@ export const useReportStore = defineStore('report', {
     },
 
     async fetchSavedViews() {
-      const { data } = await api.get('/views')
-      this.savedViews = data
+      this.error = null
+      try {
+        const { data } = await api.get('/views')
+        this.savedViews = data
+      } catch (e: any) {
+        this.error = 'Failed to fetch saved views.'
+      }
     },
 
-    async saveView(name: string) {
-      await api.post('/views', {
-        name,
-        config: {
-          selectedColumns: this.selectedColumns,
-          filters: this.filters,
-          sort: this.sort,
-        },
-      })
-      await this.fetchSavedViews()
+    async saveView(name: string, parentId?: number, isPublic: boolean = false) {
+      this.error = null
+      try {
+        const payload: any = {
+          name,
+          is_public: isPublic,
+          config: {
+            selectedColumns: this.selectedColumns,
+            filters: this.filters,
+            sort: this.sort,
+          },
+        }
+        if (parentId) {
+          payload.parent_id = parentId
+        }
+        const { data } = await api.post('/views', payload)
+        await this.fetchSavedViews()
+        this.currentViewId = data.id // Update active view to the new version
+      } catch (e: any) {
+        this.error = e.response?.data?.message || 'Failed to save view.'
+      }
+    },
+
+    async setSchedule(viewId: number, frequency: string) {
+      this.error = null
+      try {
+        await api.post(`/views/${viewId}/schedule`, { frequency })
+        await this.fetchSavedViews()
+      } catch (e: any) {
+        this.error = 'Failed to update schedule.'
+      }
     },
 
     async deleteView(id: number) {
-      await api.delete(`/views/${id}`)
-      this.savedViews = this.savedViews.filter(v => v.id !== id)
+      this.error = null
+      try {
+        await api.delete(`/views/${id}`)
+        this.savedViews = this.savedViews.filter(v => v.id !== id)
+        if (this.user?.default_view_id === id) {
+          this.user.default_view_id = null
+          localStorage.setItem('user', JSON.stringify(this.user))
+        }
+        if (this.currentViewId === id) {
+          this.currentViewId = null
+        }
+      } catch (e: any) {
+        this.error = 'Failed to delete view.'
+      }
     },
 
     applyView(view: SavedView) {
+      this.currentViewId = view.id
       const cfg = view.config
       this.selectedColumns = cfg.selectedColumns ?? this.selectedColumns
       this.filters = cfg.filters ?? { id: 'root', type: 'group', combinator: 'AND', rules: [] }
@@ -194,6 +262,31 @@ export const useReportStore = defineStore('report', {
       this.cursor = '*'
       this.cursorHistory = []
       this.fetchData()
+    },
+
+    async setDefaultView(id: number | null) {
+      try {
+        const { data } = await api.patch('/user/config', { default_view_id: id })
+        if (data && data.user) {
+          this.user = data.user
+          localStorage.setItem('user', JSON.stringify(data.user))
+        }
+      } catch (e) {
+        console.error('Failed to set default view:', e)
+      }
+    },
+
+    async applyDefaultView() {
+      if (!this.user?.default_view_id) return
+      if (this.savedViews.length === 0) {
+        await this.fetchSavedViews()
+      }
+      const defaultView = this.savedViews.find(v => v.id === this.user.default_view_id)
+      if (defaultView) {
+        this.applyView(defaultView) // applyView fetches data itself
+      } else {
+        this.fetchData()
+      }
     },
 
     async compareRanges(payload: {
@@ -328,6 +421,23 @@ export const useReportStore = defineStore('report', {
 
     setColWidth(col: string, width: number) {
       this.columnWidths[col] = width
+      
+      // Debounced save
+      if ((window as any).saveConfigTimeout) {
+        clearTimeout((window as any).saveConfigTimeout)
+      }
+      (window as any).saveConfigTimeout = setTimeout(() => {
+        api.patch('/user/config', { column_config: this.columnWidths })
+          .catch(err => console.error('Failed to save config:', err))
+          
+        // Update local storage user config to keep it in sync on reload
+        const userStr = localStorage.getItem('user')
+        if (userStr) {
+          const u = JSON.parse(userStr)
+          u.column_config = this.columnWidths
+          localStorage.setItem('user', JSON.stringify(u))
+        }
+      }, 500)
     },
 
     async fetchFacets(metric: string, groupBy: string | string[]) {
@@ -362,6 +472,26 @@ export const useReportStore = defineStore('report', {
         console.error('Suggest error:', e)
         return []
       }
+    },
+
+    setupEcho() {
+      if (!this.token || !this.user?.tenant_id) return
+      
+      const echo = initEcho(this.token)
+      const channel = echo.private(`tenant.${this.user.tenant_id}`)
+
+      channel.listen('SolrDataUpdated', (e: any) => {
+          console.log('Real-time Solr update received:', e)
+          this.fetchData()
+          this.fetchAdminStats()
+        })
+
+      channel.listen('ModelUpdated', (e: any) => {
+          console.log('Real-time MySQL update received:', e)
+          if (e.model === 'SavedView' || e.model === 'ScheduledReport') {
+            this.fetchSavedViews()
+          }
+        })
     },
   },
 })
